@@ -6,3 +6,6 @@ description = "Reserved for the spyne crate"
 license = "MIT"
 
 [dependencies]
+
+[features]
+text-gap-buffer = []
