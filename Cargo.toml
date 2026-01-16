@@ -1,0 +1,8 @@
+[package]
+name = "spyne"
+version = "0.0.0"
+edition = "2024"
+description = "Reserved for the spyne crate"
+license = "MIT"
+
+[dependencies]
