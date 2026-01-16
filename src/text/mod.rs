@@ -1,7 +1,11 @@
+// TODO: Remove this later when I actually publish
 // #[cfg(feature = "text-gap-buffer")]
-// Remove this later when I actually publish
 mod gap_buffer;
 pub use gap_buffer::GapBuffer;
+
+// #[cfg(feature = "text-cursor")]
+mod cursor;
+pub use cursor::Cursor;
 
 pub trait TextBuffer {
     fn create_buffer(gap_size: usize) -> Self where Self: Sized;

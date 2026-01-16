@@ -9,3 +9,4 @@ license = "MIT"
 
 [features]
 text-gap-buffer = []
+text-cursor = []
