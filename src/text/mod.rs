@@ -11,6 +11,6 @@ pub trait TextBuffer {
     fn create_buffer(gap_size: usize) -> Self where Self: Sized;
     fn insert(&mut self, pos: usize, char: char); 
     fn delete(&mut self, start: usize, len: usize);
-    fn read(&self) -> impl Iterator<Item = &char>;
+    fn read(&self, start: usize, end: usize) -> impl DoubleEndedIterator<Item = &char>;
     fn len(&self) -> usize;
 }

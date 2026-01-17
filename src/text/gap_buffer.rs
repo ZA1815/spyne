@@ -35,9 +35,20 @@ impl TextBuffer for GapBuffer {
         self.gap_end += len;
     }
     
-    fn read(&self) -> impl Iterator<Item = &char> {
-        let left = &self.buffer[0..self.gap_start];
-        let right = &self.buffer[self.gap_end..];
+    fn read(&self, start: usize, end: usize) -> impl DoubleEndedIterator<Item = &char> {
+        let len = self.buffer.len();
+        if start >= len {
+            panic!("GapBuffer: Read range out of bounds ({} >= {}).", start, len);
+        }
+        else if end > len {
+            panic!("GapBuffer: Read range out of bounds ({} > {}).", end, len)
+        }
+        else if start > end {
+            panic!("GapBuffer: Read range invalid ({} > {}).", start, end);
+        }
+        
+        let left = &self.buffer[start..self.gap_start];
+        let right = &self.buffer[self.gap_end..end];
         
         left.iter().chain(right.iter())
     }
