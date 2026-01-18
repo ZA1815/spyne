@@ -87,4 +87,52 @@ impl Cursor {
         
         self.move_left(offset);
     }
+    
+    pub fn delete_prev_word(&mut self, buffer: &mut impl TextBuffer) {
+        let line_from_start = buffer.read(0, self.position);
+        let mut in_word = false;
+        let mut offset = self.position;
+        for (i, char) in line_from_start.rev().enumerate() {
+            if *char != ' ' {
+                in_word = true;
+                continue;
+            }
+            if in_word {
+                offset = i;
+                break;
+            }
+        }
+        
+        self.move_left(offset);
+        buffer.delete(self.position, offset);
+    }
+    
+    pub fn delete_next_word(&mut self, buffer: &mut impl TextBuffer) {
+        let line_to_end = buffer.read(self.position, buffer.len());
+        let mut in_word = false;
+        let mut offset = buffer.len() - self.position;
+        for (i, char) in line_to_end.enumerate() {
+            if *char != ' ' {
+                in_word = true;
+                continue;
+            }
+            if in_word {
+                offset = i;
+                break;
+            }
+        }
+        
+        buffer.delete(self.position, offset);
+    }
+    
+    pub fn delete_to_line_start(&mut self, buffer: &mut impl TextBuffer) {
+        buffer.delete(0, self.position);
+        self.position = 0;
+    }
+    
+    pub fn delete_to_line_end(&self, buffer: &mut impl TextBuffer) {
+        buffer.delete(self.position, buffer.len() - self.position);
+    }
+    
+    // Implement yanking (kill) functions later
 }
