@@ -1,12 +1,16 @@
+use std::marker::PhantomData;
+
 use crate::text::TextBuffer;
 
-pub struct Cursor {
+pub struct Cursor<T: TextBuffer> {
+    buffer: PhantomData<T>,
     position: usize
 }
 
-impl Cursor {
+impl<T: TextBuffer> Cursor<T> {
     pub fn new() -> Self {
         Self {
+            buffer: PhantomData,
             position: 0
         }
     }
