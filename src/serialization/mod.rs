@@ -1,11 +1,14 @@
-use std::{borrow::Cow, marker::PhantomData, slice::IterMut};
-
 // #[cfg(feature = "serialization-binary")]
 mod binary;
+// #[cfg(feature = "serialization-binary")]
+pub use binary::BinarySerde;
+
+use std::{borrow::Cow, collections::{BTreeMap, HashMap, HashSet}, marker::PhantomData};
 
 trait Encode {
     fn encode(&self, encoder: &mut impl Encoder);
 }
+pub struct Bytes<'a>(pub &'a [u8]);
 
 impl Encode for u8 {
     fn encode(&self, encoder: &mut impl Encoder) {
@@ -87,9 +90,9 @@ impl Encode for char {
         encoder.write_u32(*self as u32);
     }
 }
-impl Encode for &[u8] {
+impl<'a> Encode for Bytes<'a> {
     fn encode(&self, encoder: &mut impl Encoder) {
-        encoder.write_bytes(*self);
+        encoder.write_bytes(self.0);
     }
 }
 impl<T: Encode> Encode for &[T] {
@@ -180,6 +183,36 @@ where
         (**self).encode(encoder);
     }
 }
+impl<T: Encode> Encode for HashSet<T> {
+    fn encode(&self, encoder: &mut impl Encoder) {
+        encoder.write_seq(self.len(), |enc| {
+            for val in self {
+                val.encode(enc);
+            }
+        });
+    }
+}
+impl<K: Encode, V: Encode> Encode for HashMap<K, V> {
+    fn encode(&self, encoder: &mut impl Encoder) {
+        encoder.write_seq(self.len(), |enc| {
+            for (k, v) in self {
+                k.encode(enc);
+                v.encode(enc);
+            }
+        });
+    }
+}
+impl<K: Encode, V: Encode> Encode for BTreeMap<K, V> {
+    fn encode(&self, encoder: &mut impl Encoder) {
+        encoder.write_seq(self.len(), |enc| {
+            for (k, v) in self {
+                k.encode(enc);
+                v.encode(enc);
+            }
+        });
+    }
+}
+// Add more implementations as use cases come up
 
 trait Encoder {
     fn write_u8(&mut self, n: u8);
