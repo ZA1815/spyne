@@ -5,10 +5,11 @@ pub use binary::BinarySerde;
 
 use std::{borrow::Cow, collections::{BTreeMap, HashMap, HashSet}, marker::PhantomData};
 
+pub struct Bytes<'a>(pub &'a [u8]);
+
 pub trait Encode {
     fn encode(&self, encoder: &mut impl Encoder);
 }
-pub struct Bytes<'a>(pub &'a [u8]);
 
 impl Encode for u8 {
     fn encode(&self, encoder: &mut impl Encoder) {
@@ -241,8 +242,103 @@ pub trait Encoder {
 }
 
 pub trait Decode {
-    fn decode(decoder: &mut impl Decoder) -> Self;
+    fn decode(decoder: &mut impl Decoder) -> Result<Self, String>
+    where Self: Sized;
 }
+
+impl Decode for u8 {
+    fn decode(decoder: &mut impl Decoder) -> Result<Self, String> {
+        decoder.read_u8()
+    }
+}
+impl Decode for u16 {
+    fn decode(decoder: &mut impl Decoder) -> Result<Self, String> {
+        decoder.read_u16()
+    }
+}
+impl Decode for u32 {
+    fn decode(decoder: &mut impl Decoder) -> Result<Self, String> {
+        decoder.read_u32()
+    }
+}
+impl Decode for u64 {
+    fn decode(decoder: &mut impl Decoder) -> Result<Self, String> {
+        decoder.read_u64()
+    }
+}
+impl Decode for u128 {
+    fn decode(decoder: &mut impl Decoder) -> Result<Self, String> {
+        decoder.read_u128()
+    }
+}
+impl Decode for usize {
+    fn decode(decoder: &mut impl Decoder) -> Result<Self, String> {
+        decoder.read_u64().map(|n| n as usize)
+    }
+}
+impl Decode for i8 {
+    fn decode(decoder: &mut impl Decoder) -> Result<Self, String> {
+        decoder.read_i8()
+    }
+}
+impl Decode for i16 {
+    fn decode(decoder: &mut impl Decoder) -> Result<Self, String> {
+        decoder.read_i16()
+    }
+}
+impl Decode for i32 {
+    fn decode(decoder: &mut impl Decoder) -> Result<Self, String> {
+        decoder.read_i32()
+    }
+}
+impl Decode for i64 {
+    fn decode(decoder: &mut impl Decoder) -> Result<Self, String> {
+        decoder.read_i64()
+    }
+}
+impl Decode for i128 {
+    fn decode(decoder: &mut impl Decoder) -> Result<Self, String> {
+        decoder.read_i128()
+    }
+}
+impl Decode for isize {
+    fn decode(decoder: &mut impl Decoder) -> Result<Self, String> {
+        decoder.read_i64().map(|n| n as isize)
+    }
+}
+impl Decode for f32 {
+    fn decode(decoder: &mut impl Decoder) -> Result<Self, String> {
+        decoder.read_f32()
+    }
+}
+impl Decode for f64 {
+    fn decode(decoder: &mut impl Decoder) -> Result<Self, String> {
+        decoder.read_f64()
+    }
+}
+impl Decode for bool {
+    fn decode(decoder: &mut impl Decoder) -> Result<Self, String> {
+        decoder.read_bool()
+    }
+}
+impl Decode for char {
+    fn decode(decoder: &mut impl Decoder) -> Result<Self, String> {
+        decoder.read_u32().and_then(|n| char::from_u32(n).ok_or_else(||format!("BinarySerde: Error during deserialization (char not a valid Unicode scalar: {})", n))) 
+    }
+}
+impl Decode for String {
+    fn decode(decoder: &mut impl Decoder) -> Result<Self, String> {
+        decoder.read_string()
+    }
+}
+impl<T: Decode> Decode for Vec<T> {
+    fn decode(decoder: &mut impl Decoder) -> Result<Self, String> {
+        decoder.read_seq(|dec, | {
+            for 
+        })
+    }
+}
+// Add more implementations as use cases come up, as well as returning borrowed data (optimization)
 
 pub trait Decoder {
     fn read_u8(&mut self) -> Result<u8, String>;
