@@ -11,3 +11,6 @@ license = "MIT"
 text-gap-buffer = ["text"]
 text-cursor = ["text"]
 text = []
+
+serialization-binary = ["serialization"]
+serialization = []
