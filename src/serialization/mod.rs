@@ -5,7 +5,7 @@ pub use binary::BinarySerde;
 
 use std::{borrow::Cow, collections::{BTreeMap, HashMap, HashSet}, marker::PhantomData};
 
-trait Encode {
+pub trait Encode {
     fn encode(&self, encoder: &mut impl Encoder);
 }
 pub struct Bytes<'a>(pub &'a [u8]);
@@ -214,7 +214,7 @@ impl<K: Encode, V: Encode> Encode for BTreeMap<K, V> {
 }
 // Add more implementations as use cases come up
 
-trait Encoder {
+pub trait Encoder {
     fn write_u8(&mut self, n: u8);
     fn write_u16(&mut self, n: u16);
     fn write_u32(&mut self, n: u32);
@@ -240,10 +240,32 @@ trait Encoder {
     where F: FnOnce(&mut Self);
 }
 
-trait Decode {
-    
+pub trait Decode {
+    fn decode(decoder: &mut impl Decoder) -> Self;
 }
 
-trait Decoder {
-    
+pub trait Decoder {
+    fn read_u8(&mut self) -> Result<u8, String>;
+    fn read_u16(&mut self) -> Result<u16, String>;
+    fn read_u32(&mut self) -> Result<u32, String>;
+    fn read_u64(&mut self) -> Result<u64, String>;
+    fn read_u128(&mut self) -> Result<u128, String>;
+    fn read_i8(&mut self) -> Result<i8, String>;
+    fn read_i16(&mut self) -> Result<i16, String>;
+    fn read_i32(&mut self) -> Result<i32, String>;
+    fn read_i64(&mut self) -> Result<i64, String>;
+    fn read_i128(&mut self) -> Result<i128, String>;
+    fn read_f32(&mut self) -> Result<f32, String>;
+    fn read_f64(&mut self) -> Result<f64, String>;
+    fn read_bool(&mut self) -> Result<bool, String>;
+    fn read_bytes(&mut self) -> Result<Vec<u8>, String>;
+    fn read_string(&mut self) -> Result<String, String>;
+    fn read_seq<F, T>(&mut self, f: F) -> Result<T, String>
+    where F: FnOnce(&mut Self, usize) -> Result<T, String>;
+    fn read_tuple<F, T>(&mut self, len: usize, f: F) -> Result<T, String>
+    where F: FnOnce(&mut Self) -> Result<T, String>;
+    fn read_struct<F, T>(&mut self, name: &str, fields: &[&str], f: F) -> Result<T, String>
+    where F: FnOnce(&mut Self) -> Result<T, String>;
+    fn read_enum<F, T>(&mut self, enum_name: &str, variants: &[&str], f: F) -> Result<T, String>
+    where F: FnOnce(&mut Self, u32) -> Result<T, String>;
 }
