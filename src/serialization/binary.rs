@@ -1,4 +1,4 @@
-use crate::serialization::{Decode, Decoder, Encode, Encoder};
+use crate::serialization::{Deserialize, Deserializer, Serialize, Serializer};
 
 pub struct BinarySerde {
     buffer: Vec<u8>,
@@ -26,19 +26,19 @@ impl BinarySerde {
         Ok(slice)
     }
     
-    pub fn encode<T: Encode>(item: &T) -> Result<Vec<u8>, String> {
+    pub fn serialize<T: Serialize>(item: &T) -> Result<Vec<u8>, String> {
         let mut serde = BinarySerde::new(None);
-        item.encode(&mut serde);
+        item.serialize(&mut serde);
         Ok(serde.buffer.clone())
     }
     
-    pub fn decode<T: Decode>(buffer: Vec<u8>) -> Result<T, String> {
+    pub fn deserialize<T: Deserialize>(buffer: Vec<u8>) -> Result<T, String> {
         let mut serde = BinarySerde::new(Some(buffer));
-        Ok(T::decode(&mut serde)?)
+        Ok(T::deserialize(&mut serde)?)
     }
 }
 
-impl Encoder for BinarySerde {
+impl Serializer for BinarySerde {
     fn write_u8(&mut self, n: u8) {
         self.buffer.push(n);
     }
@@ -124,7 +124,7 @@ impl Encoder for BinarySerde {
     }
 }
 
-impl Decoder for BinarySerde {
+impl Deserializer for BinarySerde {
     fn read_u8(&mut self) -> Result<u8, String> {
         Ok(u8::from_le_bytes(self.read_inc::<1>()?))
     }
@@ -231,7 +231,7 @@ impl Decoder for BinarySerde {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::serialization::{Encode, Encoder, Decode, Decoder};
+    use crate::serialization::{serialize, serializer, deserialize, deserializer};
     
     #[derive(Debug, PartialEq)]
     struct Widget {
@@ -240,23 +240,23 @@ mod test {
         values: Vec<i32>
     }
     
-    impl Encode for Widget {
-        fn encode(&self, encoder: &mut impl Encoder) {
-            encoder.write_u64(self.id);
-            encoder.write_string(&self.name);
-            encoder.write_seq(self.values.len(), |enc| {
+    impl serialize for Widget {
+        fn serialize(&self, serializer: &mut impl serializer) {
+            serializer.write_u64(self.id);
+            serializer.write_string(&self.name);
+            serializer.write_seq(self.values.len(), |enc| {
                 for item in &self.values {
-                    item.encode(enc);
+                    item.serialize(enc);
                 }
             });
         }
     }
     
-    impl Decode for Widget {
-        fn decode(decoder: &mut impl Decoder) -> Result<Self, String> {
-            let id = u64::decode(decoder)?;
-            let name = String::decode(decoder)?;
-            let values = Vec::decode(decoder)?;
+    impl deserialize for Widget {
+        fn deserialize(deserializer: &mut impl deserializer) -> Result<Self, String> {
+            let id = u64::deserialize(deserializer)?;
+            let name = String::deserialize(deserializer)?;
+            let values = Vec::deserialize(deserializer)?;
             Ok(Widget { id, name, values })
         }
     }
@@ -269,8 +269,8 @@ mod test {
             values: vec![5, 10, -2]
         };
         
-        let encoded = BinarySerde::encode(&original)?;
-        let new = BinarySerde::decode(encoded).unwrap();
+        let serialized = BinarySerde::serialize(&original)?;
+        let new = BinarySerde::deserialize(serialized).unwrap();
         
         assert_eq!(original, new);
         

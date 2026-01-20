@@ -1,219 +1,219 @@
-#[cfg(feature = "serialization-binary")]
+// #[cfg(feature = "serialization-binary")]
 mod binary;
-#[cfg(feature = "serialization-binary")]
+// #[cfg(feature = "serialization-binary")]
 pub use binary::BinarySerde;
 
 use std::{borrow::Cow, collections::{BTreeMap, HashMap, HashSet}, hash::Hash, marker::PhantomData};
 
 pub struct Bytes<'a>(pub &'a [u8]);
 
-pub trait Encode {
-    fn encode(&self, encoder: &mut impl Encoder);
+pub trait Serialize {
+    fn serialize(&self, serializer: &mut impl Serializer);
 }
 
-impl Encode for u8 {
-    fn encode(&self, encoder: &mut impl Encoder) {
-        encoder.write_u8(*self);
+impl Serialize for u8 {
+    fn serialize(&self, serializer: &mut impl Serializer) {
+        serializer.write_u8(*self);
     }
 }
-impl Encode for u16 {
-    fn encode(&self, encoder: &mut impl Encoder) {
-        encoder.write_u16(*self);
+impl Serialize for u16 {
+    fn serialize(&self, serializer: &mut impl Serializer) {
+        serializer.write_u16(*self);
     }
 }
-impl Encode for u32 {
-    fn encode(&self, encoder: &mut impl Encoder) {
-        encoder.write_u32(*self);
+impl Serialize for u32 {
+    fn serialize(&self, serializer: &mut impl Serializer) {
+        serializer.write_u32(*self);
     }
 }
-impl Encode for u64 {
-    fn encode(&self, encoder: &mut impl Encoder) {
-        encoder.write_u64(*self);
+impl Serialize for u64 {
+    fn serialize(&self, serializer: &mut impl Serializer) {
+        serializer.write_u64(*self);
     }
 }
-impl Encode for u128 {
-    fn encode(&self, encoder: &mut impl Encoder) {
-        encoder.write_u128(*self);
+impl Serialize for u128 {
+    fn serialize(&self, serializer: &mut impl Serializer) {
+        serializer.write_u128(*self);
     }
 }
-impl Encode for usize {
-    fn encode(&self, encoder: &mut impl Encoder) {
-        encoder.write_u64(*self as u64);
+impl Serialize for usize {
+    fn serialize(&self, serializer: &mut impl Serializer) {
+        serializer.write_u64(*self as u64);
     }
 }
-impl Encode for i8 {
-    fn encode(&self, encoder: &mut impl Encoder) {
-        encoder.write_i8(*self);
+impl Serialize for i8 {
+    fn serialize(&self, serializer: &mut impl Serializer) {
+        serializer.write_i8(*self);
     }
 }
-impl Encode for i16 {
-    fn encode(&self, encoder: &mut impl Encoder) {
-        encoder.write_i16(*self);
+impl Serialize for i16 {
+    fn serialize(&self, serializer: &mut impl Serializer) {
+        serializer.write_i16(*self);
     }
 }
-impl Encode for i32 {
-    fn encode(&self, encoder: &mut impl Encoder) {
-        encoder.write_i32(*self);
+impl Serialize for i32 {
+    fn serialize(&self, serializer: &mut impl Serializer) {
+        serializer.write_i32(*self);
     }
 }
-impl Encode for i64 {
-    fn encode(&self, encoder: &mut impl Encoder) {
-        encoder.write_i64(*self);
+impl Serialize for i64 {
+    fn serialize(&self, serializer: &mut impl Serializer) {
+        serializer.write_i64(*self);
     }
 }
-impl Encode for i128 {
-    fn encode(&self, encoder: &mut impl Encoder) {
-        encoder.write_i128(*self);
+impl Serialize for i128 {
+    fn serialize(&self, serializer: &mut impl Serializer) {
+        serializer.write_i128(*self);
     }
 }
-impl Encode for isize {
-    fn encode(&self, encoder: &mut impl Encoder) {
-        encoder.write_i64(*self as i64);
+impl Serialize for isize {
+    fn serialize(&self, serializer: &mut impl Serializer) {
+        serializer.write_i64(*self as i64);
     }
 }
-impl Encode for f32 {
-    fn encode(&self, encoder: &mut impl Encoder) {
-        encoder.write_f32(*self);
+impl Serialize for f32 {
+    fn serialize(&self, serializer: &mut impl Serializer) {
+        serializer.write_f32(*self);
     }
 }
-impl Encode for f64 {
-    fn encode(&self, encoder: &mut impl Encoder) {
-        encoder.write_f64(*self);
+impl Serialize for f64 {
+    fn serialize(&self, serializer: &mut impl Serializer) {
+        serializer.write_f64(*self);
     }
 }
-impl Encode for bool {
-    fn encode(&self, encoder: &mut impl Encoder) {
-        encoder.write_bool(*self);
+impl Serialize for bool {
+    fn serialize(&self, serializer: &mut impl Serializer) {
+        serializer.write_bool(*self);
     }
 }
-impl Encode for char {
-    fn encode(&self, encoder: &mut impl Encoder) {
-        encoder.write_u32(*self as u32);
+impl Serialize for char {
+    fn serialize(&self, serializer: &mut impl Serializer) {
+        serializer.write_u32(*self as u32);
     }
 }
-impl<'a> Encode for Bytes<'a> {
-    fn encode(&self, encoder: &mut impl Encoder) {
-        encoder.write_bytes(self.0);
+impl<'a> Serialize for Bytes<'a> {
+    fn serialize(&self, serializer: &mut impl Serializer) {
+        serializer.write_bytes(self.0);
     }
 }
-impl<T: Encode> Encode for &[T] {
-    fn encode(&self, encoder: &mut impl Encoder) {
-        encoder.write_seq(self.len(), |enc| {
+impl<T: Serialize> Serialize for &[T] {
+    fn serialize(&self, serializer: &mut impl Serializer) {
+        serializer.write_seq(self.len(), |enc| {
             for item in *self {
-                item.encode(enc);
+                item.serialize(enc);
             }
         });
     }
 }
-impl<T: Encode, const N: usize> Encode for &[T; N] {
-    fn encode(&self, encoder: &mut impl Encoder) {
-        encoder.write_seq(N, |enc| {
+impl<T: Serialize, const N: usize> Serialize for &[T; N] {
+    fn serialize(&self, serializer: &mut impl Serializer) {
+        serializer.write_seq(N, |enc| {
             for item in *self {
-                item.encode(enc);
+                item.serialize(enc);
             }
         });
     }
 }
-impl Encode for &str {
-    fn encode(&self, encoder: &mut impl Encoder) {
-        encoder.write_string(*self);
+impl Serialize for &str {
+    fn serialize(&self, serializer: &mut impl Serializer) {
+        serializer.write_string(*self);
     }
 }
-impl Encode for String {
-    fn encode(&self, encoder: &mut impl Encoder) {
-        encoder.write_string(self);
+impl Serialize for String {
+    fn serialize(&self, serializer: &mut impl Serializer) {
+        serializer.write_string(self);
     }
 }
-impl<T: Encode> Encode for &T {
-    fn encode(&self, encoder: &mut impl Encoder) {
-        (*self).encode(encoder);
+impl<T: Serialize> Serialize for &T {
+    fn serialize(&self, serializer: &mut impl Serializer) {
+        (*self).serialize(serializer);
     }
 }
-impl<T: Encode> Encode for Vec<T> {
-    fn encode(&self, encoder: &mut impl Encoder) {
-        encoder.write_seq(self.len(), |enc| {
+impl<T: Serialize> Serialize for Vec<T> {
+    fn serialize(&self, serializer: &mut impl Serializer) {
+        serializer.write_seq(self.len(), |enc| {
             for item in self {
-                item.encode(enc);
+                item.serialize(enc);
             }
         });
     }
 }
-impl<T: Encode> Encode for Option<T> {
-    fn encode(&self, encoder: &mut impl Encoder) {
+impl<T: Serialize> Serialize for Option<T> {
+    fn serialize(&self, serializer: &mut impl Serializer) {
         match self {
-            Some(data) => encoder.write_enum("Option", 1, "Some", |enc| {
-                data.encode(enc);
+            Some(data) => serializer.write_enum("Option", 1, "Some", |enc| {
+                data.serialize(enc);
             }),
-            None => encoder.write_enum("Option", 0, "None", |_| {}),
+            None => serializer.write_enum("Option", 0, "None", |_| {}),
         }
     }
 }
-impl<T: Encode, E: Encode> Encode for Result<T, E> {
-    fn encode(&self, encoder: &mut impl Encoder) {
+impl<T: Serialize, E: Serialize> Serialize for Result<T, E> {
+    fn serialize(&self, serializer: &mut impl Serializer) {
         match self {
-            Ok(val) => encoder.write_enum("Result", 0, "Ok", |enc| {
-                val.encode(enc);
+            Ok(val) => serializer.write_enum("Result", 0, "Ok", |enc| {
+                val.serialize(enc);
             }),
-            Err(err) => encoder.write_enum("Result", 1, "Err", |enc| {
-                err.encode(enc);
+            Err(err) => serializer.write_enum("Result", 1, "Err", |enc| {
+                err.serialize(enc);
             })
         }
     }
 }
-impl Encode for () {
-    fn encode(&self, encoder: &mut impl Encoder) {
-        encoder.write_tuple(0, |_| {});
+impl Serialize for () {
+    fn serialize(&self, serializer: &mut impl Serializer) {
+        serializer.write_tuple(0, |_| {});
     }
 }
-impl<T: Encode> Encode for PhantomData<T> {
-    fn encode(&self, encoder: &mut impl Encoder) {
-        encoder.write_tuple(0, |_| {});
+impl<T: Serialize> Serialize for PhantomData<T> {
+    fn serialize(&self, serializer: &mut impl Serializer) {
+        serializer.write_tuple(0, |_| {});
         // Treat it like a tuple, if a conflict arises, fix
     }
 }
-impl<T: Encode> Encode for Box<T> {
-    fn encode(&self, encoder: &mut impl Encoder) {
-        (**self).encode(encoder);
+impl<T: Serialize> Serialize for Box<T> {
+    fn serialize(&self, serializer: &mut impl Serializer) {
+        (**self).serialize(serializer);
     }
 }
-impl<'a, B> Encode for Cow<'a, B>
-where B: ToOwned + ?Sized, B: Encode {
-    fn encode(&self, encoder: &mut impl Encoder) {
-        (**self).encode(encoder);
+impl<'a, B> Serialize for Cow<'a, B>
+where B: ToOwned + ?Sized, B: Serialize {
+    fn serialize(&self, serializer: &mut impl Serializer) {
+        (**self).serialize(serializer);
     }
 }
-impl<T: Encode> Encode for HashSet<T> {
-    fn encode(&self, encoder: &mut impl Encoder) {
-        encoder.write_seq(self.len(), |enc| {
+impl<T: Serialize> Serialize for HashSet<T> {
+    fn serialize(&self, serializer: &mut impl Serializer) {
+        serializer.write_seq(self.len(), |enc| {
             for val in self {
-                val.encode(enc);
+                val.serialize(enc);
             }
         });
     }
 }
-impl<K: Encode, V: Encode> Encode for HashMap<K, V> {
-    fn encode(&self, encoder: &mut impl Encoder) {
-        encoder.write_seq(self.len(), |enc| {
+impl<K: Serialize, V: Serialize> Serialize for HashMap<K, V> {
+    fn serialize(&self, serializer: &mut impl Serializer) {
+        serializer.write_seq(self.len(), |enc| {
             for (k, v) in self {
-                k.encode(enc);
-                v.encode(enc);
+                k.serialize(enc);
+                v.serialize(enc);
             }
         });
     }
 }
-impl<K: Encode, V: Encode> Encode for BTreeMap<K, V> {
-    fn encode(&self, encoder: &mut impl Encoder) {
-        encoder.write_seq(self.len(), |enc| {
+impl<K: Serialize, V: Serialize> Serialize for BTreeMap<K, V> {
+    fn serialize(&self, serializer: &mut impl Serializer) {
+        serializer.write_seq(self.len(), |enc| {
             for (k, v) in self {
-                k.encode(enc);
-                v.encode(enc);
+                k.serialize(enc);
+                v.serialize(enc);
             }
         });
     }
 }
 // Add more implementations as use cases come up
 
-pub trait Encoder {
+pub trait Serializer {
     fn write_u8(&mut self, n: u8);
     fn write_u16(&mut self, n: u16);
     fn write_u32(&mut self, n: u32);
@@ -239,185 +239,185 @@ pub trait Encoder {
     where F: FnOnce(&mut Self);
 }
 
-pub trait Decode {
-    fn decode(decoder: &mut impl Decoder) -> Result<Self, String>
+pub trait Deserialize {
+    fn deserialize(deserializer: &mut impl Deserializer) -> Result<Self, String>
     where Self: Sized;
 }
 
-impl Decode for u8 {
-    fn decode(decoder: &mut impl Decoder) -> Result<Self, String> {
-        decoder.read_u8()
+impl Deserialize for u8 {
+    fn deserialize(deserializer: &mut impl Deserializer) -> Result<Self, String> {
+        deserializer.read_u8()
     }
 }
-impl Decode for u16 {
-    fn decode(decoder: &mut impl Decoder) -> Result<Self, String> {
-        decoder.read_u16()
+impl Deserialize for u16 {
+    fn deserialize(deserializer: &mut impl Deserializer) -> Result<Self, String> {
+        deserializer.read_u16()
     }
 }
-impl Decode for u32 {
-    fn decode(decoder: &mut impl Decoder) -> Result<Self, String> {
-        decoder.read_u32()
+impl Deserialize for u32 {
+    fn deserialize(deserializer: &mut impl Deserializer) -> Result<Self, String> {
+        deserializer.read_u32()
     }
 }
-impl Decode for u64 {
-    fn decode(decoder: &mut impl Decoder) -> Result<Self, String> {
-        decoder.read_u64()
+impl Deserialize for u64 {
+    fn deserialize(deserializer: &mut impl Deserializer) -> Result<Self, String> {
+        deserializer.read_u64()
     }
 }
-impl Decode for u128 {
-    fn decode(decoder: &mut impl Decoder) -> Result<Self, String> {
-        decoder.read_u128()
+impl Deserialize for u128 {
+    fn deserialize(deserializer: &mut impl Deserializer) -> Result<Self, String> {
+        deserializer.read_u128()
     }
 }
-impl Decode for usize {
-    fn decode(decoder: &mut impl Decoder) -> Result<Self, String> {
-        decoder.read_u64().map(|n| n as usize)
+impl Deserialize for usize {
+    fn deserialize(deserializer: &mut impl Deserializer) -> Result<Self, String> {
+        deserializer.read_u64().map(|n| n as usize)
     }
 }
-impl Decode for i8 {
-    fn decode(decoder: &mut impl Decoder) -> Result<Self, String> {
-        decoder.read_i8()
+impl Deserialize for i8 {
+    fn deserialize(deserializer: &mut impl Deserializer) -> Result<Self, String> {
+        deserializer.read_i8()
     }
 }
-impl Decode for i16 {
-    fn decode(decoder: &mut impl Decoder) -> Result<Self, String> {
-        decoder.read_i16()
+impl Deserialize for i16 {
+    fn deserialize(deserializer: &mut impl Deserializer) -> Result<Self, String> {
+        deserializer.read_i16()
     }
 }
-impl Decode for i32 {
-    fn decode(decoder: &mut impl Decoder) -> Result<Self, String> {
-        decoder.read_i32()
+impl Deserialize for i32 {
+    fn deserialize(deserializer: &mut impl Deserializer) -> Result<Self, String> {
+        deserializer.read_i32()
     }
 }
-impl Decode for i64 {
-    fn decode(decoder: &mut impl Decoder) -> Result<Self, String> {
-        decoder.read_i64()
+impl Deserialize for i64 {
+    fn deserialize(deserializer: &mut impl Deserializer) -> Result<Self, String> {
+        deserializer.read_i64()
     }
 }
-impl Decode for i128 {
-    fn decode(decoder: &mut impl Decoder) -> Result<Self, String> {
-        decoder.read_i128()
+impl Deserialize for i128 {
+    fn deserialize(deserializer: &mut impl Deserializer) -> Result<Self, String> {
+        deserializer.read_i128()
     }
 }
-impl Decode for isize {
-    fn decode(decoder: &mut impl Decoder) -> Result<Self, String> {
-        decoder.read_i64().map(|n| n as isize)
+impl Deserialize for isize {
+    fn deserialize(deserializer: &mut impl Deserializer) -> Result<Self, String> {
+        deserializer.read_i64().map(|n| n as isize)
     }
 }
-impl Decode for f32 {
-    fn decode(decoder: &mut impl Decoder) -> Result<Self, String> {
-        decoder.read_f32()
+impl Deserialize for f32 {
+    fn deserialize(deserializer: &mut impl Deserializer) -> Result<Self, String> {
+        deserializer.read_f32()
     }
 }
-impl Decode for f64 {
-    fn decode(decoder: &mut impl Decoder) -> Result<Self, String> {
-        decoder.read_f64()
+impl Deserialize for f64 {
+    fn deserialize(deserializer: &mut impl Deserializer) -> Result<Self, String> {
+        deserializer.read_f64()
     }
 }
-impl Decode for bool {
-    fn decode(decoder: &mut impl Decoder) -> Result<Self, String> {
-        decoder.read_bool()
+impl Deserialize for bool {
+    fn deserialize(deserializer: &mut impl Deserializer) -> Result<Self, String> {
+        deserializer.read_bool()
     }
 }
-impl Decode for char {
-    fn decode(decoder: &mut impl Decoder) -> Result<Self, String> {
-        decoder.read_u32().and_then(|n| char::from_u32(n).ok_or_else(||format!("BinarySerde: Error during deserialization (char not a valid Unicode scalar: {})", n))) 
+impl Deserialize for char {
+    fn deserialize(deserializer: &mut impl Deserializer) -> Result<Self, String> {
+        deserializer.read_u32().and_then(|n| char::from_u32(n).ok_or_else(||format!("BinarySerde: Error during deserialization (char not a valid Unicode scalar: {})", n))) 
     }
 }
-impl Decode for String {
-    fn decode(decoder: &mut impl Decoder) -> Result<Self, String> {
-        decoder.read_string()
+impl Deserialize for String {
+    fn deserialize(deserializer: &mut impl Deserializer) -> Result<Self, String> {
+        deserializer.read_string()
     }
 }
-impl<T: Decode> Decode for Vec<T> {
-    fn decode(decoder: &mut impl Decoder) -> Result<Self, String> {
-        decoder.read_seq(|dec, len| {
+impl<T: Deserialize> Deserialize for Vec<T> {
+    fn deserialize(deserializer: &mut impl Deserializer) -> Result<Self, String> {
+        deserializer.read_seq(|dec, len| {
             let mut vec = Vec::with_capacity(len);
             for _ in 0..len {
-                vec.push(T::decode(dec)?);
+                vec.push(T::deserialize(dec)?);
             }
             
             Ok(vec)
         })
     }
 }
-impl<T: Decode> Decode for Option<T> {
-    fn decode(decoder: &mut impl Decoder) -> Result<Self, String> {
-        decoder.read_enum("Option", &["None", "Some"], |dec, var| {
+impl<T: Deserialize> Deserialize for Option<T> {
+    fn deserialize(deserializer: &mut impl Deserializer) -> Result<Self, String> {
+        deserializer.read_enum("Option", &["None", "Some"], |dec, var| {
             match var {
                 0 => Ok(None),
-                1 => Ok(Some(T::decode(dec)?)),
+                1 => Ok(Some(T::deserialize(dec)?)),
                 _ => Err(format!("BinarySerde: Variant index out of bounds."))
             }
         })
     }
 }
-impl<T: Decode, E: Decode> Decode for Result<T, E> {
-    fn decode(decoder: &mut impl Decoder) -> Result<Self, String> {
-        decoder.read_enum("Result", &["Ok", "Err"], |dec, var| {
+impl<T: Deserialize, E: Deserialize> Deserialize for Result<T, E> {
+    fn deserialize(deserializer: &mut impl Deserializer) -> Result<Self, String> {
+        deserializer.read_enum("Result", &["Ok", "Err"], |dec, var| {
             match var {
-                0 => Ok(Ok(T::decode(dec)?)),
-                1 => Ok(Err(E::decode(dec)?)),
+                0 => Ok(Ok(T::deserialize(dec)?)),
+                1 => Ok(Err(E::deserialize(dec)?)),
                 _ => Err(format!("BinarySerde: Variant index out of bounds."))
             }
         })
     }
 }
-impl Decode for () {
-    fn decode(decoder: &mut impl Decoder) -> Result<Self, String> {
-        decoder.read_tuple(0, |_| { Ok(()) })
+impl Deserialize for () {
+    fn deserialize(deserializer: &mut impl Deserializer) -> Result<Self, String> {
+        deserializer.read_tuple(0, |_| { Ok(()) })
     }
 }
-impl<T: Decode> Decode for PhantomData<T> {
-    fn decode(decoder: &mut impl Decoder) -> Result<Self, String> {
-        decoder.read_tuple(0, |_| { Ok(PhantomData) })
+impl<T: Deserialize> Deserialize for PhantomData<T> {
+    fn deserialize(deserializer: &mut impl Deserializer) -> Result<Self, String> {
+        deserializer.read_tuple(0, |_| { Ok(PhantomData) })
     }
 }
-impl<T: Decode> Decode for Box<T> {
-    fn decode(decoder: &mut impl Decoder) -> Result<Self, String> {
-        Ok(Box::new(T::decode(decoder)?))
+impl<T: Deserialize> Deserialize for Box<T> {
+    fn deserialize(deserializer: &mut impl Deserializer) -> Result<Self, String> {
+        Ok(Box::new(T::deserialize(deserializer)?))
     }
 }
 // Change this when borrowed data decoding is implemented
-impl<'a, B> Decode for Cow<'a, B>
-where B: ToOwned + ?Sized, <B as ToOwned>::Owned: Decode {
-    fn decode(decoder: &mut impl Decoder) -> Result<Self, String> {
-        Ok(Cow::Owned(<B as ToOwned>::Owned::decode(decoder)?))
+impl<'a, B> Deserialize for Cow<'a, B>
+where B: ToOwned + ?Sized, <B as ToOwned>::Owned: Deserialize {
+    fn deserialize(deserializer: &mut impl Deserializer) -> Result<Self, String> {
+        Ok(Cow::Owned(<B as ToOwned>::Owned::deserialize(deserializer)?))
     }
 }
-impl<T> Decode for HashSet<T>
-where T: Hash + Eq, T: Decode {
-    fn decode(decoder: &mut impl Decoder) -> Result<Self, String> {
-        decoder.read_seq(|dec, len| {
+impl<T> Deserialize for HashSet<T>
+where T: Hash + Eq, T: Deserialize {
+    fn deserialize(deserializer: &mut impl Deserializer) -> Result<Self, String> {
+        deserializer.read_seq(|dec, len| {
             let mut hs = HashSet::with_capacity(len);
             for _ in 0..len {
-                hs.insert(T::decode(dec)?);
+                hs.insert(T::deserialize(dec)?);
             }
             
             Ok(hs)
         })
     }
 }
-impl<K, V> Decode for HashMap<K, V>
-where K: Hash + Eq, K: Decode, V: Decode {
-    fn decode(decoder: &mut impl Decoder) -> Result<Self, String> {
-        decoder.read_seq(|dec, len| {
+impl<K, V> Deserialize for HashMap<K, V>
+where K: Hash + Eq, K: Deserialize, V: Deserialize {
+    fn deserialize(deserializer: &mut impl Deserializer) -> Result<Self, String> {
+        deserializer.read_seq(|dec, len| {
             let mut hm = HashMap::with_capacity(len);
             for _ in 0..len {
-                hm.insert(K::decode(dec)?, V::decode(dec)?);
+                hm.insert(K::deserialize(dec)?, V::deserialize(dec)?);
             }
             
             Ok(hm)
         })
     }
 }
-impl<K, V> Decode for BTreeMap<K, V>
-where K: Ord, K: Decode, V: Decode {
-    fn decode(decoder: &mut impl Decoder) -> Result<Self, String> {
-        decoder.read_seq(|dec, len| {
+impl<K, V> Deserialize for BTreeMap<K, V>
+where K: Ord, K: Deserialize, V: Deserialize {
+    fn deserialize(deserializer: &mut impl Deserializer) -> Result<Self, String> {
+        deserializer.read_seq(|dec, len| {
             let mut bm = BTreeMap::new();
             for _ in 0..len {
-                bm.insert(K::decode(dec)?, V::decode(dec)?);
+                bm.insert(K::deserialize(dec)?, V::deserialize(dec)?);
             }
             
             Ok(bm)
@@ -426,7 +426,7 @@ where K: Ord, K: Decode, V: Decode {
 }
 // Add more implementations as use cases come up, as well as returning borrowed data (optimization)
 
-pub trait Decoder {
+pub trait Deserializer {
     fn read_u8(&mut self) -> Result<u8, String>;
     fn read_u16(&mut self) -> Result<u16, String>;
     fn read_u32(&mut self) -> Result<u32, String>;

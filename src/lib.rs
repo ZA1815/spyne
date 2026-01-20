@@ -1,5 +1,5 @@
-#[cfg(feature = "text")]
+// #[cfg(feature = "text")]
 pub mod text;
 
-#[cfg(feature = "serialization")]
+// #[cfg(feature = "serialization")]
 pub mod serialization;

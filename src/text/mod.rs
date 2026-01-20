@@ -1,11 +1,11 @@
-#[cfg(feature = "text-gapbuffer")]
+// #[cfg(feature = "text-gapbuffer")]
 mod gap_buffer;
-#[cfg(feature = "text-gapbuffer")]
+// #[cfg(feature = "text-gapbuffer")]
 pub use gap_buffer::GapBuffer;
 
-#[cfg(feature = "text-cursor")]
+// #[cfg(feature = "text-cursor")]
 mod cursor;
-#[cfg(feature = "text-cursor")]
+// #[cfg(feature = "text-cursor")]
 pub use cursor::Cursor;
 
 pub trait TextBuffer {
