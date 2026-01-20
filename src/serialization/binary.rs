@@ -1,4 +1,4 @@
-use crate::serialization::{Decoder, Encoder};
+use crate::serialization::{Decode, Decoder, Encode, Encoder};
 
 pub struct BinarySerde {
     buffer: Vec<u8>,
@@ -24,6 +24,17 @@ impl BinarySerde {
         let slice = self.buffer[self.read_index..self.read_index + N].try_into().unwrap();
         self.read_index += N;
         Ok(slice)
+    }
+    
+    pub fn encode<T: Encode>(item: &T) -> Result<Vec<u8>, String> {
+        let mut serde = BinarySerde::new(None);
+        item.encode(&mut serde);
+        Ok(serde.buffer.clone())
+    }
+    
+    pub fn decode<T: Decode>(buffer: Vec<u8>) -> Result<T, String> {
+        let mut serde = BinarySerde::new(Some(buffer));
+        Ok(T::decode(&mut serde)?)
     }
 }
 
@@ -214,5 +225,55 @@ impl Decoder for BinarySerde {
     where F: FnOnce(&mut Self, u32) -> Result<T, String> {
         let var_index = u32::from_le_bytes(self.read_inc::<4>()?);
         f(self, var_index)
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+    use crate::serialization::{Encode, Encoder, Decode, Decoder};
+    
+    #[derive(Debug, PartialEq)]
+    struct Widget {
+        id: u64,
+        name: String,
+        values: Vec<i32>
+    }
+    
+    impl Encode for Widget {
+        fn encode(&self, encoder: &mut impl Encoder) {
+            encoder.write_u64(self.id);
+            encoder.write_string(&self.name);
+            encoder.write_seq(self.values.len(), |enc| {
+                for item in &self.values {
+                    item.encode(enc);
+                }
+            });
+        }
+    }
+    
+    impl Decode for Widget {
+        fn decode(decoder: &mut impl Decoder) -> Result<Self, String> {
+            let id = u64::decode(decoder)?;
+            let name = String::decode(decoder)?;
+            let values = Vec::decode(decoder)?;
+            Ok(Widget { id, name, values })
+        }
+    }
+    
+    #[test]
+    fn test_serde() -> Result<(), String>{
+        let original = Widget {
+            id: 101,
+            name: "Wid".to_string(),
+            values: vec![5, 10, -2]
+        };
+        
+        let encoded = BinarySerde::encode(&original)?;
+        let new = BinarySerde::decode(encoded).unwrap();
+        
+        assert_eq!(original, new);
+        
+        Ok(())
     }
 }
