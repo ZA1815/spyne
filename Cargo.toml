@@ -14,3 +14,7 @@ text = []
 
 serialization-binary = ["serialization"]
 serialization = []
+
+syntax-macros-derive = ["syntax", "syntax-macros"]
+syntax-macros = ["syntax"]
+syntax = []
