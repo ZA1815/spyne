@@ -1,6 +1,6 @@
-// #[cfg(feature = "serialization-binary")]
+#[cfg(feature = "serialization-binary")]
 mod binary;
-// #[cfg(feature = "serialization-binary")]
+#[cfg(feature = "serialization-binary")]
 pub use binary::BinarySerde;
 
 use std::{borrow::Cow, collections::{BTreeMap, HashMap, HashSet}, hash::Hash, marker::PhantomData};

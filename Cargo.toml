@@ -1,6 +1,6 @@
 [package]
 name = "spyne"
-version = "0.1.0"
+version = "0.2.0"
 edition = "2024"
 description = "All-in-one toolkit"
 license = "MIT"
@@ -8,7 +8,7 @@ license = "MIT"
 [dependencies]
 
 [features]
-text-gap-buffer = ["text"]
+text-gapbuffer = ["text"]
 text-cursor = ["text"]
 text = []
 

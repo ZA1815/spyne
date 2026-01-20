@@ -1,6 +1,6 @@
-#[cfg(feature = "text-gap-buffer")]
+#[cfg(feature = "text-gapbuffer")]
 mod gap_buffer;
-#[cfg(feature = "text-gap-buffer")]
+#[cfg(feature = "text-gapbuffer")]
 pub use gap_buffer::GapBuffer;
 
 #[cfg(feature = "text-cursor")]
