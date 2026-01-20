@@ -3,7 +3,7 @@ mod binary;
 // #[cfg(feature = "serialization-binary")]
 pub use binary::BinarySerde;
 
-use std::{borrow::Cow, collections::{BTreeMap, HashMap, HashSet}, marker::PhantomData};
+use std::{borrow::Cow, collections::{BTreeMap, HashMap, HashSet}, hash::Hash, marker::PhantomData};
 
 pub struct Bytes<'a>(pub &'a [u8]);
 
@@ -161,13 +161,14 @@ impl<T: Encode, E: Encode> Encode for Result<T, E> {
     }
 }
 impl Encode for () {
-    fn encode(&self, _encoder: &mut impl Encoder) {
-        // No need to do anything for binary impl
+    fn encode(&self, encoder: &mut impl Encoder) {
+        encoder.write_tuple(0, |_| {});
     }
 }
 impl<T: Encode> Encode for PhantomData<T> {
-    fn encode(&self, _encoder: &mut impl Encoder) {
-        // No need to do anything for binary impl
+    fn encode(&self, encoder: &mut impl Encoder) {
+        encoder.write_tuple(0, |_| {});
+        // Treat it like a tuple, if a conflict arises, fix
     }
 }
 impl<T: Encode> Encode for Box<T> {
@@ -176,10 +177,7 @@ impl<T: Encode> Encode for Box<T> {
     }
 }
 impl<'a, B> Encode for Cow<'a, B>
-where
-    B: ToOwned + ?Sized,
-    B: Encode
-{
+where B: ToOwned + ?Sized, B: Encode {
     fn encode(&self, encoder: &mut impl Encoder) {
         (**self).encode(encoder);
     }
@@ -333,8 +331,96 @@ impl Decode for String {
 }
 impl<T: Decode> Decode for Vec<T> {
     fn decode(decoder: &mut impl Decoder) -> Result<Self, String> {
-        decoder.read_seq(|dec, | {
-            for 
+        decoder.read_seq(|dec, len| {
+            let mut vec = Vec::with_capacity(len);
+            for _ in 0..len {
+                vec.push(T::decode(dec)?);
+            }
+            
+            Ok(vec)
+        })
+    }
+}
+impl<T: Decode> Decode for Option<T> {
+    fn decode(decoder: &mut impl Decoder) -> Result<Self, String> {
+        decoder.read_enum("Option", &["None", "Some"], |dec, var| {
+            match var {
+                0 => Ok(None),
+                1 => Ok(Some(T::decode(dec)?)),
+                _ => Err(format!("BinarySerde: Variant index out of bounds."))
+            }
+        })
+    }
+}
+impl<T: Decode, E: Decode> Decode for Result<T, E> {
+    fn decode(decoder: &mut impl Decoder) -> Result<Self, String> {
+        decoder.read_enum("Result", &["Ok", "Err"], |dec, var| {
+            match var {
+                0 => Ok(Ok(T::decode(dec)?)),
+                1 => Ok(Err(E::decode(dec)?)),
+                _ => Err(format!("BinarySerde: Variant index out of bounds."))
+            }
+        })
+    }
+}
+impl Decode for () {
+    fn decode(decoder: &mut impl Decoder) -> Result<Self, String> {
+        decoder.read_tuple(0, |_| { Ok(()) })
+    }
+}
+impl<T: Decode> Decode for PhantomData<T> {
+    fn decode(decoder: &mut impl Decoder) -> Result<Self, String> {
+        decoder.read_tuple(0, |_| { Ok(PhantomData) })
+    }
+}
+impl<T: Decode> Decode for Box<T> {
+    fn decode(decoder: &mut impl Decoder) -> Result<Self, String> {
+        Ok(Box::new(T::decode(decoder)?))
+    }
+}
+// Change this when borrowed data decoding is implemented
+impl<'a, B> Decode for Cow<'a, B>
+where B: ToOwned + ?Sized, <B as ToOwned>::Owned: Decode {
+    fn decode(decoder: &mut impl Decoder) -> Result<Self, String> {
+        Ok(Cow::Owned(<B as ToOwned>::Owned::decode(decoder)?))
+    }
+}
+impl<T> Decode for HashSet<T>
+where T: Hash + Eq, T: Decode {
+    fn decode(decoder: &mut impl Decoder) -> Result<Self, String> {
+        decoder.read_seq(|dec, len| {
+            let mut hs = HashSet::with_capacity(len);
+            for _ in 0..len {
+                hs.insert(T::decode(dec)?);
+            }
+            
+            Ok(hs)
+        })
+    }
+}
+impl<K, V> Decode for HashMap<K, V>
+where K: Hash + Eq, K: Decode, V: Decode {
+    fn decode(decoder: &mut impl Decoder) -> Result<Self, String> {
+        decoder.read_seq(|dec, len| {
+            let mut hm = HashMap::with_capacity(len);
+            for _ in 0..len {
+                hm.insert(K::decode(dec)?, V::decode(dec)?);
+            }
+            
+            Ok(hm)
+        })
+    }
+}
+impl<K, V> Decode for BTreeMap<K, V>
+where K: Ord, K: Decode, V: Decode {
+    fn decode(decoder: &mut impl Decoder) -> Result<Self, String> {
+        decoder.read_seq(|dec, len| {
+            let mut bm = BTreeMap::new();
+            for _ in 0..len {
+                bm.insert(K::decode(dec)?, V::decode(dec)?);
+            }
+            
+            Ok(bm)
         })
     }
 }
