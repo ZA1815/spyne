@@ -8,27 +8,9 @@ impl ParsedStruct {
             Delimiter::Brace => {
                 let mut inner_iter = TokenIter::new(body.1);
                 let mut f = Vec::<ParsedField>::new();
-                let mut ty = Vec::<TokenTree>::new();
                 while inner_iter.peek().is_some() {
-                    let name = inner_iter.expect_ident(None)?;
-                    inner_iter.expect_punct(Some(':'))?;
-                    
-                    while inner_iter.peek().is_some() {
-                        if inner_iter.peek().unwrap() == &TokenTree::Punct(',') {
-                            f.push(ParsedField { name: Some(name.to_owned()), ty: ty.to_vec() });
-                            ty.clear();
-                            inner_iter.next();
-                            break;
-                        }
-                        else {
-                            ty.push(inner_iter.peek().unwrap().to_owned());
-                            inner_iter.next();
-                        }
-                    }
-                    
-                    if !ty.is_empty() {
-                        f.push(ParsedField { name: Some(name.to_owned()), ty: ty.to_vec() });
-                    }
+                   let field = ParsedField::parse(&mut inner_iter, Delimiter::Brace)?;
+                   f.push(field);
                 }
                 
                 f
@@ -36,19 +18,9 @@ impl ParsedStruct {
             Delimiter::Paren => {
                 let mut inner_iter = TokenIter::new(body.1);
                 let mut f = Vec::<ParsedField>::new();
-                let mut ty = Vec::<TokenTree>::new();
                 while inner_iter.peek().is_some() {
-                    if inner_iter.peek().unwrap() == &TokenTree::Punct(',') {
-                        f.push(ParsedField { name: None, ty: ty.to_vec() });
-                        ty.clear();
-                    }
-                    else {
-                        ty.push(inner_iter.peek().unwrap().to_owned());
-                    }
-                    inner_iter.next();
-                }
-                if !ty.is_empty() {
-                    f.push(ParsedField { name: None, ty });
+                    let field = ParsedField::parse(&mut inner_iter, Delimiter::Paren)?;
+                    f.push(field);
                 }
                 
                 token_iter.expect_punct(Some(';'))?;
@@ -70,26 +42,117 @@ impl ParsedEnum {
             Delimiter::Brace => {
                 let mut outer_iter = TokenIter::new(body.1);
                 let mut v = Vec::<ParsedVariant>::new();
+                let mut index: u32 = 0;
                 while outer_iter.peek().is_some() {
                     let name = outer_iter.expect_ident(None)?;
-                    if outer_iter.peek().unwrap() == &TokenTree::Punct(',') {
-                        v.push(ParsedVariant { name, index: outer_iter.pos, None });
+                    if outer_iter.peek().is_none() {
+                        v.push(ParsedVariant { name: name.to_owned(), index, data: VariantData::Unit });
+                    }
+                    else if outer_iter.peek().unwrap() == &TokenTree::Punct(',') {
+                        v.push(ParsedVariant { name, index, data: VariantData::Unit });
                     }
                     else {
-                        let var_body = token_iter.expect_group(None)?;
-                        let data: Vec<VariantData> = match var_body.0 {
+                        let var_body = outer_iter.expect_group(None)?;
+                        let data: VariantData = match var_body.0 {
                             Delimiter::Paren => {
-                                let inner_iter = TokenIter::new(var_body.1);
+                                let mut inner_iter = TokenIter::new(var_body.1);
+                                let mut f = Vec::<ParsedField>::new();
+                                while inner_iter.peek().is_some() {
+                                    let field = ParsedField::parse(&mut inner_iter, Delimiter::Paren)?;
+                                    f.push(field);
+                                }
+                                
+                                VariantData::Tuple(f)
                             }
                             Delimiter::Brace => {
+                                let mut inner_iter = TokenIter::new(var_body.1);
+                                let mut f = Vec::<ParsedField>::new();
+                                while inner_iter.peek().is_some() {
+                                    let field = ParsedField::parse(&mut inner_iter, Delimiter::Brace)?;
+                                    f.push(field);
+                                }
                                 
+                                VariantData::Struct(f)
                             }
                             Delimiter::Bracket => return Err(ParseError::IncorrectDelimiter(Delimiter::Bracket))
-                        }
+                        };
+                        
+                        v.push(ParsedVariant { name, index, data });
                     }
+                    
+                    outer_iter.expect_punct(Some(','))?;
+                    index += 1;
                 }
+                
+                v
             }
             Delimiter::Paren => return Err(ParseError::IncorrectDelimiter(Delimiter::Paren)),
+            Delimiter::Bracket => return Err(ParseError::IncorrectDelimiter(Delimiter::Bracket))
+        };
+        
+        Ok(ParsedEnum { name, variants })
+    }
+}
+
+impl ParsedField {
+    fn parse(token_iter: &mut TokenIter, delimiter: Delimiter) -> Result<Self, ParseError> {
+        match delimiter {
+            Delimiter::Brace => {
+                let mut ty = Vec::<TokenTree>::new();
+                let mut depth: usize = 0;
+                let name = token_iter.expect_ident(None)?;
+                token_iter.expect_punct(Some(':'))?;
+                while token_iter.peek().is_some() {
+                    match token_iter.peek().unwrap() {
+                        &TokenTree::Punct('<') => { depth += 1; ty.push(token_iter.peek().unwrap().to_owned()); },
+                        &TokenTree::Punct('>') => {
+                            depth.checked_sub(1).map(|_| ()).ok_or(ParseError::UnmatchedAngleBracket)?;
+                            ty.push(token_iter.peek().unwrap().to_owned());
+                        },
+                        &TokenTree::Punct(',') => {
+                            if depth == 0 {
+                                token_iter.next();
+                                break;
+                            }
+                            else {
+                                ty.push(token_iter.peek().unwrap().to_owned());
+                            }
+                        },
+                        _ => ty.push(token_iter.peek().unwrap().to_owned())
+                    }
+                    
+                    token_iter.next();
+                }
+                
+                Ok(ParsedField { name: Some(name.to_owned()), ty })
+            }
+            Delimiter::Paren => {
+                let mut ty = Vec::<TokenTree>::new();
+                let mut depth: usize = 0;
+                while token_iter.peek().is_some() {
+                    match token_iter.peek().unwrap() {
+                        &TokenTree::Punct('<') => { depth += 1; ty.push(token_iter.peek().unwrap().to_owned()); }
+                        &TokenTree::Punct('>') => {
+                            depth.checked_sub(1).map(|_| ()).ok_or(ParseError::UnmatchedAngleBracket)?;
+                            ty.push(token_iter.peek().unwrap().to_owned());
+                        }
+                        &TokenTree::Punct(',') => {
+                            if depth == 0 {
+                                token_iter.next();
+                                break;
+                            }
+                            else {
+                                ty.push(token_iter.peek().unwrap().to_owned());
+                            }
+                        },
+                        _ => ty.push(token_iter.peek().unwrap().to_owned()),
+                    }
+                    
+                    token_iter.next();
+                }
+                
+                Ok(ParsedField { name: None, ty })
+            }
             Delimiter::Bracket => return Err(ParseError::IncorrectDelimiter(Delimiter::Bracket))
         }
     }

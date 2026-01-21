@@ -6,8 +6,8 @@ pub struct ParsedStruct {
 }
 
 pub struct ParsedEnum {
-    name: String,
-    variants: Vec<ParsedVariant>
+    pub name: String,
+    pub variants: Vec<ParsedVariant>
 }
 
 pub struct ParsedField {
@@ -18,11 +18,11 @@ pub struct ParsedField {
 pub struct ParsedVariant {
     pub name: String,
     pub index: u32,
-    pub data: Option<VariantData>
+    pub data: VariantData
 }
 
 pub enum VariantData {
     Unit,
-    Tuple(Vec<Vec<TokenTree>>),
+    Tuple(Vec<ParsedField>),
     Struct(Vec<ParsedField>)
 }

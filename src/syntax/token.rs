@@ -15,7 +15,7 @@ pub enum Delimiter {
 
 pub struct TokenIter {
     tokens: Vec<TokenTree>,
-    pub pos: usize
+    pos: usize
 }
 
 impl TokenIter {
@@ -25,6 +25,11 @@ impl TokenIter {
             pos: 0
         }
     }
+    
+    pub fn pos(&self) -> usize {
+        self.pos
+    }
+    
     pub fn next(&mut self) -> Option<&TokenTree> {
         if self.pos >= self.tokens.len() {
             return None;
@@ -149,5 +154,6 @@ pub enum ParseError {
     IncorrectPunct(char),
     IncorrectLiteral(String),
     IncorrectGroup(Delimiter, Vec<TokenTree>),
-    IncorrectDelimiter(Delimiter)
+    IncorrectDelimiter(Delimiter),
+    UnmatchedAngleBracket
 }
