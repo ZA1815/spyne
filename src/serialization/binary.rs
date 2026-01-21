@@ -231,7 +231,7 @@ impl Deserializer for BinarySerde {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::serialization::{serialize, serializer, deserialize, deserializer};
+    use crate::serialization::{Serialize, Serializer, Deserialize, Deserializer};
     
     #[derive(Debug, PartialEq)]
     struct Widget {
@@ -240,8 +240,8 @@ mod test {
         values: Vec<i32>
     }
     
-    impl serialize for Widget {
-        fn serialize(&self, serializer: &mut impl serializer) {
+    impl Serialize for Widget {
+        fn serialize(&self, serializer: &mut impl Serializer) {
             serializer.write_u64(self.id);
             serializer.write_string(&self.name);
             serializer.write_seq(self.values.len(), |enc| {
@@ -252,8 +252,8 @@ mod test {
         }
     }
     
-    impl deserialize for Widget {
-        fn deserialize(deserializer: &mut impl deserializer) -> Result<Self, String> {
+    impl Deserialize for Widget {
+        fn deserialize(deserializer: &mut impl Deserializer) -> Result<Self, String> {
             let id = u64::deserialize(deserializer)?;
             let name = String::deserialize(deserializer)?;
             let values = Vec::deserialize(deserializer)?;
