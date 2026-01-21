@@ -1,4 +1,4 @@
-use crate::syntax::{ast::{ParsedEnum, ParsedField, ParsedStruct, ParsedVariant, VariantData}, token::{Delimiter, ParseError, TokenIter, TokenTree}};
+use crate::syntax::{ast::{ParsedEnum, ParsedField, ParsedStruct, ParsedVariant, VariantData}, token::{Delimiter, ParseError, Spacing, TokenIter, TokenTree}};
 
 impl ParsedStruct {
     fn parse(token_iter: &mut TokenIter) -> Result<Self, ParseError> {
@@ -49,7 +49,7 @@ impl ParsedEnum {
                     if outer_iter.peek().is_none() {
                         v.push(ParsedVariant { name: name.to_owned(), index, data: VariantData::Unit });
                     }
-                    else if outer_iter.peek().unwrap() == &TokenTree::Punct(',') {
+                    else if outer_iter.peek().unwrap() == &TokenTree::Punct(',', Spacing::Alone) {
                         v.push(ParsedVariant { name, index, data: VariantData::Unit });
                     }
                     else {
@@ -107,12 +107,12 @@ impl ParsedField {
                 token_iter.expect_punct(Some(':'))?;
                 while token_iter.peek().is_some() {
                     match token_iter.peek().unwrap() {
-                        &TokenTree::Punct('<') => { depth += 1; ty.push(token_iter.peek().unwrap().to_owned()); },
-                        &TokenTree::Punct('>') => {
+                        &TokenTree::Punct('<', Spacing::Alone) => { depth += 1; ty.push(token_iter.peek().unwrap().to_owned()); },
+                        &TokenTree::Punct('>', Spacing::Alone) => {
                             depth.checked_sub(1).map(|_| ()).ok_or(ParseError::UnmatchedAngleBracket)?;
                             ty.push(token_iter.peek().unwrap().to_owned());
                         },
-                        &TokenTree::Punct(',') => {
+                        &TokenTree::Punct(',', Spacing::Alone) => {
                             if depth == 0 {
                                 token_iter.next();
                                 break;
@@ -134,12 +134,12 @@ impl ParsedField {
                 let mut depth: usize = 0;
                 while token_iter.peek().is_some() {
                     match token_iter.peek().unwrap() {
-                        &TokenTree::Punct('<') => { depth += 1; ty.push(token_iter.peek().unwrap().to_owned()); }
-                        &TokenTree::Punct('>') => {
+                        &TokenTree::Punct('<', Spacing::Alone) => { depth += 1; ty.push(token_iter.peek().unwrap().to_owned()); }
+                        &TokenTree::Punct('>', Spacing::Alone) => {
                             depth.checked_sub(1).map(|_| ()).ok_or(ParseError::UnmatchedAngleBracket)?;
                             ty.push(token_iter.peek().unwrap().to_owned());
                         }
-                        &TokenTree::Punct(',') => {
+                        &TokenTree::Punct(',', Spacing::Alone) => {
                             if depth == 0 {
                                 token_iter.next();
                                 break;

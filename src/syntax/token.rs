@@ -1,9 +1,15 @@
 #[derive(Clone, PartialEq, Eq)]
 pub enum TokenTree {
     Ident(String),
-    Punct(char),
+    Punct(char, Spacing),
     Literal(String),
     Group(Delimiter, Vec<TokenTree>)
+}
+
+#[derive(Clone, Copy, PartialEq, Eq)]
+pub enum Spacing {
+    Alone,
+    Joint
 }
 
 #[derive(Clone, Copy, PartialEq, Eq)]
@@ -64,7 +70,7 @@ impl TokenIter {
                         None => Ok(ident.to_owned())
                     }
                 }
-                TokenTree::Punct(c) => Err(ParseError::UnexpectedPunct(c.to_owned())),
+                TokenTree::Punct(c, _) => Err(ParseError::UnexpectedPunct(c.to_owned())),
                 TokenTree::Literal(lit) => Err(ParseError::UnexpectedLiteral(lit.to_owned())),
                 TokenTree::Group(del, _) => Err(ParseError::UnexpectedGroup(*del))
             }
@@ -76,7 +82,7 @@ impl TokenIter {
         match self.next() {
             Some(tok) => match tok {
                 TokenTree::Ident(ident) => Err(ParseError::UnexpectedIdent(ident.to_owned())),
-                TokenTree::Punct(punct) => {
+                TokenTree::Punct(punct, _) => {
                     match c {
                         Some(c) => {
                             if *punct == c {
@@ -100,7 +106,7 @@ impl TokenIter {
         match self.next() {
             Some(tok) => match tok {
                 TokenTree::Ident(ident) => Err(ParseError::UnexpectedIdent(ident.to_owned())),
-                TokenTree::Punct(c) => Err(ParseError::UnexpectedPunct(c.to_owned())),
+                TokenTree::Punct(c, _) => Err(ParseError::UnexpectedPunct(c.to_owned())),
                 TokenTree::Literal(lit) => {
                     match s {
                         Some(s) => {
@@ -124,7 +130,7 @@ impl TokenIter {
         match self.next() {
             Some(tok) => match tok {
                 TokenTree::Ident(ident) => Err(ParseError::UnexpectedIdent(ident.to_owned())),
-                TokenTree::Punct(c) => Err(ParseError::UnexpectedPunct(c.to_owned())),
+                TokenTree::Punct(c, _) => Err(ParseError::UnexpectedPunct(c.to_owned())),
                 TokenTree::Literal(lit) => Err(ParseError::UnexpectedLiteral(lit.to_owned())),
                 TokenTree::Group(del, tree) => {
                     match g {
