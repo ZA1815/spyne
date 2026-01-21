@@ -1,0 +1,20 @@
+[package]
+name = "spyne"
+version = "0.2.0"
+edition = "2024"
+description = "All-in-one toolkit"
+license = "MIT"
+
+[dependencies]
+
+[features]
+text-gapbuffer = ["text"]
+text-cursor = ["text"]
+text = []
+
+serialization-binary = ["serialization"]
+serialization = []
+
+syntax-macros-derive = ["syntax", "syntax-macros"]
+syntax-macros = ["syntax"]
+syntax = []
