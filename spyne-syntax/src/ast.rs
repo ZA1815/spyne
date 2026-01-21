@@ -1,4 +1,4 @@
-use crate::syntax::token::TokenTree;
+use crate::token::TokenTree;
 
 pub struct ParsedStruct {
     pub name: String,

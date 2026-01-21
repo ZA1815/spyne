@@ -1,4 +1,5 @@
-use crate::syntax::{ast::{ParsedEnum, ParsedField, ParsedStruct, ParsedVariant, VariantData}, token::{Delimiter, ParseError, Spacing, TokenIter, TokenTree}};
+
+use crate::{ast::{ParsedEnum, ParsedField, ParsedStruct, ParsedVariant, VariantData}, token::{Delimiter, ParseError, Spacing, TokenIter, TokenTree}};
 
 impl ParsedStruct {
     fn parse(token_iter: &mut TokenIter) -> Result<Self, ParseError> {
