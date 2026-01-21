@@ -15,7 +15,7 @@ pub enum Delimiter {
 
 pub struct TokenIter {
     tokens: Vec<TokenTree>,
-    pos: usize
+    pub pos: usize
 }
 
 impl TokenIter {

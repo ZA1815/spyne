@@ -16,9 +16,9 @@ pub struct ParsedField {
 }
 
 pub struct ParsedVariant {
-    name: String,
-    index: u32,
-    data: VariantData
+    pub name: String,
+    pub index: u32,
+    pub data: Option<VariantData>
 }
 
 pub enum VariantData {
