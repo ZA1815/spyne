@@ -8,9 +8,10 @@ pub enum TokenTree {
 
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub enum Delimiter {
-    Paren,
+    Parenthesis,
+    Brace,
     Bracket,
-    Brace
+    None
 }
 
 pub struct TokenIter {

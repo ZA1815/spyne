@@ -15,11 +15,11 @@ impl ParsedStruct {
                 
                 f
             }
-            Delimiter::Paren => {
+            Delimiter::Parenthesis => {
                 let mut inner_iter = TokenIter::new(body.1);
                 let mut f = Vec::<ParsedField>::new();
                 while inner_iter.peek().is_some() {
-                    let field = ParsedField::parse(&mut inner_iter, Delimiter::Paren)?;
+                    let field = ParsedField::parse(&mut inner_iter, Delimiter::Parenthesis)?;
                     f.push(field);
                 }
                 
@@ -27,7 +27,8 @@ impl ParsedStruct {
                     
                 f
             }
-            Delimiter::Bracket => return Err(ParseError::IncorrectDelimiter(Delimiter::Bracket))
+            Delimiter::Bracket => return Err(ParseError::IncorrectDelimiter(Delimiter::Bracket)),
+            Delimiter::None => return Err(ParseError::IncorrectDelimiter(Delimiter::None))
         };
         
         Ok(ParsedStruct { name, fields })
@@ -54,11 +55,11 @@ impl ParsedEnum {
                     else {
                         let var_body = outer_iter.expect_group(None)?;
                         let data: VariantData = match var_body.0 {
-                            Delimiter::Paren => {
+                            Delimiter::Parenthesis => {
                                 let mut inner_iter = TokenIter::new(var_body.1);
                                 let mut f = Vec::<ParsedField>::new();
                                 while inner_iter.peek().is_some() {
-                                    let field = ParsedField::parse(&mut inner_iter, Delimiter::Paren)?;
+                                    let field = ParsedField::parse(&mut inner_iter, Delimiter::Parenthesis)?;
                                     f.push(field);
                                 }
                                 
@@ -74,7 +75,8 @@ impl ParsedEnum {
                                 
                                 VariantData::Struct(f)
                             }
-                            Delimiter::Bracket => return Err(ParseError::IncorrectDelimiter(Delimiter::Bracket))
+                            Delimiter::Bracket => return Err(ParseError::IncorrectDelimiter(Delimiter::Bracket)),
+                            Delimiter::None => return Err(ParseError::IncorrectDelimiter(Delimiter::None))
                         };
                         
                         v.push(ParsedVariant { name, index, data });
@@ -86,8 +88,9 @@ impl ParsedEnum {
                 
                 v
             }
-            Delimiter::Paren => return Err(ParseError::IncorrectDelimiter(Delimiter::Paren)),
-            Delimiter::Bracket => return Err(ParseError::IncorrectDelimiter(Delimiter::Bracket))
+            Delimiter::Parenthesis => return Err(ParseError::IncorrectDelimiter(Delimiter::Parenthesis)),
+            Delimiter::Bracket => return Err(ParseError::IncorrectDelimiter(Delimiter::Bracket)),
+            Delimiter::None => return Err(ParseError::IncorrectDelimiter(Delimiter::None))
         };
         
         Ok(ParsedEnum { name, variants })
@@ -126,7 +129,7 @@ impl ParsedField {
                 
                 Ok(ParsedField { name: Some(name.to_owned()), ty })
             }
-            Delimiter::Paren => {
+            Delimiter::Parenthesis => {
                 let mut ty = Vec::<TokenTree>::new();
                 let mut depth: usize = 0;
                 while token_iter.peek().is_some() {
@@ -153,7 +156,8 @@ impl ParsedField {
                 
                 Ok(ParsedField { name: None, ty })
             }
-            Delimiter::Bracket => return Err(ParseError::IncorrectDelimiter(Delimiter::Bracket))
+            Delimiter::Bracket => return Err(ParseError::IncorrectDelimiter(Delimiter::Bracket)),
+            Delimiter::None => return Err(ParseError::IncorrectDelimiter(Delimiter::None))
         }
     }
 }
