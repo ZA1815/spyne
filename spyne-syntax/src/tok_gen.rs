@@ -104,6 +104,11 @@ impl<T: ToTokens, const N: usize> ToTokens for &[T; N] {
         }
     }
 }
+impl ToTokens for str {
+    fn to_tokens(&self, tokens: &mut Vec<TokenTree>) {
+        tokens.push(TokenTree::Literal(format!("{:?}", self)));
+    }
+}
 impl ToTokens for &str {
     fn to_tokens(&self, tokens: &mut Vec<TokenTree>) {
         tokens.push(TokenTree::Literal(format!("{:?}", self)));
@@ -148,7 +153,7 @@ impl ToTokens for () {
 }
 impl<T: ToTokens> ToTokens for PhantomData<T> {
     fn to_tokens(&self, tokens: &mut Vec<TokenTree>) {
-        // Idk?
+        tokens.push(TokenTree::Ident(format!("PhantomData")));
     }
 }
 impl<T: ToTokens> ToTokens for Box<T> {
@@ -162,16 +167,22 @@ where B: ToOwned + ?Sized, B: ToTokens {
         B::to_tokens(&self, tokens);
     }
 }
-impl<T: ToTokens> ToTokens for HashSet<T> {
+impl<T> ToTokens for HashSet<T>
+where T: Ord, T: ToTokens {
     fn to_tokens(&self, tokens: &mut Vec<TokenTree>) {
-        for item in self {
+        let mut hs_vec: Vec<_> = self.iter().collect();
+        hs_vec.sort();
+        for item in hs_vec {
             item.to_tokens(tokens);
         }
     }
 }
-impl<K: ToTokens, V: ToTokens> ToTokens for HashMap<K, V> {
+impl<K, V> ToTokens for HashMap<K, V>
+where K: Ord, K: ToTokens, V: ToTokens {
     fn to_tokens(&self, tokens: &mut Vec<TokenTree>) {
-        for (k, v) in self {
+        let mut hm_vec: Vec<_> = self.iter().collect();
+        hm_vec.sort_by(|a, b| a.0.cmp(b.0));
+        for (k, v) in hm_vec {
             k.to_tokens(tokens);
             v.to_tokens(tokens);
         }
