@@ -1,14 +1,11 @@
-pub fn add(left: u64, right: u64) -> u64 {
-    left + right
-}
+mod quote;
 
-#[cfg(test)]
-mod tests {
-    use super::*;
+use proc_macro::TokenStream;
+use crate::quote::{from_stream, quote_help, to_stream};
 
-    #[test]
-    fn it_works() {
-        let result = add(2, 2);
-        assert_eq!(result, 4);
-    }
+#[proc_macro]
+pub fn quote(stream: TokenStream) -> TokenStream {
+    let input = from_stream(stream);
+    let output = quote_help(input);
+    to_stream(output)
 }

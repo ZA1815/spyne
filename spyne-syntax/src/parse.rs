@@ -2,7 +2,7 @@
 use crate::{ast::{ParsedEnum, ParsedField, ParsedStruct, ParsedVariant, VariantData}, token::{Delimiter, ParseError, Spacing, TokenIter, TokenTree}};
 
 impl ParsedStruct {
-    fn parse(token_iter: &mut TokenIter) -> Result<Self, ParseError> {
+    pub fn parse(token_iter: &mut TokenIter) -> Result<Self, ParseError> {
         let name = token_iter.expect_ident(None)?;
         let body = token_iter.expect_group(None)?;
         let fields: Vec<ParsedField> = match body.0 {
@@ -37,7 +37,7 @@ impl ParsedStruct {
 }
 
 impl ParsedEnum {
-    fn parse(token_iter: &mut TokenIter) -> Result<Self, ParseError> {
+    pub fn parse(token_iter: &mut TokenIter) -> Result<Self, ParseError> {
         let name = token_iter.expect_ident(None)?;
         let body = token_iter.expect_group(None)?;
         let variants: Vec<ParsedVariant> = match body.0 {
@@ -99,7 +99,7 @@ impl ParsedEnum {
 }
 
 impl ParsedField {
-    fn parse(token_iter: &mut TokenIter, delimiter: Delimiter) -> Result<Self, ParseError> {
+    pub fn parse(token_iter: &mut TokenIter, delimiter: Delimiter) -> Result<Self, ParseError> {
         match delimiter {
             Delimiter::Brace => {
                 let mut ty = Vec::<TokenTree>::new();
