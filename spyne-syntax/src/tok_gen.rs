@@ -1,6 +1,6 @@
 use std::{borrow::Cow, collections::{BTreeMap, BTreeSet, HashMap, HashSet}, marker::PhantomData};
 
-use crate::token::{Delimiter, TokenTree};
+use crate::token::{Delimiter, Span, TokenTree};
 
 pub trait ToTokens {
     fn to_tokens(&self, tokens: &mut Vec<TokenTree>);
@@ -12,82 +12,82 @@ impl ToTokens for TokenTree {
 }
 impl ToTokens for u8 {
     fn to_tokens(&self, tokens: &mut Vec<TokenTree>) {
-        tokens.push(TokenTree::Literal(format!("{}", self)));
+        tokens.push(TokenTree::Literal(format!("{}", self), Span::default()));
     }
 }
 impl ToTokens for u16 {
     fn to_tokens(&self, tokens: &mut Vec<TokenTree>) {
-        tokens.push(TokenTree::Literal(format!("{}", self)));
+        tokens.push(TokenTree::Literal(format!("{}", self), Span::default()));
     }
 }
 impl ToTokens for u32 {
     fn to_tokens(&self, tokens: &mut Vec<TokenTree>) {
-        tokens.push(TokenTree::Literal(format!("{}", self)));
+        tokens.push(TokenTree::Literal(format!("{}", self), Span::default()));
     }
 }
 impl ToTokens for u64 {
     fn to_tokens(&self, tokens: &mut Vec<TokenTree>) {
-        tokens.push(TokenTree::Literal(format!("{}", self)));
+        tokens.push(TokenTree::Literal(format!("{}", self), Span::default()));
     }
 }
 impl ToTokens for u128 {
     fn to_tokens(&self, tokens: &mut Vec<TokenTree>) {
-        tokens.push(TokenTree::Literal(format!("{}", self)));
+        tokens.push(TokenTree::Literal(format!("{}", self), Span::default()));
     }
 }
 impl ToTokens for usize {
     fn to_tokens(&self, tokens: &mut Vec<TokenTree>) {
-        tokens.push(TokenTree::Literal(format!("{}", self)));
+        tokens.push(TokenTree::Literal(format!("{}", self), Span::default()));
     }
 }
 impl ToTokens for i8 {
     fn to_tokens(&self, tokens: &mut Vec<TokenTree>) {
-        tokens.push(TokenTree::Literal(format!("{}", self)));
+        tokens.push(TokenTree::Literal(format!("{}", self), Span::default()));
     }
 }
 impl ToTokens for i16 {
     fn to_tokens(&self, tokens: &mut Vec<TokenTree>) {
-        tokens.push(TokenTree::Literal(format!("{}", self)));
+        tokens.push(TokenTree::Literal(format!("{}", self), Span::default()));
     }
 }
 impl ToTokens for i32 {
     fn to_tokens(&self, tokens: &mut Vec<TokenTree>) {
-        tokens.push(TokenTree::Literal(format!("{}", self)));
+        tokens.push(TokenTree::Literal(format!("{}", self), Span::default()));
     }
 }
 impl ToTokens for i64 {
     fn to_tokens(&self, tokens: &mut Vec<TokenTree>) {
-        tokens.push(TokenTree::Literal(format!("{}", self)));
+        tokens.push(TokenTree::Literal(format!("{}", self), Span::default()));
     }
 }
 impl ToTokens for i128 {
     fn to_tokens(&self, tokens: &mut Vec<TokenTree>) {
-        tokens.push(TokenTree::Literal(format!("{}", self)));
+        tokens.push(TokenTree::Literal(format!("{}", self), Span::default()));
     }
 }
 impl ToTokens for isize {
     fn to_tokens(&self, tokens: &mut Vec<TokenTree>) {
-        tokens.push(TokenTree::Literal(format!("{}", self)));
+        tokens.push(TokenTree::Literal(format!("{}", self), Span::default()));
     }
 }
 impl ToTokens for f32 {
     fn to_tokens(&self, tokens: &mut Vec<TokenTree>) {
-        tokens.push(TokenTree::Literal(format!("{}", self)));
+        tokens.push(TokenTree::Literal(format!("{}", self), Span::default()));
     }
 }
 impl ToTokens for f64 {
     fn to_tokens(&self, tokens: &mut Vec<TokenTree>) {
-        tokens.push(TokenTree::Literal(format!("{}", self)));
+        tokens.push(TokenTree::Literal(format!("{}", self), Span::default()));
     }
 }
 impl ToTokens for bool {
     fn to_tokens(&self, tokens: &mut Vec<TokenTree>) {
-        tokens.push(TokenTree::Literal(format!("{}", self)));
+        tokens.push(TokenTree::Literal(format!("{}", self), Span::default()));
     }
 }
 impl ToTokens for char {
     fn to_tokens(&self, tokens: &mut Vec<TokenTree>) {
-        tokens.push(TokenTree::Literal(format!("{:?}", self)));
+        tokens.push(TokenTree::Literal(format!("{:?}", self), Span::default()));
     }
 }
 impl<T: ToTokens> ToTokens for &[T] {
@@ -106,17 +106,17 @@ impl<T: ToTokens, const N: usize> ToTokens for &[T; N] {
 }
 impl ToTokens for str {
     fn to_tokens(&self, tokens: &mut Vec<TokenTree>) {
-        tokens.push(TokenTree::Literal(format!("{:?}", self)));
+        tokens.push(TokenTree::Literal(format!("{:?}", self), Span::default()));
     }
 }
 impl ToTokens for &str {
     fn to_tokens(&self, tokens: &mut Vec<TokenTree>) {
-        tokens.push(TokenTree::Literal(format!("{:?}", self)));
+        tokens.push(TokenTree::Literal(format!("{:?}", self), Span::default()));
     }
 }
 impl ToTokens for String {
     fn to_tokens(&self, tokens: &mut Vec<TokenTree>) {
-        tokens.push(TokenTree::Literal(format!("{:?}", self)));
+        tokens.push(TokenTree::Literal(format!("{:?}", self), Span::default()));
     }
 }
 impl<T: ToTokens> ToTokens for &T {
@@ -148,12 +148,12 @@ impl<T: ToTokens, E: ToTokens> ToTokens for Result<T, E> {
 }
 impl ToTokens for () {
     fn to_tokens(&self, tokens: &mut Vec<TokenTree>) {
-        tokens.push(TokenTree::Group(Delimiter::Parenthesis, vec![]));
+        tokens.push(TokenTree::Group(Delimiter::Parenthesis, vec![], Span::default()));
     }
 }
 impl<T: ToTokens> ToTokens for PhantomData<T> {
     fn to_tokens(&self, tokens: &mut Vec<TokenTree>) {
-        tokens.push(TokenTree::Ident(format!("PhantomData")));
+        tokens.push(TokenTree::Ident(format!("PhantomData"), Span::default()));
     }
 }
 impl<T: ToTokens> ToTokens for Box<T> {

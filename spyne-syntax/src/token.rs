@@ -1,9 +1,9 @@
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum TokenTree {
-    Ident(String),
-    Punct(char, Spacing),
-    Literal(String),
-    Group(Delimiter, Vec<TokenTree>)
+    Ident(String, Span),
+    Punct(char, Spacing, Span),
+    Literal(String, Span),
+    Group(Delimiter, Vec<TokenTree>, Span)
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -18,6 +18,13 @@ pub enum Delimiter {
     Brace,
     Bracket,
     None
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub struct Span {
+    pub line: usize,
+    pub col: usize,
+    pub pos: usize,
 }
 
 pub struct TokenIter {
@@ -54,95 +61,95 @@ impl TokenIter {
         Some(&self.tokens[self.pos])
     }
     
-    pub fn expect_ident(&mut self, s: Option<String>) -> Result<String, ParseError> {
+    pub fn expect_ident(&mut self, s: Option<String>) -> Result<(String, Span), ParseError> {
         match self.next() {
             Some(tok) => match tok {
-                TokenTree::Ident(ident) => {
+                TokenTree::Ident(ident, span) => {
                     match s {
                         Some(s) => {
                             if *ident == s {
-                                Ok(s)
+                                Ok((s, *span))
                             }
                             else {
-                                Err(ParseError::IncorrectIdent(ident.to_owned()))
+                                Err(ParseError::IncorrectIdent(ident.to_owned(), *span))
                             }
                         }
-                        None => Ok(ident.to_owned())
+                        None => Ok((ident.to_owned(), *span))
                     }
                 }
-                TokenTree::Punct(c, _) => Err(ParseError::UnexpectedPunct(c.to_owned())),
-                TokenTree::Literal(lit) => Err(ParseError::UnexpectedLiteral(lit.to_owned())),
-                TokenTree::Group(del, _) => Err(ParseError::UnexpectedGroup(*del))
+                TokenTree::Punct(c, _, span) => Err(ParseError::UnexpectedPunct(c.to_owned(), *span)),
+                TokenTree::Literal(lit, span) => Err(ParseError::UnexpectedLiteral(lit.to_owned(), *span)),
+                TokenTree::Group(del, _, span) => Err(ParseError::UnexpectedGroup(*del, *span))
             }
             None => Err(ParseError::UnexpectedEOT)
         }
     }
     
-    pub fn expect_punct(&mut self, c: Option<char>) -> Result<char, ParseError> {
+    pub fn expect_punct(&mut self, c: Option<char>) -> Result<(char, Span), ParseError> {
         match self.next() {
             Some(tok) => match tok {
-                TokenTree::Ident(ident) => Err(ParseError::UnexpectedIdent(ident.to_owned())),
-                TokenTree::Punct(punct, _) => {
+                TokenTree::Ident(ident, span) => Err(ParseError::UnexpectedIdent(ident.to_owned(), *span)),
+                TokenTree::Punct(punct, _, span) => {
                     match c {
                         Some(c) => {
                             if *punct == c {
-                                Ok(c)
+                                Ok((c, *span))
                             }
                             else {
-                                Err(ParseError::IncorrectPunct(punct.to_owned()))
+                                Err(ParseError::IncorrectPunct(punct.to_owned(), *span))
                             }
                         }
-                        None => Ok(punct.to_owned())
+                        None => Ok((punct.to_owned(), *span))
                     }
                 }
-                TokenTree::Literal(lit) => Err(ParseError::UnexpectedLiteral(lit.to_owned())),
-                TokenTree::Group(del, _) => Err(ParseError::UnexpectedGroup(*del))
+                TokenTree::Literal(lit, span) => Err(ParseError::UnexpectedLiteral(lit.to_owned(), *span)),
+                TokenTree::Group(del, _, span) => Err(ParseError::UnexpectedGroup(*del, *span))
             }
             None => Err(ParseError::UnexpectedEOT)
         }
     }
     
-    pub fn expect_literal(&mut self, s: Option<String>) -> Result<String, ParseError> {
+    pub fn expect_literal(&mut self, s: Option<String>) -> Result<(String, Span), ParseError> {
         match self.next() {
             Some(tok) => match tok {
-                TokenTree::Ident(ident) => Err(ParseError::UnexpectedIdent(ident.to_owned())),
-                TokenTree::Punct(c, _) => Err(ParseError::UnexpectedPunct(c.to_owned())),
-                TokenTree::Literal(lit) => {
+                TokenTree::Ident(ident, span) => Err(ParseError::UnexpectedIdent(ident.to_owned(), *span)),
+                TokenTree::Punct(c, _, span) => Err(ParseError::UnexpectedPunct(c.to_owned(), *span)),
+                TokenTree::Literal(lit, span) => {
                     match s {
                         Some(s) => {
                             if *lit == s {
-                                Ok(s)
+                                Ok((s, *span))
                             }
                             else {
-                                Err(ParseError::IncorrectLiteral(lit.to_owned()))
+                                Err(ParseError::IncorrectLiteral(lit.to_owned(), *span))
                             }
                         }
-                        None => Ok(lit.to_owned())
+                        None => Ok((lit.to_owned(), *span))
                     }
                 }
-                TokenTree::Group(del, _) => Err(ParseError::UnexpectedGroup(*del))
+                TokenTree::Group(del, _, span) => Err(ParseError::UnexpectedGroup(*del, *span))
             }
             None => Err(ParseError::UnexpectedEOT)
         }
     }
     
-    pub fn expect_group(&mut self, g: Option<(Delimiter, Vec<TokenTree>)>) -> Result<(Delimiter, Vec<TokenTree>), ParseError> {
+    pub fn expect_group(&mut self, g: Option<(Delimiter, Vec<TokenTree>, Span)>) -> Result<(Delimiter, Vec<TokenTree>, Span), ParseError> {
         match self.next() {
             Some(tok) => match tok {
-                TokenTree::Ident(ident) => Err(ParseError::UnexpectedIdent(ident.to_owned())),
-                TokenTree::Punct(c, _) => Err(ParseError::UnexpectedPunct(c.to_owned())),
-                TokenTree::Literal(lit) => Err(ParseError::UnexpectedLiteral(lit.to_owned())),
-                TokenTree::Group(del, tree) => {
+                TokenTree::Ident(ident, span) => Err(ParseError::UnexpectedIdent(ident.to_owned(), *span)),
+                TokenTree::Punct(c, _, span) => Err(ParseError::UnexpectedPunct(c.to_owned(), *span)),
+                TokenTree::Literal(lit, span) => Err(ParseError::UnexpectedLiteral(lit.to_owned(), *span)),
+                TokenTree::Group(del, tree, span) => {
                     match g {
                         Some(g) => {
                             if *del == g.0 && tree.as_slice() == g.1.as_slice() {
                                 Ok(g)
                             }
                             else {
-                                Err(ParseError::IncorrectGroup(*del, tree.to_vec()))
+                                Err(ParseError::IncorrectGroup(*del, tree.to_vec(), *span))
                             }
                         }
-                        None => Ok((*del, tree.to_vec()))
+                        None => Ok((*del, tree.to_vec(), *span))
                     }
                 }
             }
@@ -152,15 +159,15 @@ impl TokenIter {
 }
 
 pub enum ParseError {
-    UnexpectedIdent(String),
-    UnexpectedPunct(char),
-    UnexpectedLiteral(String),
-    UnexpectedGroup(Delimiter),
+    UnexpectedIdent(String, Span),
+    UnexpectedPunct(char, Span),
+    UnexpectedLiteral(String, Span),
+    UnexpectedGroup(Delimiter, Span),
     UnexpectedEOT, // End of Tree
-    IncorrectIdent(String),
-    IncorrectPunct(char),
-    IncorrectLiteral(String),
-    IncorrectGroup(Delimiter, Vec<TokenTree>),
-    IncorrectDelimiter(Delimiter),
-    UnmatchedAngleBracket
+    IncorrectIdent(String, Span),
+    IncorrectPunct(char, Span),
+    IncorrectLiteral(String, Span),
+    IncorrectGroup(Delimiter, Vec<TokenTree>, Span),
+    IncorrectDelimiter(Delimiter, Span),
+    UnmatchedAngleBracket(Span)
 }
