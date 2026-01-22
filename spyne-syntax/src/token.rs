@@ -1,4 +1,4 @@
-#[derive(Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum TokenTree {
     Ident(String),
     Punct(char, Spacing),
@@ -6,7 +6,7 @@ pub enum TokenTree {
     Group(Delimiter, Vec<TokenTree>)
 }
 
-#[derive(Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Spacing {
     Alone,
     Joint

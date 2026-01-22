@@ -35,8 +35,20 @@ pub fn quote_help(template: Vec<TokenTree>) -> Vec<TokenTree> {
                     TokenTree::Ident(format!("vec"))
                 ]));
             }
-            _ => quote_token(&tok, &mut vec),
+            _ => {
+                vec.push(TokenTree::Ident(format!("vec")));
+                vec.push(TokenTree::Punct('.', Spacing::Alone));
+                vec.push(TokenTree::Ident(format!("push")));
+                vec.push(TokenTree::Group(Delimiter::Parenthesis, {
+                    let mut args: Vec<TokenTree> = Vec::new();
+                    quote_token(&tok, &mut args);
+                    
+                    args
+                }));
+            }
         }
+        
+        vec.push(TokenTree::Punct(';', Spacing::Alone));
     }
     
     vec.push(TokenTree::Ident(format!("return")));
@@ -174,4 +186,130 @@ pub fn to_stream(out: Vec<TokenTree>) -> TokenStream {
     stream.extend(stream_vec);
     
     stream
+}
+
+#[cfg(test)]
+mod test {
+    use spyne_syntax::token::TokenTree;
+    use super::*;
+    
+    #[test]
+    fn test_quote() {
+        let template: Vec<TokenTree> = vec![
+            TokenTree::Ident(format!("impl")),
+            TokenTree::Ident(format!("ToTokens")),
+            TokenTree::Ident(format!("for")),
+            TokenTree::Group(Delimiter::Bracket, vec![
+                TokenTree::Ident(format!("self")),
+                TokenTree::Punct('.', Spacing::Alone),
+                TokenTree::Ident(format!("data"))
+            ]),
+            TokenTree::Group(Delimiter::Brace, vec![])
+        ];
+        let out = quote_help(template);
+        
+        let expected: Vec<TokenTree> = vec![
+            TokenTree::Ident(format!("let")),
+            TokenTree::Ident(format!("mut")),
+            TokenTree::Ident(format!("vec")),
+            TokenTree::Punct(':', Spacing::Alone),
+            TokenTree::Ident(format!("Vec")),
+            TokenTree::Punct('<', Spacing::Alone),
+            TokenTree::Ident(format!("TokenTree")),
+            TokenTree::Punct('>', Spacing::Alone),
+            TokenTree::Punct('=', Spacing::Alone),
+            TokenTree::Ident(format!("Vec")),
+            TokenTree::Punct(':', Spacing::Joint),
+            TokenTree::Punct(':', Spacing::Joint),
+            TokenTree::Ident(format!("new")),
+            TokenTree::Group(Delimiter::Parenthesis, vec![]),
+            TokenTree::Punct(';', Spacing::Alone),
+            
+            TokenTree::Ident(format!("vec")),
+            TokenTree::Punct('.', Spacing::Alone),
+            TokenTree::Ident(format!("push")),
+            TokenTree::Group(Delimiter::Parenthesis, vec![
+                TokenTree::Ident(format!("TokenTree")),
+                TokenTree::Punct(':', Spacing::Joint),
+                TokenTree::Punct(':', Spacing::Joint),
+                TokenTree::Ident(format!("Ident")),
+                TokenTree::Group(Delimiter::Parenthesis, vec![
+                    TokenTree::Literal(format!("\"impl\"")),
+                    TokenTree::Punct('.', Spacing::Alone),
+                    TokenTree::Ident(format!("to_string")),
+                    TokenTree::Group(Delimiter::Parenthesis, vec![]),
+                ]),
+            ]),
+            TokenTree::Punct(';', Spacing::Alone),
+            TokenTree::Ident(format!("vec")),
+            TokenTree::Punct('.', Spacing::Alone),
+            TokenTree::Ident(format!("push")),
+            TokenTree::Group(Delimiter::Parenthesis, vec![
+                TokenTree::Ident(format!("TokenTree")),
+                TokenTree::Punct(':', Spacing::Joint),
+                TokenTree::Punct(':', Spacing::Joint),
+                TokenTree::Ident(format!("Ident")),
+                TokenTree::Group(Delimiter::Parenthesis, vec![
+                    TokenTree::Literal(format!("\"ToTokens\"")),
+                    TokenTree::Punct('.', Spacing::Alone),
+                    TokenTree::Ident(format!("to_string")),
+                    TokenTree::Group(Delimiter::Parenthesis, vec![]),
+                ]),
+            ]),
+            TokenTree::Punct(';', Spacing::Alone),
+            TokenTree::Ident(format!("vec")),
+            TokenTree::Punct('.', Spacing::Alone),
+            TokenTree::Ident(format!("push")),
+            TokenTree::Group(Delimiter::Parenthesis, vec![
+                TokenTree::Ident(format!("TokenTree")),
+                TokenTree::Punct(':', Spacing::Joint),
+                TokenTree::Punct(':', Spacing::Joint),
+                TokenTree::Ident(format!("Ident")),
+                TokenTree::Group(Delimiter::Parenthesis, vec![
+                    TokenTree::Literal(format!("\"for\"")),
+                    TokenTree::Punct('.', Spacing::Alone),
+                    TokenTree::Ident(format!("to_string")),
+                    TokenTree::Group(Delimiter::Parenthesis, vec![]),
+                ]),
+            ]),
+            TokenTree::Punct(';', Spacing::Alone),
+            TokenTree::Ident(format!("self")),
+            TokenTree::Punct('.', Spacing::Alone),
+            TokenTree::Ident(format!("data")),
+            TokenTree::Punct('.', Spacing::Alone),
+            TokenTree::Ident(format!("to_tokens")),
+            TokenTree::Group(Delimiter::Parenthesis, vec![
+                TokenTree::Punct('&', Spacing::Alone),
+                TokenTree::Ident(format!("mut")),
+                TokenTree::Ident(format!("vec"))
+            ]),
+            TokenTree::Punct(';', Spacing::Alone),
+            TokenTree::Ident(format!("vec")),
+            TokenTree::Punct('.', Spacing::Alone),
+            TokenTree::Ident(format!("push")),
+            TokenTree::Group(Delimiter::Parenthesis, vec![
+                TokenTree::Ident(format!("TokenTree")),
+                TokenTree::Punct(':', Spacing::Joint),
+                TokenTree::Punct(':', Spacing::Joint),
+                TokenTree::Ident(format!("Group")),
+                TokenTree::Group(Delimiter::Parenthesis, vec![
+                    TokenTree::Ident(format!("Delimiter")),
+                    TokenTree::Punct(':', Spacing::Joint),
+                    TokenTree::Punct(':', Spacing::Joint),
+                    TokenTree::Ident(format!("Brace")),
+                    TokenTree::Punct(',', Spacing::Alone),
+                    TokenTree::Ident(format!("vec")),
+                    TokenTree::Punct('!', Spacing::Alone),
+                    TokenTree::Group(Delimiter::Bracket, vec![])
+                ]),
+            ]),
+            TokenTree::Punct(';', Spacing::Alone),
+            
+            TokenTree::Ident(format!("return")),
+            TokenTree::Ident(format!("vec")),
+            TokenTree::Punct(';', Spacing::Alone)
+        ];
+        
+        assert_eq!(out, expected, "{:?}", out);
+    }
 }
