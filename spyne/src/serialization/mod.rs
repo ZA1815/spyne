@@ -3,7 +3,7 @@ mod binary;
 // #[cfg(feature = "serialization-binary")]
 pub use binary::BinarySerde;
 
-use std::{borrow::Cow, collections::{BTreeMap, HashMap, HashSet}, hash::Hash, marker::PhantomData};
+use std::{borrow::Cow, collections::{BTreeMap, BTreeSet, HashMap, HashSet}, hash::Hash, marker::PhantomData};
 
 pub struct Bytes<'a>(pub &'a [u8]);
 
@@ -197,6 +197,15 @@ impl<K: Serialize, V: Serialize> Serialize for HashMap<K, V> {
             for (k, v) in self {
                 k.serialize(enc);
                 v.serialize(enc);
+            }
+        });
+    }
+}
+impl<T: Serialize> Serialize for BTreeSet<T> {
+    fn serialize(&self, serializer: &mut impl Serializer) {
+        serializer.write_seq(self.len(), |enc| {
+            for val in self {
+                val.serialize(enc);
             }
         });
     }
@@ -408,6 +417,19 @@ where K: Hash + Eq, K: Deserialize, V: Deserialize {
             }
             
             Ok(hm)
+        })
+    }
+}
+impl<T> Deserialize for BTreeSet<T>
+where T: Ord, T: Deserialize {
+    fn deserialize(deserializer: &mut impl Deserializer) -> Result<Self, String> {
+        deserializer.read_seq(|dec, len| {
+            let mut bs = BTreeSet::new();
+            for _ in 0..len {
+                bs.insert(T::deserialize(dec)?);
+            }
+            
+            Ok(bs)
         })
     }
 }
