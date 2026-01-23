@@ -10,9 +10,10 @@ thread_local! {
 
 pub fn quote_help(template: Vec<TokenTree>) -> Vec<TokenTree> {
     let mut vec: Vec<TokenTree> = Vec::new();
+    let vec_id = save_span(proc_macro::Span::mixed_site());
     vec.push(TokenTree::Ident(format!("let"), Span::default()));
     vec.push(TokenTree::Ident(format!("mut"), Span::default()));
-    vec.push(TokenTree::Ident(format!("vec"), Span::default()));
+    vec.push(TokenTree::Ident(format!("vec"), Span { id: vec_id, ..Default::default() }));
     vec.push(TokenTree::Punct(':', Spacing::Alone, Span::default()));
     vec.push(TokenTree::Ident(format!("Vec"), Span::default()));
     vec.push(TokenTree::Punct('<', Spacing::Alone, Span::default()));
@@ -28,20 +29,29 @@ pub fn quote_help(template: Vec<TokenTree>) -> Vec<TokenTree> {
     
     for tok in template {
         match tok {
-            TokenTree::Group(Delimiter::Bracket, t, _) => {
-                for item in t {
-                    vec.push(item);
-                }
+            TokenTree::Group(Delimiter::Bracket, t, _) if matches!(t.first(), Some(TokenTree::Punct('#', _, _))) => {
+                let span = match t[0] {
+                    TokenTree::Punct(_, _, s) => s,
+                    _ => unreachable!()
+                };
+                vec.push(TokenTree::Group(Delimiter::Parenthesis, {
+                    let mut items: Vec<TokenTree> = Vec::new();
+                    for item in t.iter().skip(1) {
+                        items.push(item.to_owned());
+                    }
+                    
+                    items
+                }, Span::default()));
                 vec.push(TokenTree::Punct('.', Spacing::Alone, Span::default()));
-                vec.push(TokenTree::Ident(format!("to_tokens"), Span::default()));
+                vec.push(TokenTree::Ident(format!("to_tokens"), span));
                 vec.push(TokenTree::Group(Delimiter::Parenthesis, vec![
                     TokenTree::Punct('&', Spacing::Alone, Span::default()),
                     TokenTree::Ident(format!("mut"), Span::default()),
-                    TokenTree::Ident(format!("vec"), Span::default())
+                    TokenTree::Ident(format!("vec"), Span { id: vec_id, ..Default::default() })
                 ], Span::default()));
             }
             _ => {
-                vec.push(TokenTree::Ident(format!("vec"), Span::default()));
+                vec.push(TokenTree::Ident(format!("vec"), Span { id: vec_id, ..Default::default() }));
                 vec.push(TokenTree::Punct('.', Spacing::Alone, Span::default()));
                 vec.push(TokenTree::Ident(format!("push"), Span::default()));
                 vec.push(TokenTree::Group(Delimiter::Parenthesis, {
@@ -57,7 +67,7 @@ pub fn quote_help(template: Vec<TokenTree>) -> Vec<TokenTree> {
     }
     
     vec.push(TokenTree::Ident(format!("return"), Span::default()));
-    vec.push(TokenTree::Ident(format!("vec"), Span::default()));
+    vec.push(TokenTree::Ident(format!("vec"), Span { id: vec_id, ..Default::default() }));
     vec.push(TokenTree::Punct(';', Spacing::Alone, Span::default()));
     
     vec
