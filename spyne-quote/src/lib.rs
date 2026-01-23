@@ -1,7 +1,7 @@
 mod quote;
 
-use proc_macro::TokenStream;
 use crate::quote::{from_stream, quote_help, to_stream};
+use proc_macro::TokenStream;
 
 #[proc_macro]
 pub fn quote(stream: TokenStream) -> TokenStream {
