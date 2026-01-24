@@ -4,5 +4,8 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-spyne-quote = "0.1.0"
+spyne-quote = "0.1.2"
 spyne-syntax = "0.1.0"
+
+[lib]
+proc-macro = true

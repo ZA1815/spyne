@@ -159,6 +159,7 @@ impl TokenIter {
     }
 }
 
+#[derive(Debug)]
 pub enum ParseError {
     UnexpectedIdent(String, Span),
     UnexpectedPunct(char, Span),
