@@ -2,9 +2,11 @@
 name = "spyne-quote"
 version = "0.1.0"
 edition = "2024"
+description = "Quasi-quoting macro for the spyne crate"
+license = "MIT"
 
 [dependencies]
-spyne-syntax = { path = "../spyne-syntax" }
+spyne-syntax = "0.1.0"
 
 [lib]
 proc-macro = true
