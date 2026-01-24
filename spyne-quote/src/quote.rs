@@ -152,6 +152,7 @@ fn quote_token(token: &TokenTree, stream: &mut Vec<TokenTree>) {
                         items.push(TokenTree::Ident(format!("Joint"), Span::default()))
                     }
                 }
+                items.push(TokenTree::Punct(',', Spacing::Alone, Span::default()));
                 items.extend(quote_span(span));
 
                 items
@@ -165,6 +166,7 @@ fn quote_token(token: &TokenTree, stream: &mut Vec<TokenTree>) {
                 items.push(TokenTree::Punct('.', Spacing::Alone, Span::default()));
                 items.push(TokenTree::Ident(format!("to_string"), Span::default()));
                 items.push(TokenTree::Group(Delimiter::Parenthesis, vec![], Span::default()));
+                items.push(TokenTree::Punct(',', Spacing::Alone, Span::default()));
                 items.extend(quote_span(s));
 
                 items
