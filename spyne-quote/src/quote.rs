@@ -41,10 +41,10 @@ pub fn quote_help(template: Vec<TokenTree>) -> Vec<TokenTree> {
 fn quote_stream(iter: &mut Peekable<impl Iterator<Item = TokenTree>>, stream: &mut Vec<TokenTree>, stream_id: usize) {
     while let Some(tok) = iter.next() {
         match tok {
-            TokenTree::Group(Delimiter::Parenthesis, t, _) if matches!(t.first(), Some(TokenTree::Punct('#', _, _))) => {
+            TokenTree::Group(Delimiter::Parenthesis, t, _) if matches!(t.first(), Some(TokenTree::Punct('$', _, _))) => {
                 quote_repetition(iter, t, stream, stream_id);
             }
-            TokenTree::Group(Delimiter::Bracket, t, _) if matches!(t.first(), Some(TokenTree::Punct('#', _, _))) => {
+            TokenTree::Group(Delimiter::Bracket, t, _) if matches!(t.first(), Some(TokenTree::Punct('$', _, _))) => {
                 quote_interpolation(t, stream, stream_id);
             }
             TokenTree::Group(d, t, s) => {
@@ -260,7 +260,7 @@ fn quote_repetition(template_iter: &mut Peekable<impl Iterator<Item = TokenTree>
     let mut names: Vec<Vec<TokenTree>> = Vec::new();
     while let Some(tok) = name_iter.next() {
         match tok {
-            TokenTree::Group(Delimiter::Bracket, t, _) if matches!(t.first(), Some(TokenTree::Punct('#', _, _))) => {
+            TokenTree::Group(Delimiter::Bracket, t, _) if matches!(t.first(), Some(TokenTree::Punct('$', _, _))) => {
                 stream.push(TokenTree::Ident(format!("let"), Span::default()));
                 stream.push(TokenTree::Ident(format!("mut"), Span::default()));
                 stream.push(TokenTree::Ident(format!("_____i_{}", count), Span::default()));
@@ -336,10 +336,10 @@ fn quote_repetition(template_iter: &mut Peekable<impl Iterator<Item = TokenTree>
         let mut bind_idx: usize = 0;
         while let Some(tok) = body_iter.next() {
             match tok {
-                TokenTree::Group(Delimiter::Parenthesis, t, _) if matches!(t.first(), Some(TokenTree::Punct('#', _, _))) => {
+                TokenTree::Group(Delimiter::Parenthesis, t, _) if matches!(t.first(), Some(TokenTree::Punct('$', _, _))) => {
                     quote_repetition(template_iter, t, &mut loop_body, stream_id);
                 }
-                TokenTree::Group(Delimiter::Bracket, t, _) if matches!(t.first(), Some(TokenTree::Punct('#', _, _))) => {
+                TokenTree::Group(Delimiter::Bracket, t, _) if matches!(t.first(), Some(TokenTree::Punct('$', _, _))) => {
                     let span = match t[0] {
                         TokenTree::Punct(_, _, s) => s,
                         _ => unreachable!()
