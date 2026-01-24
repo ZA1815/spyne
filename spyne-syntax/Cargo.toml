@@ -2,5 +2,7 @@
 name = "spyne-syntax"
 version = "0.1.0"
 edition = "2024"
+description = "Syntax tools for the spyne crate"
+license = "MIT"
 
 [dependencies]
