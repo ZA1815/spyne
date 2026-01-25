@@ -74,53 +74,61 @@ fn quote_stream(iter: &mut Peekable<impl Iterator<Item = TokenTree>>, stream: &m
                 quote_interpolation(t, stream, stream_id);
             }
             TokenTree::Group(d, t, s) => {
-                let vec_id = save_span(proc_macro::Span::mixed_site());
-                stream.push(TokenTree::Ident(format!("let"), Span::default()));
-                stream.push(TokenTree::Ident(format!("mut"), Span::default()));
-                stream.push(TokenTree::Ident(format!("_____tokens_"), Span { id: vec_id, ..Default::default() }));
-                stream.push(TokenTree::Punct(':', Spacing::Alone, Span::default()));
-                stream.push(TokenTree::Ident(format!("Vec"), Span::default()));
-                stream.push(TokenTree::Punct('<', Spacing::Alone, Span::default()));
-                stream.push(TokenTree::Ident(format!("TokenTree"), Span::default()));
-                stream.push(TokenTree::Punct('>', Spacing::Alone, Span::default()));
-                stream.push(TokenTree::Punct('=', Spacing::Alone, Span::default()));
-                stream.push(TokenTree::Ident(format!("Vec"), Span::default()));
-                stream.push(TokenTree::Punct(':', Spacing::Joint, Span::default()));
-                stream.push(TokenTree::Punct(':', Spacing::Joint, Span::default()));
-                stream.push(TokenTree::Ident(format!("new"), Span::default()));
-                stream.push(TokenTree::Group(Delimiter::Parenthesis, vec![], Span::default()));
-                stream.push(TokenTree::Punct(';', Spacing::Alone, Span::default()));
-                
-                let mut inner_iter = t.into_iter().peekable();
-                quote_stream(&mut inner_iter, stream, vec_id);
-                
                 stream.push(TokenTree::Ident(format!("_____tokens_"), Span { id: stream_id, ..Default::default() }));
                 stream.push(TokenTree::Punct('.', Spacing::Alone, Span::default()));
                 stream.push(TokenTree::Ident(format!("push"), Span::default()));
-                stream.push(TokenTree::Group(Delimiter::Parenthesis, vec![
-                    TokenTree::Ident(format!("TokenTree"), Span::default()),
-                    TokenTree::Punct(':', Spacing::Joint, Span::default()),
-                    TokenTree::Punct(':', Spacing::Joint, Span::default()),
-                    TokenTree::Ident(format!("Group"), Span::default()),
-                    TokenTree::Group(Delimiter::Parenthesis, {
-                        let mut items: Vec<TokenTree> = Vec::new();
-                        items.push(TokenTree::Ident(format!("Delimiter"), Span::default()));
-                        items.push(TokenTree::Punct(':', Spacing::Joint, Span::default()));
-                        items.push(TokenTree::Punct(':', Spacing::Joint, Span::default()));
+                stream.push(TokenTree::Group(Delimiter::Parenthesis, {
+                    let mut items: Vec<TokenTree> = Vec::new();
+                    items.push(TokenTree::Ident(format!("TokenTree"), Span::default()));
+                    items.push(TokenTree::Punct(':', Spacing::Joint, Span::default()));
+                    items.push(TokenTree::Punct(':', Spacing::Joint, Span::default()));
+                    items.push(TokenTree::Ident(format!("Group"), Span::default()));
+                    items.push(TokenTree::Group(Delimiter::Parenthesis, {
+                        let mut inner_stream: Vec<TokenTree> = Vec::new();
+                        inner_stream.push(TokenTree::Ident(format!("Delimiter"), Span::default()));
+                        inner_stream.push(TokenTree::Punct(':', Spacing::Joint, Span::default()));
+                        inner_stream.push(TokenTree::Punct(':', Spacing::Joint, Span::default()));
                         match d {
-                            Delimiter::Parenthesis => items.push(TokenTree::Ident(format!("Parenthesis"), Span::default())),
-                            Delimiter::Brace => items.push(TokenTree::Ident(format!("Brace"), Span::default())),
-                            Delimiter::Bracket => items.push(TokenTree::Ident(format!("Bracket"), Span::default())),
-                            Delimiter::None => items.push(TokenTree::Ident(format!("None"), Span::default()))
+                            Delimiter::Parenthesis => inner_stream.push(TokenTree::Ident(format!("Parenthesis"), Span::default())),
+                            Delimiter::Brace => inner_stream.push(TokenTree::Ident(format!("Brace"), Span::default())),
+                            Delimiter::Bracket => inner_stream.push(TokenTree::Ident(format!("Bracket"), Span::default())),
+                            Delimiter::None => inner_stream.push(TokenTree::Ident(format!("None"), Span::default())),
                         }
-                        items.push(TokenTree::Punct(',', Spacing::Alone, Span::default()));
-                        items.push(TokenTree::Ident(format!("_____tokens_"), Span { id: vec_id, ..Default::default() }));
-                        items.push(TokenTree::Punct(',', Spacing::Alone, Span::default()));
-                        items.extend(quote_span(&s));
+                        inner_stream.push(TokenTree::Punct(',', Spacing::Alone, Span::default()));
+                        inner_stream.push(TokenTree::Group(Delimiter::Brace, {
+                            let mut inner_stream: Vec<TokenTree> = Vec::new();
+                            let vec_id = save_span(proc_macro::Span::mixed_site());
+                            inner_stream.push(TokenTree::Ident(format!("let"), Span::default()));
+                            inner_stream.push(TokenTree::Ident(format!("mut"), Span::default()));
+                            inner_stream.push(TokenTree::Ident(format!("_____tokens_"), Span { id: vec_id, ..Default::default() }));
+                            inner_stream.push(TokenTree::Punct(':', Spacing::Alone, Span::default()));
+                            inner_stream.push(TokenTree::Ident(format!("Vec"), Span::default()));
+                            inner_stream.push(TokenTree::Punct('<', Spacing::Alone, Span::default()));
+                            inner_stream.push(TokenTree::Ident(format!("TokenTree"), Span::default()));
+                            inner_stream.push(TokenTree::Punct('>', Spacing::Alone, Span::default()));
+                            inner_stream.push(TokenTree::Punct('=', Spacing::Alone, Span::default()));
+                            inner_stream.push(TokenTree::Ident(format!("Vec"), Span::default()));
+                            inner_stream.push(TokenTree::Punct(':', Spacing::Joint, Span::default()));
+                            inner_stream.push(TokenTree::Punct(':', Spacing::Joint, Span::default()));
+                            inner_stream.push(TokenTree::Ident(format!("new"), Span::default()));
+                            inner_stream.push(TokenTree::Group(Delimiter::Parenthesis, vec![], Span::default()));
+                            inner_stream.push(TokenTree::Punct(';', Spacing::Alone, Span::default()));
+                            
+                            let mut inner_iter = t.into_iter().peekable();
+                            quote_stream(&mut inner_iter, &mut inner_stream, vec_id);
+                            
+                            inner_stream.push(TokenTree::Ident(format!("_____tokens_"), Span { id: vec_id, ..Default::default() }));
+                            
+                            inner_stream
+                        }, Span::default()));
+                        inner_stream.push(TokenTree::Punct(',', Spacing::Alone, Span::default()));
+                        inner_stream.extend(quote_span(&s));
                         
-                        items
-                    }, Span::default())
-                ], Span::default()));
+                        inner_stream
+                    }, Span::default()));
+                    
+                    items
+                }, Span::default()));
             }
             _ => {
                 stream.push(TokenTree::Ident(format!("_____tokens_"), Span { id: stream_id, ..Default::default() }));
@@ -289,6 +297,7 @@ fn quote_repetition(template_iter: &mut Peekable<impl Iterator<Item = TokenTree>
     }
     template_iter.next(); // Consume * 
     let mut name_iter = iter.clone().into_iter().peekable();
+    name_iter.next(); // Consume $
     let mut count: usize = 0;
     let mut names: Vec<Vec<TokenTree>> = Vec::new();
     while let Some(tok) = name_iter.next() {
@@ -366,6 +375,7 @@ fn quote_repetition(template_iter: &mut Peekable<impl Iterator<Item = TokenTree>
             loop_body.push(TokenTree::Punct(';', Spacing::Alone, Span::default()));
         }
         let mut body_iter = iter.into_iter().peekable();
+        body_iter.next(); // Consume $
         let mut bind_idx: usize = 0;
         while let Some(tok) = body_iter.next() {
             match tok {
@@ -390,54 +400,61 @@ fn quote_repetition(template_iter: &mut Peekable<impl Iterator<Item = TokenTree>
                     bind_idx += 1;
                 }
                 TokenTree::Group(d, t, s) => {
-                    let vec_id = save_span(proc_macro::Span::mixed_site());
-                    loop_body.push(TokenTree::Ident(format!("let"), Span::default()));
-                    loop_body.push(TokenTree::Ident(format!("mut"), Span::default()));
-                    loop_body.push(TokenTree::Ident(format!("_____tokens_"), Span { id: vec_id, ..Default::default() }));
-                    loop_body.push(TokenTree::Punct(':', Spacing::Alone, Span::default()));
-                    loop_body.push(TokenTree::Ident(format!("Vec"), Span::default()));
-                    loop_body.push(TokenTree::Punct('<', Spacing::Alone, Span::default()));
-                    loop_body.push(TokenTree::Ident(format!("TokenTree"), Span::default()));
-                    loop_body.push(TokenTree::Punct('>', Spacing::Alone, Span::default()));
-                    loop_body.push(TokenTree::Punct('=', Spacing::Alone, Span::default()));
-                    loop_body.push(TokenTree::Ident(format!("Vec"), Span::default()));
-                    loop_body.push(TokenTree::Punct(':', Spacing::Joint, Span::default()));
-                    loop_body.push(TokenTree::Punct(':', Spacing::Joint, Span::default()));
-                    loop_body.push(TokenTree::Ident(format!("new"), Span::default()));
-                    loop_body.push(TokenTree::Group(Delimiter::Parenthesis, vec![], Span::default()));
-                    loop_body.push(TokenTree::Punct(';', Spacing::Alone, Span::default()));
-                    
-                    let mut inner_iter = t.into_iter().peekable();
-                    quote_stream(&mut inner_iter, &mut loop_body, vec_id);
-                    
                     loop_body.push(TokenTree::Ident(format!("_____tokens_"), Span { id: stream_id, ..Default::default() }));
                     loop_body.push(TokenTree::Punct('.', Spacing::Alone, Span::default()));
                     loop_body.push(TokenTree::Ident(format!("push"), Span::default()));
-                    loop_body.push(TokenTree::Group(Delimiter::Parenthesis, vec![
-                        TokenTree::Ident(format!("TokenTree"), Span::default()),
-                        TokenTree::Punct(':', Spacing::Joint, Span::default()),
-                        TokenTree::Punct(':', Spacing::Joint, Span::default()),
-                        TokenTree::Ident(format!("Group"), Span::default()),
-                        TokenTree::Group(Delimiter::Parenthesis, {
-                            let mut items: Vec<TokenTree> = Vec::new();
-                            items.push(TokenTree::Ident(format!("Delimiter"), Span::default()));
-                            items.push(TokenTree::Punct(':', Spacing::Joint, Span::default()));
-                            items.push(TokenTree::Punct(':', Spacing::Joint, Span::default()));
+                    loop_body.push(TokenTree::Group(Delimiter::Parenthesis, {
+                        let mut items: Vec<TokenTree> = Vec::new();
+                        items.push(TokenTree::Ident(format!("TokenTree"), Span::default()));
+                        items.push(TokenTree::Punct(':', Spacing::Joint, Span::default()));
+                        items.push(TokenTree::Punct(':', Spacing::Joint, Span::default()));
+                        items.push(TokenTree::Ident(format!("Group"), Span::default()));
+                        items.push(TokenTree::Group(Delimiter::Parenthesis, {
+                            let mut inner_stream: Vec<TokenTree> = Vec::new();
+                            inner_stream.push(TokenTree::Ident(format!("Delimiter"), Span::default()));
+                            inner_stream.push(TokenTree::Punct(':', Spacing::Joint, Span::default()));
+                            inner_stream.push(TokenTree::Punct(':', Spacing::Joint, Span::default()));
                             match d {
-                                Delimiter::Parenthesis => items.push(TokenTree::Ident(format!("Parenthesis"), Span::default())),
-                                Delimiter::Brace => items.push(TokenTree::Ident(format!("Brace"), Span::default())),
-                                Delimiter::Bracket => items.push(TokenTree::Ident(format!("Bracket"), Span::default())),
-                                Delimiter::None => items.push(TokenTree::Ident(format!("None"), Span::default()))
+                                Delimiter::Parenthesis => inner_stream.push(TokenTree::Ident(format!("Parenthesis"), Span::default())),
+                                Delimiter::Brace => inner_stream.push(TokenTree::Ident(format!("Brace"), Span::default())),
+                                Delimiter::Bracket => inner_stream.push(TokenTree::Ident(format!("Bracket"), Span::default())),
+                                Delimiter::None => inner_stream.push(TokenTree::Ident(format!("None"), Span::default())),
                             }
-                            items.push(TokenTree::Punct(',', Spacing::Alone, Span::default()));
-                            items.push(TokenTree::Ident(format!("_____tokens_"), Span { id: vec_id, ..Default::default() }));
-                            items.push(TokenTree::Punct(',', Spacing::Alone, Span::default()));
-                            items.extend(quote_span(&s));
+                            inner_stream.push(TokenTree::Punct(',', Spacing::Alone, Span::default()));
+                            inner_stream.push(TokenTree::Group(Delimiter::Brace, {
+                                let mut inner_stream: Vec<TokenTree> = Vec::new();
+                                let vec_id = save_span(proc_macro::Span::mixed_site());
+                                inner_stream.push(TokenTree::Ident(format!("let"), Span::default()));
+                                inner_stream.push(TokenTree::Ident(format!("mut"), Span::default()));
+                                inner_stream.push(TokenTree::Ident(format!("_____tokens_"), Span { id: vec_id, ..Default::default() }));
+                                inner_stream.push(TokenTree::Punct(':', Spacing::Alone, Span::default()));
+                                inner_stream.push(TokenTree::Ident(format!("Vec"), Span::default()));
+                                inner_stream.push(TokenTree::Punct('<', Spacing::Alone, Span::default()));
+                                inner_stream.push(TokenTree::Ident(format!("TokenTree"), Span::default()));
+                                inner_stream.push(TokenTree::Punct('>', Spacing::Alone, Span::default()));
+                                inner_stream.push(TokenTree::Punct('=', Spacing::Alone, Span::default()));
+                                inner_stream.push(TokenTree::Ident(format!("Vec"), Span::default()));
+                                inner_stream.push(TokenTree::Punct(':', Spacing::Joint, Span::default()));
+                                inner_stream.push(TokenTree::Punct(':', Spacing::Joint, Span::default()));
+                                inner_stream.push(TokenTree::Ident(format!("new"), Span::default()));
+                                inner_stream.push(TokenTree::Group(Delimiter::Parenthesis, vec![], Span::default()));
+                                inner_stream.push(TokenTree::Punct(';', Spacing::Alone, Span::default()));
+                                
+                                let mut inner_iter = t.into_iter().peekable();
+                                quote_stream(&mut inner_iter, &mut inner_stream, vec_id);
+                                
+                                inner_stream.push(TokenTree::Ident(format!("_____tokens_"), Span { id: vec_id, ..Default::default() }));
+                                
+                                inner_stream
+                            }, Span::default()));
+                            inner_stream.push(TokenTree::Punct(',', Spacing::Alone, Span::default()));
+                            inner_stream.extend(quote_span(&s));
                             
-                            items
-                        }, Span::default())
-                    ], Span::default()));
-                    loop_body.push(TokenTree::Punct(';', Spacing::Alone, Span::default()));
+                            inner_stream
+                        }, Span::default()));
+                        
+                        items
+                    }, Span::default()));
                 }
                 _ => {
                     loop_body.push(TokenTree::Ident(format!("_____tokens_"),Span { id: stream_id, ..Default::default() }));
