@@ -465,11 +465,11 @@ fn quote_repetition(template_iter: &mut Peekable<impl Iterator<Item = TokenTree>
                         quote_token(&tok, &mut args);
                         
                         args
-                    },Span::default()));
-                    
-                    loop_body.push(TokenTree::Punct(';', Spacing::Alone, Span::default()));
+                    }, Span::default()));
                 }
             }
+            
+            loop_body.push(TokenTree::Punct(';', Spacing::Alone, Span::default()));
         }
         
         loop_body
