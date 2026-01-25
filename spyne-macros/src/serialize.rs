@@ -39,8 +39,8 @@ fn serialize_struct(iter: &mut TokenIter) -> Vec<TokenTree> {
     quote! {
         impl Serialize for [$struct_name_ident] {
             fn serialize(&self, serializer: &mut impl Serializer) {
-                serializer.write_struct([$struct_name_lit], &[ ($ [$struct_fields_lit] ),* ], |ser| {
-                    ($ self.[$struct_fields_ident].serialize(ser) );*
+                serializer.write_struct( [$ struct_name_lit ], &[ ($ [$ struct_fields_lit ] ),* ], |ser| {
+                    ($ self.[$ struct_fields_ident ].serialize(ser) );*
                 });
             }
         }
@@ -53,4 +53,13 @@ fn serialize_enum(iter: &mut TokenIter) -> Vec<TokenTree> {
     
     let enum_name_ident = TokenTree::Ident(parsed_enum.name.clone(), Span::default());
     let enum_name_literal = TokenTree::Literal(parsed_enum.name.clone(), Span::default());
+    let mut enum_variants_ident: Vec<TokenTree> = Vec::new();
+    for variant in parsed_enum.variants.iter().clone() {
+        enum_variants_ident.push(TokenTree::Ident(variant.name.clone(), Span::default()));
+    }
+    let mut enum_variants_lit
+    
+    quote! {
+        
+    }
 }
