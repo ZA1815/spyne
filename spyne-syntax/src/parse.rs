@@ -49,7 +49,7 @@ impl ParsedEnum {
                     if outer_iter.peek().is_none() {
                         v.push(ParsedVariant { name: name.to_owned(), index, data: VariantData::Unit(span), span });
                     }
-                    else if outer_iter.peek().unwrap() == &TokenTree::Punct(',', Spacing::Alone, span) {
+                    else if matches!(outer_iter.peek().unwrap(), &TokenTree::Punct(',', Spacing::Alone, _)) {
                         v.push(ParsedVariant { name, index, data: VariantData::Unit(span), span });
                     }
                     else {
@@ -82,7 +82,9 @@ impl ParsedEnum {
                         v.push(ParsedVariant { name, index, data, span });
                     }
                     
-                    outer_iter.expect_punct(Some(','))?;
+                    if let Some(_) = outer_iter.peek() {
+                        outer_iter.expect_punct(Some(','))?;
+                    }
                     index += 1;
                 }
                 
