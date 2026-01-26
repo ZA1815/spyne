@@ -57,17 +57,17 @@ fn serialize_enum(iter: &mut TokenIter) -> Vec<TokenTree> {
             VariantData::Unit(s) => {
                 let var_name_ident = TokenTree::Ident(variant.name.clone(), s);
                 let var_name_lit = TokenTree::Literal(variant.name.clone(), s);
-               enum_arms.extend(quote! {
-                   Self::[$ var_name_ident ] => serializer.write_enum([$ enum_name_lit ], [$ var_idx ], [$ var_name_lit ], |_| {})
-               }); 
+                enum_arms.extend(quote! {
+                    Self::[$ var_name_ident ] => serializer.write_enum([$ enum_name_lit ], [$ var_idx ], [$ var_name_lit ], |_| {})
+                }); 
             }
             VariantData::Tuple(data, s) => {
                 let var_name_ident = TokenTree::Ident(variant.name.clone(), s);
                 let var_name_lit = TokenTree::Literal(variant.name.clone(), s);
                 let mut field_names: Vec<TokenTree> = Vec::new();
-                let field_num = TokenTree::Literal(format!("{}", data.len()), Span::default());
+                let field_num = TokenTree::Literal(format!("{}", data.len()), s);
                 for i in 0..data.len() {
-                    field_names.push(TokenTree::Ident(format!("f{}", i), Span::default()));
+                    field_names.push(TokenTree::Ident(format!("f{}", i), s));
                 }
                 enum_arms.extend(quote! {
                     Self::[$ var_name_ident ](($ [$ field_names.clone() ] ),*) => serializer.write_enum([$ enum_name_lit ], [$ var_idx ], [$ var_name_lit ], |ser| {
