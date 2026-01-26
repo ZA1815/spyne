@@ -4,6 +4,7 @@ version = "0.2.0"
 edition = "2024"
 description = "All-in-one toolkit"
 license = "MIT"
+repository = "https://github.com/ZA1815/spyne"
 
 [dependencies]
 
