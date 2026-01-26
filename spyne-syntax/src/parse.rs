@@ -107,12 +107,15 @@ impl ParsedField {
                 token_iter.expect_punct(Some(':'))?;
                 while token_iter.peek().is_some() {
                     match token_iter.peek().unwrap() {
-                        &TokenTree::Punct('<', Spacing::Alone, _) => { depth += 1; ty.push(token_iter.peek().unwrap().to_owned()); },
-                        &TokenTree::Punct('>', Spacing::Alone, span) => {
-                            depth.checked_sub(1).map(|_| ()).ok_or(ParseError::UnmatchedAngleBracket(span))?;
+                        &TokenTree::Punct('<', Spacing::Alone, _) => {
+                            depth += 1;
                             ty.push(token_iter.peek().unwrap().to_owned());
                         },
-                        &TokenTree::Punct(',', Spacing::Alone, _) => {
+                        &TokenTree::Punct('>', _, span) => {
+                            depth = depth.checked_sub(1).ok_or(ParseError::UnmatchedAngleBracket(span))?;
+                            ty.push(token_iter.peek().unwrap().to_owned());
+                        },
+                        &TokenTree::Punct(',', _, _) => {
                             if depth == 0 {
                                 token_iter.next();
                                 break;
@@ -136,10 +139,10 @@ impl ParsedField {
                     match token_iter.peek().unwrap() {
                         &TokenTree::Punct('<', Spacing::Alone, _) => { depth += 1; ty.push(token_iter.peek().unwrap().to_owned()); }
                         &TokenTree::Punct('>', Spacing::Alone, span) => {
-                            depth.checked_sub(1).map(|_| ()).ok_or(ParseError::UnmatchedAngleBracket(span))?;
+                            depth = depth.checked_sub(1).ok_or(ParseError::UnmatchedAngleBracket(span))?;
                             ty.push(token_iter.peek().unwrap().to_owned());
                         }
-                        &TokenTree::Punct(',', Spacing::Alone, _) => {
+                        &TokenTree::Punct(',', _, _) => {
                             if depth == 0 {
                                 token_iter.next();
                                 break;
