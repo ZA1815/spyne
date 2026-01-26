@@ -4,8 +4,8 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-spyne-quote = { path = "../spyne-quote" }
-spyne-syntax = { path = "../spyne-syntax" } 
+spyne-quote = "0.1.6"
+spyne-syntax = "0.1.3"
 
 [lib]
 proc-macro = true
