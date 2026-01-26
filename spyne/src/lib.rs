@@ -1,5 +1,4 @@
-// #[cfg(feature = "text")]
-pub mod text;
+// #[cfg(feature = "primitives")]
+pub mod primitives;
 
-// #[cfg(feature = "serialization")]
-pub mod serialization;
+pub mod tests;

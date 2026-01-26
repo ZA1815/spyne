@@ -6,6 +6,7 @@ description = "All-in-one toolkit"
 license = "MIT"
 
 [dependencies]
+spyne-macros = { path = "../spyne-macros" }
 
 [features]
 text-gapbuffer = ["text"]

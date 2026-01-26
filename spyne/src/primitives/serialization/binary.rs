@@ -1,4 +1,4 @@
-use crate::serialization::{Deserialize, Deserializer, Serialize, Serializer};
+use crate::primitives::serialization::{Deserialize, Deserializer, Serialize, Serializer};
 
 pub struct BinarySerde {
     buffer: Vec<u8>,
@@ -231,7 +231,7 @@ impl Deserializer for BinarySerde {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::serialization::{Serialize, Serializer, Deserialize, Deserializer};
+    use crate::primitives::serialization::{Serialize, Serializer, Deserialize, Deserializer};
     
     #[derive(Debug, PartialEq)]
     struct Widget {

@@ -1,4 +1,4 @@
-use crate::text::TextBuffer;
+use crate::primitives::text::TextBuffer;
 
 /// A gap buffer structure.
 /// 
