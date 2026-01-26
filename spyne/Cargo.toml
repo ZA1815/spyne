@@ -20,6 +20,11 @@ macros-serialization = ["primitives-serialization", "primitives-serialization-bi
 primitives-serialization = []
 primitives-serialization-binary = ["primitives-serialization"]
 
+primitives-syntax = []
+primitives-syntax-ast = ["primitives-syntax"]
+primitives-syntax-tokgen = ["primitives-syntax"]
+primitives-syntax-token = ["primitives-syntax"]
+
 primitives-text = []
-primitives-text-gapbuffer = ["text"]
-primitives-text-cursor = ["text"]
+primitives-text-gapbuffer = ["primitives-text"]
+primitives-text-cursor = ["primitives-text"]
