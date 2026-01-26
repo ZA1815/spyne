@@ -2,6 +2,8 @@
 name = "spyne-macros"
 version = "0.1.0"
 edition = "2024"
+description = "Macros for the spyne crate"
+license = "MIT"
 
 [dependencies]
 spyne-quote = "0.1.6"
