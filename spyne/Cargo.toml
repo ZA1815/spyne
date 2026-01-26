@@ -1,30 +1,28 @@
 [package]
 name = "spyne"
-version = "0.2.0"
+version = "0.3.0"
 edition = "2024"
 description = "All-in-one toolkit"
 license = "MIT"
 
 [dependencies]
-spyne-macros = { path = "../spyne-macros" }
-spyne-quote = { path = "../spyne-quote" }
-spyne-syntax = { path = "../spyne-syntax" }
+spyne-macros = "0.1.1"
+spyne-quote = "0.1.6"
+spyne-syntax = "0.1.3"
 
 [features]
 macros = []
-primitives = []
+macros-quote = ["syntax"]
+macros-serialization = ["serialization", "serialization-binary"]
 
-macros-quote = ["primitives-syntax"]
-macros-serialization = ["primitives-serialization", "primitives-serialization-binary"]
+serialization = []
+serialization-binary = ["serialization"]
 
-primitives-serialization = []
-primitives-serialization-binary = ["primitives-serialization"]
+syntax = []
+syntax-ast = ["syntax"]
+syntax-tokgen = ["syntax"]
+syntax-token = ["syntax"]
 
-primitives-syntax = []
-primitives-syntax-ast = ["primitives-syntax"]
-primitives-syntax-tokgen = ["primitives-syntax"]
-primitives-syntax-token = ["primitives-syntax"]
-
-primitives-text = []
-primitives-text-gapbuffer = ["primitives-text"]
-primitives-text-cursor = ["primitives-text"]
+text = []
+text-gapbuffer = ["text"]
+text-cursor = ["text"]

@@ -1,6 +1,6 @@
 use std::marker::PhantomData;
 
-use crate::primitives::text::TextBuffer;
+use crate::text::TextBuffer;
 
 pub struct Cursor<T: TextBuffer> {
     buffer: PhantomData<T>,

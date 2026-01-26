@@ -1,4 +1,4 @@
-use spyne::primitives::serialization::BinarySerde;
+use spyne::serialization::BinarySerde;
 use spyne::macros::serialization::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize)]

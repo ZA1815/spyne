@@ -1,11 +1,11 @@
-// #[cfg(feature = "primitives-text-gapbuffer")]
+#[cfg(feature = "text-gapbuffer")]
 mod gap_buffer;
-// #[cfg(feature = "primitives-text-gapbuffer")]
+#[cfg(feature = "text-gapbuffer")]
 pub use gap_buffer::GapBuffer;
 
-// #[cfg(feature = "primitives-text-cursor")]
+#[cfg(feature = "text-cursor")]
 mod cursor;
-// #[cfg(feature = "primitives-text-cursor")]
+#[cfg(feature = "text-cursor")]
 pub use cursor::Cursor;
 
 /// A trait for creating and manipulating text buffers.
