@@ -1,5 +1,5 @@
 use spyne_quote::quote;
-use spyne_syntax::{ast::{ParsedEnum, ParsedStruct, VariantData}, token::{Spacing, Span, TokenIter, TokenTree}};
+use spyne_syntax::{ast::{ParsedEnum, ParsedStruct, VariantData}, token::{Span, TokenIter, TokenTree}};
 
 pub fn serialize_help(data: Vec<TokenTree>) -> Vec<TokenTree> {
     let mut vec: Vec<TokenTree> = Vec::new();
@@ -58,7 +58,7 @@ fn serialize_enum(iter: &mut TokenIter) -> Vec<TokenTree> {
                 let var_name_ident = TokenTree::Ident(variant.name.clone(), s);
                 let var_name_lit = TokenTree::Literal(format!("{:?}", variant.name.clone()), s);
                 enum_arms.extend(quote! {
-                    Self::[$ var_name_ident ] => serializer.write_enum([$ enum_name_lit ], [$ var_idx ], [$ var_name_lit ], |_| {})
+                    Self::[$ var_name_ident ] => serializer.write_enum([$ enum_name_lit ], [$ var_idx ], [$ var_name_lit ], |_| {}),
                 }); 
             }
             VariantData::Tuple(data, s) => {
@@ -73,7 +73,7 @@ fn serialize_enum(iter: &mut TokenIter) -> Vec<TokenTree> {
                     Self::[$ var_name_ident ](($ [$ field_names.clone() ] ),*) => serializer.write_enum([$ enum_name_lit ], [$ var_idx ], [$ var_name_lit ], |ser| {
                         ser.write_tuple([$ field_num ], |ser| {
                             ($ [$ field_names ].serialize(ser) );*
-                        });
+                        })
                     }),
                 });
             }
@@ -95,13 +95,11 @@ fn serialize_enum(iter: &mut TokenIter) -> Vec<TokenTree> {
                     Self::[$ var_name_ident ] { ($ [$ field_names_ident.clone() ] ),* } => serializer.write_enum([$ enum_name_lit ], [$ var_idx ], [$ var_name_lit ], |ser| {
                         ser.write_struct([$ var_name_lit ], &[($ [$ field_names_lit ] ),*], |ser| {
                             ($ [$ field_names_ident ].serialize(ser) );*
-                        });
-                    });
+                        })
+                    }),
                 });
             }
         }
-        
-        enum_arms.push(TokenTree::Punct(',', Spacing::Alone, Span::default()));
     }
     
     quote! {

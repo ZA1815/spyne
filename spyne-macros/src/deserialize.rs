@@ -1,5 +1,5 @@
 use spyne_quote::quote;
-use spyne_syntax::{ast::{ParsedEnum, ParsedStruct, VariantData}, token::{Delimiter, Spacing, Span, TokenIter, TokenTree}};
+use spyne_syntax::{ast::{ParsedEnum, ParsedStruct, VariantData}, token::{Delimiter, TokenIter, TokenTree}};
 
 pub fn deserialize_help(data: Vec<TokenTree>) -> Vec<TokenTree> {
    let mut vec: Vec<TokenTree> = Vec::new();
@@ -62,7 +62,7 @@ fn deserialize_enum(iter: &mut TokenIter) -> Vec<TokenTree> {
                 let var_name_lit = TokenTree::Literal(format!("{:?}", variant.name.clone()), s);
                 variants.push(var_name_lit);
                 enum_arms.extend(quote! {
-                    [$ var_idx ] => Ok([$ enum_name_ident ]::[$ var_name_ident ])
+                    [$ var_idx ] => Ok([$ enum_name_ident ]::[$ var_name_ident ]),
                 });
             }
             VariantData::Tuple(data, s) => {
@@ -76,7 +76,7 @@ fn deserialize_enum(iter: &mut TokenIter) -> Vec<TokenTree> {
                 enum_arms.extend(quote! {
                     [$ var_idx ] => de.read_tuple([$ field_num ], |de| {
                        Ok([$ enum_name_ident ]::[$ var_name ](($ <[$ field_types ]>::deserialize(de)? ),*)) 
-                    });
+                    }),
                 });
             }
             VariantData::Struct(data, s) => {
@@ -100,11 +100,10 @@ fn deserialize_enum(iter: &mut TokenIter) -> Vec<TokenTree> {
                 enum_arms.extend(quote! {
                     [$ var_idx ] => de.read_struct([$ var_name_lit ], &[($ [$ field_names_lit ]),*], |de| {
                         Ok([$ enum_name_ident ]::[$ var_name_ident ] { ($ [$ field_names_ident ]: <[$ field_types ]>::deserialize(de)? ),* } )
-                    })
+                    }),
                 });
             }
         }
-        enum_arms.push(TokenTree::Punct(',', Spacing::Alone, Span::default()));
     }
     
     enum_arms.extend(quote! { _ => Err("DeriveDeserialize: Variant index out of bounds.".to_string()) });
@@ -116,7 +115,7 @@ fn deserialize_enum(iter: &mut TokenIter) -> Vec<TokenTree> {
                     match idx {
                         [$ enum_arms ]
                     }
-                });
+                })
             }
         }
     }
