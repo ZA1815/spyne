@@ -35,8 +35,8 @@ fn deserialize_struct(iter: &mut TokenIter) -> Vec<TokenTree> {
     }
     
     quote! {
-        impl ::spyne::primitives::serialization::Deserialize for [$ struct_name_ident ] {
-            fn deserialize(deserializer: &mut impl ::spyne::primitives::serialization::Deserializer) -> Result<Self, String> {
+        impl ::spyne::serialization::Deserialize for [$ struct_name_ident ] {
+            fn deserialize(deserializer: &mut impl ::spyne::serialization::Deserializer) -> Result<Self, String> {
                 deserializer.read_struct([$ struct_name_lit ], &[($ [$ struct_fields_lit ] ),*], |de| {
                     Ok(Self {
                         ($ [$ struct_fields_ident ]: <[$ struct_types ]>::deserialize(de)? ),*
@@ -109,8 +109,8 @@ fn deserialize_enum(iter: &mut TokenIter) -> Vec<TokenTree> {
     enum_arms.extend(quote! { _ => Err("DeriveDeserialize: Variant index out of bounds.".to_string()) });
     
     quote! {
-        impl ::spyne::primitives::serialization::Deserialize for [$ enum_name_ident ] {
-            fn deserialize(deserializer: &mut impl ::spyne::primitives::serialization::Deserializer) -> Result<Self, String> {
+        impl ::spyne::serialization::Deserialize for [$ enum_name_ident ] {
+            fn deserialize(deserializer: &mut impl ::spyne::serialization::Deserializer) -> Result<Self, String> {
                 deserializer.read_enum([$ enum_name_lit ], &[($ [$ variants ] ),*], |de, idx| {
                     match idx {
                         [$ enum_arms ]

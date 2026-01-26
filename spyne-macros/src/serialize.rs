@@ -34,8 +34,8 @@ fn serialize_struct(iter: &mut TokenIter) -> Vec<TokenTree> {
     }
     
     quote! {
-        impl ::spyne::primitives::serialization::Serialize for [$ struct_name_ident ] {
-            fn serialize(&self, serializer: &mut impl ::spyne::primitives::serialization::Serializer) {
+        impl ::spyne::serialization::Serialize for [$ struct_name_ident ] {
+            fn serialize(&self, serializer: &mut impl ::spyne::serialization::Serializer) {
                 serializer.write_struct([$ struct_name_lit ], &[($ [$ struct_fields_lit ] ),*], |ser| {
                     ($ self.[$ struct_fields_ident ].serialize(ser) );*
                 });
@@ -103,8 +103,8 @@ fn serialize_enum(iter: &mut TokenIter) -> Vec<TokenTree> {
     }
     
     quote! {
-        impl ::spyne::primitives::serialization::Serialize for [ $enum_name_ident ] {
-            fn serialize(&self, serializer: &mut impl ::spyne::primitives::serialization::Serializer) {
+        impl ::spyne::serialization::Serialize for [ $enum_name_ident ] {
+            fn serialize(&self, serializer: &mut impl ::spyne::serialization::Serializer) {
                 match self {
                     [$ enum_arms ]
                 }
