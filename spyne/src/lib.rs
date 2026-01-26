@@ -3,5 +3,3 @@ pub mod macros;
 
 // #[cfg(feature = "primitives")]
 pub mod primitives;
-
-mod tests;

@@ -20,22 +20,22 @@ fn serialize_struct(iter: &mut TokenIter) -> Vec<TokenTree> {
         .expect("DeriveSerialize: Struct couldn't be parsed correctly.");
     
     let struct_name_ident = TokenTree::Ident(parsed_struct.name.clone(), parsed_struct.span);
-    let struct_name_lit = TokenTree::Literal(parsed_struct.name.clone(), parsed_struct.span);
+    let struct_name_lit = TokenTree::Literal(format!("{:?}", parsed_struct.name.clone()), parsed_struct.span);
     let mut struct_fields_ident: Vec<TokenTree> = Vec::new();
     let mut struct_fields_lit: Vec<TokenTree> = Vec::new();
     for field in parsed_struct.fields {
         match &field.name {
             Some(name) => {
                 struct_fields_ident.push(TokenTree::Ident(name.clone(), field.span));
-                struct_fields_lit.push(TokenTree::Literal(name.clone(), field.span));
+                struct_fields_lit.push(TokenTree::Literal(format!("{:?}", name.clone()), field.span));
             }
             None => ()
         }
     }
     
     quote! {
-        impl Serialize for [$ struct_name_ident ] {
-            fn serialize(&self, serializer: &mut impl Serializer) {
+        impl ::spyne::primitives::serialization::Serialize for [$ struct_name_ident ] {
+            fn serialize(&self, serializer: &mut impl ::spyne::primitives::serialization::Serializer) {
                 serializer.write_struct([$ struct_name_lit ], &[($ [$ struct_fields_lit ] ),*], |ser| {
                     ($ self.[$ struct_fields_ident ].serialize(ser) );*
                 });
@@ -49,21 +49,21 @@ fn serialize_enum(iter: &mut TokenIter) -> Vec<TokenTree> {
         .expect("DeriveSerialize: Enum couldn't be parsed correctly.");
     
     let enum_name_ident = TokenTree::Ident(parsed_enum.name.clone(), parsed_enum.span);
-    let enum_name_lit = TokenTree::Literal(parsed_enum.name.clone(), parsed_enum.span);
+    let enum_name_lit = TokenTree::Literal(format!("{:?}", parsed_enum.name.clone()), parsed_enum.span);
     let mut enum_arms: Vec<TokenTree> = Vec::new();
     for variant in parsed_enum.variants {
         let var_idx = TokenTree::Literal(format!("{}", variant.index), Span::default());
         match variant.data {
             VariantData::Unit(s) => {
                 let var_name_ident = TokenTree::Ident(variant.name.clone(), s);
-                let var_name_lit = TokenTree::Literal(variant.name.clone(), s);
+                let var_name_lit = TokenTree::Literal(format!("{:?}", variant.name.clone()), s);
                 enum_arms.extend(quote! {
                     Self::[$ var_name_ident ] => serializer.write_enum([$ enum_name_lit ], [$ var_idx ], [$ var_name_lit ], |_| {})
                 }); 
             }
             VariantData::Tuple(data, s) => {
                 let var_name_ident = TokenTree::Ident(variant.name.clone(), s);
-                let var_name_lit = TokenTree::Literal(variant.name.clone(), s);
+                let var_name_lit = TokenTree::Literal(format!("{:?}", variant.name.clone()), s);
                 let mut field_names: Vec<TokenTree> = Vec::new();
                 let field_num = TokenTree::Literal(format!("{}", data.len()), s);
                 for i in 0..data.len() {
@@ -79,14 +79,14 @@ fn serialize_enum(iter: &mut TokenIter) -> Vec<TokenTree> {
             }
             VariantData::Struct(data, s) => {
                 let var_name_ident = TokenTree::Ident(variant.name.clone(), s);
-                let var_name_lit = TokenTree::Literal(variant.name.clone(), s);
+                let var_name_lit = TokenTree::Literal(format!("{:?}", variant.name.clone()), s);
                 let mut field_names_ident: Vec<TokenTree> = Vec::new();
                 let mut field_names_lit: Vec<TokenTree> = Vec::new();
                 for field in data {
                     match &field.name {
                         Some(name) => {
                             field_names_ident.push(TokenTree::Ident(name.clone(), field.span));
-                            field_names_lit.push(TokenTree::Literal(name.clone(), field.span));
+                            field_names_lit.push(TokenTree::Literal(format!("{:?}", name.clone()), field.span));
                         }
                         None => ()
                     }
@@ -105,8 +105,8 @@ fn serialize_enum(iter: &mut TokenIter) -> Vec<TokenTree> {
     }
     
     quote! {
-        impl Serialize for [ $enum_name_ident ] {
-            fn serialize(&self, serializer: &mut impl Serializer) {
+        impl ::spyne::primitives::serialization::Serialize for [ $enum_name_ident ] {
+            fn serialize(&self, serializer: &mut impl ::spyne::primitives::serialization::Serializer) {
                 match self {
                     [$ enum_arms ]
                 }
