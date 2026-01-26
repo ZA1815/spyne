@@ -1,5 +1,8 @@
-// #[cfg(feature = "text")]
-pub mod text;
+// #[cfg(feature = "primitives-serialization")]
+pub mod serialization; 
 
-// #[cfg(feature = "serialization")]
-pub mod serialization;
+// #[cfg(feature = "primitives-syntax")]
+pub mod syntax;
+
+// #[cfg(feature = "primitives-text")]
+pub mod text;

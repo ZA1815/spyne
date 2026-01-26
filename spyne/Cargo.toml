@@ -7,8 +7,13 @@ license = "MIT"
 
 [dependencies]
 spyne-macros = { path = "../spyne-macros" }
+spyne-quote = { path = "../spyne-quote" }
+spyne-syntax = { path = "../spyne-syntax" }
 
 [features]
+primitives = []
+macros = []
+
 text-gapbuffer = ["text"]
 text-cursor = ["text"]
 text = []
@@ -16,6 +21,5 @@ text = []
 serialization-binary = ["serialization"]
 serialization = []
 
-syntax-macros-derive = ["syntax", "syntax-macros"]
-syntax-macros = ["syntax"]
-syntax = []
+macros-quote = []
+macros-serialization = ["serialization", "serialization-binary"]
