@@ -11,15 +11,15 @@ spyne-quote = { path = "../spyne-quote" }
 spyne-syntax = { path = "../spyne-syntax" }
 
 [features]
-primitives = []
 macros = []
+primitives = []
 
-text-gapbuffer = ["text"]
-text-cursor = ["text"]
-text = []
+macros-quote = ["primitives-syntax"]
+macros-serialization = ["primitives-serialization", "primitives-serialization-binary"]
 
-serialization-binary = ["serialization"]
-serialization = []
+primitives-serialization = []
+primitives-serialization-binary = ["primitives-serialization"]
 
-macros-quote = []
-macros-serialization = ["serialization", "serialization-binary"]
+primitives-text = []
+primitives-text-gapbuffer = ["text"]
+primitives-text-cursor = ["text"]
