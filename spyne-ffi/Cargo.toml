@@ -2,5 +2,7 @@
 name = "spyne-ffi"
 version = "0.1.0"
 edition = "2024"
+description = "FFI tools for the spyne crate"
+license = "MIT"
 
 [dependencies]
