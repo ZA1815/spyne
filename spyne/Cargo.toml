@@ -6,7 +6,7 @@ description = "All-in-one toolkit"
 license = "MIT"
 
 [dependencies]
-spyne-ffi = "0.1.0"
+spyne-ffi = "0.2.0"
 spyne-macros = "0.1.1"
 spyne-quote = "0.1.6"
 spyne-syntax = "0.1.3"
