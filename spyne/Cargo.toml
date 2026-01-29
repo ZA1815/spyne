@@ -1,6 +1,6 @@
 [package]
 name = "spyne"
-version = "0.3.0"
+version = "0.4.0"
 edition = "2024"
 description = "All-in-one toolkit"
 license = "MIT"
@@ -12,6 +12,12 @@ spyne-quote = "0.1.6"
 spyne-syntax = "0.1.3"
 
 [features]
+ffi = []
+ffi-c = ["ffi"]
+ffi-c-constants = ["ffi", "ffi-c"]
+ffi-c-pty = ["ffi", "ffi-c"]
+ffi-c-syscalls = ["ffi", "ffi-c"]
+
 macros = []
 macros-quote = ["syntax"]
 macros-serialization = ["serialization", "serialization-binary"]
