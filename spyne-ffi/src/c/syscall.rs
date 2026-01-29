@@ -1,6 +1,6 @@
 use core::arch::asm;
 
-use crate::c::constants::{SYS_CLOSE, SYS_DUP2, SYS_EXECVE, SYS_FORK, SYS_IOCTL, SYS_OPEN, SYS_SETSID};
+use crate::c::constants::{SYS_CLOSE, SYS_DUP2, SYS_EXECVE, SYS_EXIT, SYS_FORK, SYS_IOCTL, SYS_OPEN, SYS_SETSID};
 
 pub unsafe fn open(path: *const u8, flags: i32, mode: i32) ->  isize {
     unsafe { syscall3(SYS_OPEN as u64, path as u64, flags as u64, mode as u64) }
@@ -24,6 +24,11 @@ pub unsafe fn fork() -> isize {
 
 pub unsafe fn execve(path: *const u8, argv: *const *const u8, envp: *const *const u8) -> isize {
     unsafe { syscall3(SYS_EXECVE as u64, path as u64, argv as u64, envp as u64) }
+}
+
+pub unsafe fn _exit(exit_status: i32) -> ! {
+    unsafe { syscall1(SYS_EXIT as u64, exit_status as u64) };
+    unreachable!()
 }
 
 pub unsafe fn setsid() -> isize {

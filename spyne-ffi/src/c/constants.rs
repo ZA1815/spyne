@@ -5,6 +5,7 @@ pub const SYS_IOCTL: u32 = 0x10;
 pub const SYS_DUP2: u32 = 0x21;
 pub const SYS_FORK: u32 = 0x39;
 pub const SYS_EXECVE: u32 = 0x3B;
+pub const SYS_EXIT :u32 = 0x3C;
 pub const SYS_SETSID: u32 = 0x70;
 
 // Flags
