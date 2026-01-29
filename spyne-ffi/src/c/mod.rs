@@ -1,5 +1,8 @@
-pub mod constants;
+// #[cfg(target_os = "linux")]
+pub mod linux;
 
-pub mod pty;
+// #[cfg(target_os = "macos")]
+pub mod macos;
 
-pub mod syscall;
+#[cfg(not(any(target_os = "linux", target_os = "macos")))]
+compile_error!("Windows is not supported with C FFI");

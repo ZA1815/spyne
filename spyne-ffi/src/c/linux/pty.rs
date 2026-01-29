@@ -1,9 +1,8 @@
-use crate::c::{constants::{O_NOCTTY, O_RDWR, TIOCGPTN, TIOCSCTTY, TIOCSPTLCK}, syscall::{_exit, close, dup2, execve, fork, ioctl, open, setsid}};
-
 extern crate alloc;
 use alloc::vec::Vec;
+use crate::c::linux::{constants::{O_RDWR, O_NOCTTY, TIOCGPTN, TIOCSCTTY, TIOCSPTLCK}, syscalls::{_exit, open, close, dup2, execve, fork, ioctl, setsid}};
 
-fn create_pty() -> (i32, i32) {
+pub fn create_pty() -> (i32, i32) {
     let master_flags = O_RDWR | O_NOCTTY;
     let master_fd = unsafe { open(b"/dev/ptmx\0" as *const u8, master_flags, 0) };
     if master_fd < 0 {
@@ -46,7 +45,7 @@ fn create_pty() -> (i32, i32) {
     (master_fd as i32, slave_fd as i32)
 }
 
-fn spawn(master_fd: i32, slave_fd: i32, path: *const u8, argv: *const *const u8, envp: *const *const u8) -> i32 {
+pub fn spawn(master_fd: i32, slave_fd: i32, path: *const u8, argv: *const *const u8, envp: *const *const u8) -> i32 {
     let pid = unsafe { fork() };
     if pid == 0 {
         let res = unsafe { setsid() };
@@ -102,9 +101,4 @@ fn spawn(master_fd: i32, slave_fd: i32, path: *const u8, argv: *const *const u8,
     else {
         panic!("spawn: fork failed.");
     }
-}
-
-#[cfg(test)]
-mod test {
-    
 }

@@ -1,6 +1,5 @@
 use core::arch::asm;
-
-use crate::c::constants::{SYS_CLOSE, SYS_DUP2, SYS_EXECVE, SYS_EXIT, SYS_FORK, SYS_IOCTL, SYS_OPEN, SYS_SETSID};
+use crate::c::linux::constants::{SYS_CLOSE, SYS_DUP2, SYS_EXECVE, SYS_EXIT, SYS_FORK, SYS_IOCTL, SYS_OPEN, SYS_SETSID};
 
 pub unsafe fn open(path: *const u8, flags: i32, mode: i32) ->  isize {
     unsafe { syscall3(SYS_OPEN as u64, path as u64, flags as u64, mode as u64) }
