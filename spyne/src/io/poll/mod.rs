@@ -1,7 +1,8 @@
 mod epoll;
-// pub use epoll::Epoll;
+pub use epoll::Epoll;
 
-pub mod kqueue;
+mod kqueue;
+pub use kqueue::Kqueue;
 
 use std::time::Duration;
 
@@ -32,6 +33,7 @@ pub enum Interests {
 pub enum FilterType {
     Readable,
     Writable,
+    ReadWrite,
     UnsupportedFilter(i16)
 }
 

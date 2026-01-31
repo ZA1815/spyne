@@ -8,6 +8,9 @@ pub const EPOLL_CTL_ADD: i32 = 1;
 pub const EPOLL_CTL_DEL: i32 = 2;
 pub const EPOLL_CTL_MOD: i32 = 3;
 
+// Flags
+pub const EPOLL_CLOEXEC: i32 = 0x80000;
+
 // Event Flags
 pub const EPOLLIN: u32 = 0x001;
 pub const EPOLLPRI: u32 = 0x002;
