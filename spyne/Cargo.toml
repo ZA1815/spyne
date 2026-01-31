@@ -1,12 +1,12 @@
 [package]
 name = "spyne"
-version = "0.4.0"
+version = "0.5.0"
 edition = "2024"
 description = "All-in-one toolkit"
 license = "MIT"
 
 [dependencies]
-spyne-ffi = { path = "../spyne-ffi" }
+spyne-ffi = "0.3.0"
 spyne-macros = "0.1.1"
 spyne-quote = "0.1.6"
 spyne-syntax = "0.1.3"
@@ -14,9 +14,29 @@ spyne-syntax = "0.1.3"
 [features]
 ffi = []
 ffi-c = ["ffi"]
-ffi-c-constants = ["ffi", "ffi-c"]
-ffi-c-pty = ["ffi", "ffi-c"]
-ffi-c-syscalls = ["ffi", "ffi-c"]
+ffi-c-linux = ["ffi-c"]
+ffi-c-linux-epoll = ["ffi-c-linux"]
+ffi-c-linux-epoll-constants = ["ffi-c-linux-epoll"]
+ffi-c-linux-epoll-syscalls = ["ffi-c-linux-epoll"]
+ffi-c-linux-epoll-types = ["ffi-c-linux-epoll"]
+ffi-c-linux-general = ["ffi-c-linux"]
+ffi-c-linux-general-constants = ["ffi-c-linux-general"]
+ffi-c-linux-general-syscalls = ["ffi-c-linux-general"]
+ffi-c-linux-pty = ["ffi-c-linux"]
+ffi-c-linux-pty-constants = ["ffi-c-linux-pty"]
+ffi-c-linux-pty-operations = ["ffi-c-linux-pty"]
+ffi-c-macos = ["ffi-c"]
+ffi-c-macos-general = ["ffi-c-macos"]
+ffi-c-macos-general-constants = ["ffi-c-macos-general"]
+ffi-c-macos-general-syscalls = ["ffi-c-macos-general"]
+ffi-c-macos-kqueue = ["ffi-c-macos"]
+ffi-c-macos-kqueue-constants = ["ffi-c-macos-kqueue"]
+ffi-c-macos-kqueue-syscalls = ["ffi-c-macos-kqueue"]
+ffi-c-macos-kqueue-types = ["ffi-c-macos-kqueue"]
+ffi-c-macos-pty = ["ffi-c-macos"]
+ffi-c-macos-pty-constants = ["ffi-c-macos-pty"]
+ffi-c-macos-pty-operations = ["ffi-c-macos-pty"]
+ffi-c-macos-pty-syscalls = ["ffi-c-macos-pty"]
 
 macros = []
 macros-quote = ["syntax"]
