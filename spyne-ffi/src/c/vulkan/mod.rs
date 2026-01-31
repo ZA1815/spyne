@@ -2,4 +2,4 @@ pub mod constants;
 
 pub mod functions;
 
-pub mod syscalls;
+pub mod types;

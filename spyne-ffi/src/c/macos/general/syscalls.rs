@@ -1,4 +1,4 @@
-use core::ffi::{c_char, c_int, c_ulong};
+use std::ffi::{c_char, c_int, c_ulong};
 
 #[link(name = "c")]
 unsafe extern "C" {

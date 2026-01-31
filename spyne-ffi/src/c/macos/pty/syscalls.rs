@@ -1,4 +1,4 @@
-use core::ffi::{c_char, c_int};
+use std::ffi::{c_char, c_int};
 
 unsafe extern "C" {
     pub fn posix_openpt(flags: i32) -> c_int;

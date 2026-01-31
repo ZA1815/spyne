@@ -174,8 +174,8 @@ impl Poller for Kqueue {
     fn wait(&mut self, timeout: Duration, buffer: &mut Vec<Self::Event>, max_events: i32) -> Result<usize, PollError> {
         let mut kevent_buffer = Vec::<kevent>::with_capacity(max_events as usize);
         let duration_to_timespec = timespec {
-            tv_sec: timeout.as_secs() as i64,
-            tv_nsec: timeout.subsec_nanos() as i64
+            tv_sec: timeout.as_secs() as i32,
+            tv_nsec: timeout.subsec_nanos() as i32
         };
         let num_events = unsafe { kevent(self.fd, null(), 0, kevent_buffer.as_mut_ptr(), max_events, &duration_to_timespec) };
         if num_events < 0 {

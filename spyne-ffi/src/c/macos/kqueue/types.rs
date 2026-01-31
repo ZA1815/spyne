@@ -1,4 +1,4 @@
-use core::ffi::{c_long, c_void};
+use std::ffi::{c_long, c_void};
 
 #[repr(C)]
 #[derive(Debug, Clone, Copy)]
