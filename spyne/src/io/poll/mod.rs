@@ -1,11 +1,11 @@
-#[cfg(feature = "io-poll-epoll")]
+// #[cfg(feature = "io-poll-epoll")]
 mod epoll;
-#[cfg(feature = "io-poll-epoll")]
+// #[cfg(feature = "io-poll-epoll")]
 pub use epoll::Epoll;
 
-#[cfg(feature = "io-poll-kqueue")]
+// #[cfg(feature = "io-poll-kqueue")]
 mod kqueue;
-#[cfg(feature = "io-poll-kqueue")]
+// #[cfg(feature = "io-poll-kqueue")]
 pub use kqueue::Kqueue;
 
 use std::time::Duration;
