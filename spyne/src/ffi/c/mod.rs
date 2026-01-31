@@ -1,8 +1,3 @@
-// #[cfg(feature = "ffi-c-constants")]
-pub mod constants;
+pub mod linux;
 
-// #[cfg(feature = "ffi-c-pty")]
-pub mod pty;
-
-// #[cfg(feature = "ffi-c-syscalls")]
-pub mod syscalls;
+pub mod macos;

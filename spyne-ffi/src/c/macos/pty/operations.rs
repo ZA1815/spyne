@@ -1,5 +1,4 @@
-use crate::c::macos::constants::{O_NOCTTY, O_RDWR, TIOCSCTTY};
-use crate::c::macos::syscalls::{_exit, close, dup2, execve, fork, grantpt, ioctl, open, posix_openpt, ptsname, setsid, unlockpt};
+use crate::c::macos::{general::{constants::O_RDWR, syscalls::{_exit, close, dup2, execve, fork, ioctl, open, setsid}}, pty::{constants::{O_NOCTTY, TIOCSCTTY}, syscalls::{grantpt, posix_openpt, ptsname, unlockpt}}};
 
 pub fn create_pty() -> (i32, i32) {
     let master_flags = O_RDWR | O_NOCTTY;

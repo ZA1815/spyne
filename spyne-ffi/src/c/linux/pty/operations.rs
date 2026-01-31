@@ -1,6 +1,7 @@
 extern crate alloc;
 use alloc::vec::Vec;
-use crate::c::linux::{constants::{O_RDWR, O_NOCTTY, TIOCGPTN, TIOCSCTTY, TIOCSPTLCK}, syscalls::{_exit, open, close, dup2, execve, fork, ioctl, setsid}};
+
+use crate::c::linux::{general::{constants::O_RDWR, syscalls::{_exit, close, dup2, execve, fork, ioctl, open, setsid}}, pty::constants::{O_NOCTTY, TIOCGPTN, TIOCSCTTY, TIOCSPTLCK}};
 
 pub fn create_pty() -> (i32, i32) {
     let master_flags = O_RDWR | O_NOCTTY;

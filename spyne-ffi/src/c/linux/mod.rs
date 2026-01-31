@@ -1,5 +1,3 @@
-pub mod constants;
+pub mod general;
 
 pub mod pty;
-
-pub mod syscalls;

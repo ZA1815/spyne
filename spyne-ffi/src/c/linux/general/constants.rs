@@ -12,10 +12,4 @@ pub const SYS_SETSID: u32 = 0x70;
 pub const O_RDONLY: i32 = 0x0;
 pub const O_WRONLY: i32 = 0x1;
 pub const O_RDWR: i32 = 0x2;
-pub const O_NOCTTY: i32 = 0x100;
 pub const O_CLOEXEC: i32 = 0x80000;
-
-// IOCTL Request Codes
-pub const TIOCSCTTY: u32 = 0x540E; // Terminal IOCtl Set Controlling TTY
-pub const TIOCSPTLCK: u32 = 0x40045431; // Terminal IOCtl Set PTy LoCK
-pub const TIOCGPTN: u32 = 0x80045430; // Terminal IOCtl Get PTy Number

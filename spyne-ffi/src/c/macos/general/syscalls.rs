@@ -10,8 +10,5 @@ unsafe extern "C" {
     pub fn execve(path: *const c_char, argv: *const *const c_char, envp: *const *const c_char) -> c_int;
     pub fn _exit(status: c_int) -> !;
     pub fn setsid() -> c_int;
-    pub fn posix_openpt(flags: i32) -> c_int;
-    pub fn grantpt(fd: i32) -> c_int;
-    pub fn unlockpt(fd: i32) -> c_int;
-    pub fn ptsname(fd: i32) -> *const c_char;
+    pub fn __error() -> *mut c_int;
 }
