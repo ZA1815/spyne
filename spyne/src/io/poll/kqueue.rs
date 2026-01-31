@@ -1,6 +1,6 @@
 use std::{collections::HashMap, ffi::c_void, ptr::{null, null_mut}, time::Duration};
 
-use spyne_ffi::c::macos::{general::syscalls::__error, kqueue::{constants::{EV_ADD, EV_DELETE, EV_EOF, EV_ERROR, EVFILT_READ, EVFILT_WRITE}, syscalls::kevent, types::{kevent, timespec}}};
+use spyne_ffi::c::macos::{general::syscalls::__error, kqueue::{constants::{EV_ADD, EV_DELETE, EV_EOF, EV_ERROR, EVFILT_READ, EVFILT_WRITE}, syscalls::{kevent, kqueue}, types::{kevent, timespec}}};
 
 use crate::io::poll::{FilterType, FlagType, Interests, PollError, PollEvent, Poller};
 
@@ -12,7 +12,7 @@ pub struct Kqueue {
 impl Kqueue {
     pub fn new() -> Self {
         Self {
-            fd: 0,
+            fd: unsafe { kqueue() },
             registered: HashMap::new()
         }
     }
@@ -33,11 +33,17 @@ impl Kqueue {
         match old_interests {
             Interests::ReadWrite if new_interests == Interests::Readable => {
                 let event = create_kevent(source, EVFILT_READ, EV_DELETE);
-                unsafe { kevent(self.fd, &event, 1, null_mut(), 0, null()) };
+                let res = unsafe { kevent(self.fd, &event, 1, null_mut(), 0, null()) };
+                if res < 0 {
+                    // Add error later
+                }
             }
             Interests::ReadWrite if new_interests == Interests::Writable => {
                 let event = create_kevent(source, EVFILT_WRITE, EV_DELETE);
-                unsafe { kevent(self.fd, &event, 1, null_mut(), 0, null()) };
+                let res = unsafe { kevent(self.fd, &event, 1, null_mut(), 0, null()) };
+                if res < 0 {
+                    // Add error later
+                }
             }
             _ => unreachable!()
         }
@@ -50,14 +56,20 @@ impl Kqueue {
                     create_kevent(source, EVFILT_READ, EV_DELETE),
                     create_kevent(source, EVFILT_WRITE, EV_ADD)
                 ];
-                unsafe { kevent(self.fd, events.as_ptr(), 2, null_mut(), 0, null()) };
+                let res = unsafe { kevent(self.fd, events.as_ptr(), 2, null_mut(), 0, null()) };
+                if res < 0 {
+                    // Add error later
+                }
             }
             Interests::Writable if new_interests == Interests::Readable => {
                 let events = [
                     create_kevent(source, EVFILT_WRITE, EV_DELETE),
                     create_kevent(source, EVFILT_READ, EV_ADD)
                 ];
-                unsafe { kevent(self.fd, events.as_ptr(), 2, null_mut(), 0, null()) };
+                let res = unsafe { kevent(self.fd, events.as_ptr(), 2, null_mut(), 0, null()) };
+                if res < 0 {
+                    // Add error later
+                }
             }
             _ => unreachable!()
         }
@@ -72,18 +84,27 @@ impl Poller for Kqueue {
         match interests {
             Interests::Readable => {
                 let event = create_kevent(source, EVFILT_READ, EV_ADD);
-                unsafe { kevent(self.fd, &event, 1, null_mut(), 0, null()) };
+                let res = unsafe { kevent(self.fd, &event, 1, null_mut(), 0, null()) };
+                if res < 0 {
+                    // Add error later
+                }
             }
             Interests::Writable => {
                 let event = create_kevent(source, EVFILT_WRITE, EV_ADD);
-                unsafe { kevent(self.fd, &event, 1, null_mut(), 0, null()) };
+                let res = unsafe { kevent(self.fd, &event, 1, null_mut(), 0, null()) };
+                if res < 0 {
+                    // Add error later
+                }
             }
             Interests::ReadWrite => {
                 let events = [
                     create_kevent(source, EVFILT_READ, EV_ADD),
                     create_kevent(source, EVFILT_WRITE, EV_ADD)
                 ];
-                unsafe { kevent(self.fd, events.as_ptr(), 2, null_mut(), 0, null()) };
+                let res = unsafe { kevent(self.fd, events.as_ptr(), 2, null_mut(), 0, null()) };
+                if res < 0 {
+                    // Add error later
+                }
             }
         }
         
@@ -123,18 +144,27 @@ impl Poller for Kqueue {
         match interests {
             Interests::Readable => {
                 let event = create_kevent(source, EVFILT_READ, EV_DELETE);
-                unsafe { kevent(self.fd, &event, 1, null_mut(), 0, null()) };
+                let res = unsafe { kevent(self.fd, &event, 1, null_mut(), 0, null()) };
+                if res < 0 {
+                    // Add error later
+                }
             },
             Interests::Writable => {
                 let event = create_kevent(source, EVFILT_WRITE, EV_DELETE);
-                unsafe { kevent(self.fd, &event, 1, null_mut(), 0, null()) };
+                let res = unsafe { kevent(self.fd, &event, 1, null_mut(), 0, null()) };
+                if res < 0 {
+                    // Add error later
+                }
             },
             Interests::ReadWrite => {
                 let events = [
                     create_kevent(source, EVFILT_READ, EV_DELETE),
                     create_kevent(source, EVFILT_WRITE, EV_DELETE)
                 ];
-                unsafe { kevent(self.fd, events.as_ptr(), 2, null_mut(), 0, null()) };
+                let res = unsafe { kevent(self.fd, events.as_ptr(), 2, null_mut(), 0, null()) };
+                if res < 0 {
+                    // Add error later
+                }
             }
         };
         
@@ -149,7 +179,7 @@ impl Poller for Kqueue {
         };
         let num_events = unsafe { kevent(self.fd, null(), 0, kevent_buffer.as_mut_ptr(), max_events, &duration_to_timespec) };
         if num_events < 0 {
-            let errno: i32 = unsafe { __error() as i32 };
+            let errno: i32 = unsafe { *__error() };
             match errno {
                 4 => return Err(PollError::Interrupt),
                 9 => return Err(PollError::InvalidFd),
