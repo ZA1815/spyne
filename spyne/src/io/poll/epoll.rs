@@ -2,7 +2,7 @@ use std::{ptr::null_mut, time::Duration};
 
 use spyne_ffi::c::linux::epoll::{constants::{EPOLL_CLOEXEC, EPOLL_CTL_ADD, EPOLL_CTL_DEL, EPOLL_CTL_MOD, EPOLLERR, EPOLLHUP, EPOLLIN, EPOLLOUT}, syscalls::{epoll_create1, epoll_ctl, epoll_wait}, types::epoll_event};
 
-use crate::io::poll::{FilterType, FlagType, Interests, PollEvent, Poller};
+use crate::io::poll::{FilterType, FlagType, Interests, PollError, PollEvent, Poller};
 
 pub struct Epoll {
     fd: i32
@@ -53,7 +53,14 @@ impl Poller for Epoll {
         let mut epoll_buffer = Vec::<epoll_event>::with_capacity(max_events as usize);
         let num_events = unsafe { epoll_wait(self.fd, epoll_buffer.as_mut_ptr(), max_events, timeout.as_millis() as i32) };
         if num_events < 0 {
-            // Add error later
+            let errno = -num_events as i32;
+            match errno {
+                4 => return Err(PollError::Interrupt),
+                9 => return Err(PollError::InvalidFd),
+                12 => return Err(PollError::OutOfMemory),
+                22 => return Err(PollError::InvalidArgument),
+                _ => return Err(PollError::Unknown(errno))
+            }
         }
         unsafe { epoll_buffer.set_len(num_events as usize) };
         buffer.clear();
