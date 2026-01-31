@@ -1,2 +1,2 @@
-// #[cfg(feature = "io-poll")]
+#[cfg(feature = "io-poll")]
 pub mod poll;

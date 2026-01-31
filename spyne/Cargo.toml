@@ -38,6 +38,11 @@ ffi-c-macos-pty-constants = ["ffi-c-macos-pty"]
 ffi-c-macos-pty-operations = ["ffi-c-macos-pty"]
 ffi-c-macos-pty-syscalls = ["ffi-c-macos-pty"]
 
+io = []
+io-poll = ["io"]
+io-poll-epoll = ["io-poll"]
+io-poll-kqueue = ["io-poll"]
+
 macros = []
 macros-quote = ["syntax"]
 macros-serialization = ["serialization", "serialization-binary"]
