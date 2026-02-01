@@ -33,3 +33,39 @@ pub struct InstanceFunctions {
     #[vulkan(name = "vkEnumeratePhysicalDevices")]
     vk_enumerate_physical_devices: VkEnumeratePhysicalDevices
 }
+
+#[cfg(test)]
+mod test {
+    use std::ptr::{null, null_mut};
+
+    use crate::c::vulkan::{constants::{result::VK_SUCCESS, structure_type::VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO}, functions::{EntryFunctions, InstanceFunctions}, types::{VkAllocationCallbacks, VkInstance, VkInstanceCreateInfo, VkPhysicalDevice}};
+    
+    #[test]
+    fn test_vulkan_funcs() {
+        let entry_funcs = unsafe { EntryFunctions::load() };
+        let mut instance = VkInstance(null_mut());
+        let instance_info = VkInstanceCreateInfo {
+            s_type: VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
+            p_next: null(),
+            flags: 0,
+            p_application_info: null(),
+            enabled_layer_count: 0,
+            pp_enabled_layer_names: null(),
+            enabled_extension_count: 0,
+            pp_enabled_extension_names: null()
+        };
+        let res_init = unsafe { (entry_funcs.vk_create_instance)(&instance_info, null(), &mut instance) };
+        if res_init < 0 {
+            panic!("Vulkan Failed.");
+        }
+        let instance_funcs = unsafe { InstanceFunctions::load(entry_funcs.vk_get_instance_proc_addr, instance) };
+        let mut device_count: u32 = 0;
+        let physical_device = VkPhysicalDevice(null_mut());
+        let res_device = unsafe { (instance_funcs.vk_enumerate_physical_devices)(instance, &mut device_count, physical_device) };
+        if res_device < 0 {
+            panic!("Vulkan Failed.");
+        }
+        assert_eq!(res_init, VK_SUCCESS);
+        assert!(device_count > 0);
+    }
+}
