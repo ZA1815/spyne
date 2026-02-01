@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use crate::token::{Span, TokenTree};
 
 pub struct ParsedStruct {
@@ -14,6 +16,7 @@ pub struct ParsedEnum {
 
 pub struct ParsedField {
     pub name: Option<String>,
+    pub attrs: Vec<ParsedAttribute>,
     pub ty: Vec<TokenTree>,
     pub span: Span
 }
@@ -29,4 +32,10 @@ pub enum VariantData {
     Unit(Span),
     Tuple(Vec<ParsedField>, Span),
     Struct(Vec<ParsedField>, Span)
+}
+
+pub struct ParsedAttribute {
+    pub name: String,
+    pub args: HashMap<String, Vec<TokenTree>>,
+    pub span: Span
 }
