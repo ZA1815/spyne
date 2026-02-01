@@ -8,6 +8,10 @@ pub struct VkInstance(pub *mut c_void);
 
 #[repr(transparent)]
 #[derive(Clone, Copy, PartialEq, Eq)]
+pub struct VkDevice(pub *mut c_void);
+
+#[repr(transparent)]
+#[derive(Clone, Copy, PartialEq, Eq)]
 pub struct VkPhysicalDevice(pub *mut c_void);
 
 #[repr(C)]

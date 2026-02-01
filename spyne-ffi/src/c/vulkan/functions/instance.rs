@@ -1,6 +1,6 @@
 use std::ffi::{c_char, c_void};
 
-use crate::c::vulkan::types::{VkAllocationCallbacks, VkInstance, VkInstanceCreateInfo, VkPhysicalDevice};
+use crate::c::vulkan::types::{VkAllocationCallbacks, VkDevice, VkInstance, VkInstanceCreateInfo, VkPhysicalDevice};
 
 
 pub type PfnVkAllocationFunction = unsafe extern "system" fn(
@@ -53,5 +53,10 @@ pub type VkEnumeratePhysicalDevices = unsafe extern "system" fn(
 
 pub type VkGetInstanceProcAddr = unsafe extern "system" fn(
     instance: VkInstance,
+    p_name: *const c_char
+) -> PfnVkVoidFunction;
+
+pub type VkGetDeviceProcAddr = unsafe extern "system" fn(
+    device: VkDevice,
     p_name: *const c_char
 ) -> PfnVkVoidFunction;

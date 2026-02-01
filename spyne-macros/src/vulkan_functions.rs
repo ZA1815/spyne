@@ -73,7 +73,7 @@ fn vulkan_struct_help(
     quote! {
         impl [$ struct_name ] {
             pub unsafe fn load(loader: [$ loader ], handle: [$ handle ]) -> Self {
-                ($ let [$ field_names.clone() ]: [$ field_types ] = unsafe { transmute(loader(handle, CString::new([$ field_attrs ]).unwrap().as_ptr())) }; );*
+                ($ let [$ field_names.clone() ]: [$ field_types ] = unsafe { transmute(loader(handle, CString::new([$ field_attrs.to_owned() ]).unwrap().as_ptr())) }; )*
                 
                 Self {
                     ($ [$ field_names ] ),*

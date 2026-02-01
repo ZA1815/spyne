@@ -1,7 +1,7 @@
-mod initialization;
+mod instance;
 use std::{ffi::CString, mem::transmute, ptr::null_mut};
 
-pub use initialization::*;
+pub use instance::*;
 use spyne_macros::VulkanFunctions;
 
 use crate::c::{linux::general::{constants::RTLD_NOW, functions::{dlopen, dlsym}}, vulkan::types::VkInstance};
@@ -30,6 +30,9 @@ impl EntryFunctions {
 #[derive(VulkanFunctions)]
 #[vulkan(handle = VkInstance, loader = VkGetInstanceProcAddr)]
 pub struct InstanceFunctions {
+    #[vulkan(name = "vkGetDeviceProcAddr")]
+    vk_get_device_proc_addr: VkGetDeviceProcAddr,
+    
     #[vulkan(name = "vkEnumeratePhysicalDevices")]
     vk_enumerate_physical_devices: VkEnumeratePhysicalDevices
 }
