@@ -110,6 +110,14 @@ impl ParsedField {
                     token_iter.next();
                     attrs.push(ParsedAttribute::parse(token_iter)?)
                 }
+                if let Some(tok) = token_iter.peek() {
+                    match tok {
+                        TokenTree::Ident(s, _) if s == "pub" => {
+                            let _ = token_iter.next();
+                        }
+                        _ => ()
+                    }
+                }
                 let mut ty = Vec::<TokenTree>::new();
                 let mut depth: usize = 0;
                 let (name, span) = token_iter.expect_ident(None)?;
