@@ -1,45 +1,35 @@
 mod initialization;
-use std::{ffi::c_void, mem::transmute};
+use std::{ffi::CString, mem::transmute, ptr::null_mut};
 
 pub use initialization::*;
+use spyne_macros::VulkanFunctions;
 
-use crate::c::linux::general::{constants::RTLD_NOW, functions::{dlopen, dlsym}};
+use crate::c::{linux::general::{constants::RTLD_NOW, functions::{dlopen, dlsym}}, vulkan::types::VkInstance};
 
 pub struct VulkanFunctions {
-    vk_create_instance: VkCreateInstance,
-    vk_enumerate_physical_devices: VkEnumeratePhysicalDevices,
-    vk_get_instance_proc_addr: VkGetInstanceProcAddr
+    pub entry_functions: EntryFunctions
 }
 
-impl VulkanFunctions {
+pub struct EntryFunctions {
+    pub vk_get_instance_proc_addr: VkGetInstanceProcAddr,
+    pub vk_create_instance: VkCreateInstance
+}
+
+impl EntryFunctions {
     pub unsafe fn load() -> Self {
-        let lib_name = get_lib_name();
-        let lib = load_lib(lib_name);
-        
+        let lib = unsafe { dlopen(CString::new("libvulkan.so.1").unwrap().as_ptr(), RTLD_NOW) };
+        let vk_get_instance_proc_addr: VkGetInstanceProcAddr = unsafe { transmute(dlsym(lib, CString::new("vkGetInstanceProcAddr").unwrap().as_ptr())) };
+        let vk_create_instance: VkCreateInstance = unsafe { transmute(vk_get_instance_proc_addr(VkInstance(null_mut()), CString::new("vkCreateInstance").unwrap().as_ptr())) };
         Self {
-            vk_create_instance: unsafe { transmute(dlsym(lib, "vkCreateInstance".as_ptr() as *const i8)) },
-            vk_enumerate_physical_devices: unsafe { transmute(dlsym(lib, "vkEnumeratePhysicalDevices".as_ptr() as *const i8)) },
-            vk_get_instance_proc_addr: unsafe { transmute(dlsym(lib, "vkGetInstanceProcAddr".as_ptr() as *const i8)) }
+            vk_create_instance,
+            vk_get_instance_proc_addr
         }
     }
 }
 
-fn get_lib_name() -> &'static str {
-    #[cfg(target_os = "linux")]
-    return "libvulkan.so.1";
-    
-    #[cfg(target_os = "macos")]
-    return "libvulkan.dylib";
-    
-    #[cfg(target_os = "windows")]
-    return "vulkan-1.dll";
-}
-
-fn load_lib(lib_name: &str) -> *mut c_void {
-    #[cfg(target_os = "linux")]
-    unsafe { dlopen(lib_name.as_ptr() as *const i8, RTLD_NOW) }
-    
-    #[cfg(target_os = "macos")]
-    
-    #[cfg(target_os = "windows")]
+#[derive(VulkanFunctions)]
+#[vulkan(handle = VkInstance, loader = VkGetInstanceProcAddr)]
+pub struct InstanceFunctions {
+    #[vulkan(name = "vkEnumeratePhysicalDevices")]
+    vk_enumerate_physical_devices: VkEnumeratePhysicalDevices
 }

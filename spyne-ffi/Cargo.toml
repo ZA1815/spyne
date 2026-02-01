@@ -6,3 +6,4 @@ description = "FFI tools for the spyne crate"
 license = "MIT"
 
 [dependencies]
+spyne-macros = { path = "../spyne-macros" }

@@ -237,7 +237,6 @@ impl ParsedAttribute {
             }
             
             args.insert(key.to_owned(), val.to_owned());
-            args_iter.next();
         }
         
         Ok(ParsedAttribute { name: name, args, span })

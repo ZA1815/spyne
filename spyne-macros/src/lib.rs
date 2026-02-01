@@ -24,7 +24,7 @@ pub fn deserialize(stream: TokenStream) -> TokenStream {
     to_stream(output)
 }
 
-#[proc_macro_derive(VulkanFunctions)]
+#[proc_macro_derive(VulkanFunctions, attributes(vulkan))]
 pub fn vulkan_functions(stream: TokenStream) -> TokenStream {
     let input = from_stream(stream);
     let output = vulkan_functions_help(input);
