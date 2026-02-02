@@ -2,7 +2,6 @@ use std::ffi::{c_char, c_void};
 
 use crate::c::vulkan::types::{VkAllocationCallbacks, VkDevice, VkInstance, VkInstanceCreateInfo, VkPhysicalDevice};
 
-
 pub type PfnVkAllocationFunction = unsafe extern "system" fn(
     p_user_data: *mut c_void,
     size: usize,

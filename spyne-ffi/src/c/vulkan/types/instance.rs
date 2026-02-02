@@ -2,6 +2,8 @@ use std::ffi::{c_char, c_void};
 
 use crate::c::vulkan::functions::{PfnVkAllocationFunction, PfnVkFreeFunction, PfnVkInternalAllocationNotification, PfnVkInternalFreeNotification, PfnVkReallocationFunction};
 
+pub type VkDeviceSize = u64;
+
 #[repr(transparent)]
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub struct VkInstance(pub *mut c_void);
@@ -13,6 +15,10 @@ pub struct VkDevice(pub *mut c_void);
 #[repr(transparent)]
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub struct VkPhysicalDevice(pub *mut c_void);
+
+#[repr(transparent)]
+#[derive(Clone, Copy, PartialEq, Eq)]
+pub struct VkSurfaceKHR(pub *mut c_void);
 
 #[repr(C)]
 pub struct VkAllocationCallbacks {
