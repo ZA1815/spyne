@@ -1,0 +1,40 @@
+pub type VkDestroySurfaceKHR = unsafe extern "system" fn(
+    instance: VkInstance,
+    surface: VkSurfaceKHR,
+    p_allocator: *const VkAllocationCallbacks,
+);
+
+pub type VkGetPhysicalDeviceSurfaceSupportKHR = unsafe extern "system" fn(
+    physical_device: VkPhysicalDevice,
+    queue_family_index: u32,
+    surface: VkSurfaceKHR,
+    p_supported: *mut VkBool32,
+) -> VkResult;
+
+pub type VkGetPhysicalDeviceSurfaceCapabilitiesKHR = unsafe extern "system" fn(
+    physical_device: VkPhysicalDevice,
+    surface: VkSurfaceKHR,
+    p_surface_capabilities: *mut VkSurfaceCapabilitiesKHR,
+) -> VkResult;
+
+pub type VkGetPhysicalDeviceSurfaceFormatsKHR = unsafe extern "system" fn(
+    physical_device: VkPhysicalDevice,
+    surface: VkSurfaceKHR,
+    p_surface_format_count: *mut u32,
+    p_surface_formats: *mut VkSurfaceFormatKHR,
+) -> VkResult;
+
+pub type VkGetPhysicalDeviceSurfacePresentModesKHR = unsafe extern "system" fn(
+    physical_device: VkPhysicalDevice,
+    surface: VkSurfaceKHR,
+    p_present_mode_count: *mut u32,
+    p_present_modes: *mut VkPresentModeKHR,
+) -> VkResult;
+
+pub type VkCreateWaylandSurfaceKHR = unsafe extern "system" fn(
+    instance: VkInstance,
+    p_create_info: *const VkWaylandSurfaceCreateInfoKHR,
+    p_allocator: *const VkAllocationCallbacks,
+    p_surface: *mut VkSurfaceKHR,
+) -> VkResult;
+

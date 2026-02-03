@@ -1,4 +1,18 @@
+mod buffer;
+mod command_buffer;
+mod device;
+mod image;
 mod instance;
+mod memory;
+mod physical_device;
+mod pipeline;
+mod queue;
+mod render_pass;
+mod shader;
+mod surface;
+mod swapchain;
+mod sync;
+
 use std::{ffi::CString, mem::transmute, ptr::null_mut};
 
 pub use instance::*;
