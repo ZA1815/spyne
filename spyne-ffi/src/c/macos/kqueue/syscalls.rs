@@ -1,4 +1,4 @@
-use core::ffi::c_int;
+use std::ffi::c_int;
 
 use crate::c::macos::kqueue::types::{kevent, timespec};
 

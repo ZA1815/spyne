@@ -1,4 +1,4 @@
-use core::ffi::c_ulong;
+use std::ffi::c_ulong;
 
 // Flags
 pub const O_NOCTTY: i32 = 0x20000;

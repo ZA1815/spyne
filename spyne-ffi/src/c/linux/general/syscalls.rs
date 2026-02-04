@@ -1,4 +1,4 @@
-use core::arch::asm;
+use std::arch::asm;
 use crate::c::linux::general::constants::{SYS_CLOSE, SYS_DUP2, SYS_EXECVE, SYS_EXIT, SYS_FORK, SYS_IOCTL, SYS_OPEN, SYS_SETSID};
 
 pub unsafe fn open(path: *const u8, flags: i32, mode: i32) ->  isize {
