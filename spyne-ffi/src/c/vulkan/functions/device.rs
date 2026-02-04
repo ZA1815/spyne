@@ -1,18 +1,4 @@
-use std::ffi::c_char;
-
-use crate::c::vulkan::{constants::enums::result::VkResult, functions::func_pointers::PfnVkVoidFunction, types::{device::{VkDevice, VkDeviceCreateInfo}, instance::VkAllocationCallbacks, physical_device::VkPhysicalDevice, queue::VkQueue}};
-
-pub type VkCreateDevice = unsafe extern "system" fn(
-    physical_device: VkPhysicalDevice,
-    p_create_info: *const VkDeviceCreateInfo,
-    p_allocator: *const VkAllocationCallbacks,
-    p_device: *mut VkDevice,
-) -> VkResult;
-
-pub type VkGetDeviceProcAddr = unsafe extern "system" fn(
-    device: VkDevice,
-    p_name: *const c_char,
-) -> PfnVkVoidFunction;
+use crate::c::vulkan::{constants::enums::result::VkResult, types::{device::VkDevice, instance::VkAllocationCallbacks, queue::VkQueue}};
 
 pub type VkGetDeviceQueue = unsafe extern "system" fn(
     device: VkDevice,

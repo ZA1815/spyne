@@ -1,4 +1,4 @@
-use crate::c::vulkan::{constants::enums::{khr::present_mode::VkPresentModeKHR, result::VkResult}, types::{base::VkBool32, instance::{VkAllocationCallbacks, VkInstance}, physical_device::VkPhysicalDevice, surface::{VkSurfaceCapabilitiesKHR, VkSurfaceFormatKHR, VkSurfaceKHR, VkWaylandSurfaceCreateInfoKHR}}};
+use crate::c::vulkan::{constants::enums::{khr::present_mode::VkPresentModeKHR, result::VkResult}, types::{base::VkBool32, instance::{VkAllocationCallbacks, VkInstance}, physical_device::VkPhysicalDevice, surface::{VkSurfaceCapabilitiesKHR, VkSurfaceFormatKHR, VkSurfaceKHR}}};
 
 pub type VkDestroySurfaceKHR = unsafe extern "system" fn(
     instance: VkInstance,
@@ -33,10 +33,19 @@ pub type VkGetPhysicalDeviceSurfacePresentModesKHR = unsafe extern "system" fn(
     p_present_modes: *mut VkPresentModeKHR,
 ) -> VkResult;
 
-pub type VkCreateWaylandSurfaceKHR = unsafe extern "system" fn(
-    instance: VkInstance,
-    p_create_info: *const VkWaylandSurfaceCreateInfoKHR,
-    p_allocator: *const VkAllocationCallbacks,
-    p_surface: *mut VkSurfaceKHR,
-) -> VkResult;
+#[cfg(target_os = "linux")]
+pub use khr_create_wayland_surface::*;
+
+#[cfg(target_os = "linux")]
+mod khr_create_wayland_surface {
+   use crate::c::vulkan::types::surface::VkWaylandSurfaceCreateInfoKHR;
+   use super::*;
+
+    pub type VkCreateWaylandSurfaceKHR = unsafe extern "system" fn(
+       instance: VkInstance,
+       p_create_info: *const VkWaylandSurfaceCreateInfoKHR,
+       p_allocator: *const VkAllocationCallbacks,
+       p_surface: *mut VkSurfaceKHR,
+    ) -> VkResult;
+}
 

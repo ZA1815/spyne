@@ -1,6 +1,6 @@
 use std::ffi::c_void;
 
-
+use crate::c::vulkan::{constants::{enums::{result::VkResult, structure_type::VkStructureType}, flags::pipeline_stage::VkPipelineStageFlagBits}, types::{command_buffer::VkCommandBuffer, swapchain::VkSwapchainKHR, sync::VkSemaphore}};
 
 
 #[repr(transparent)]

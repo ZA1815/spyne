@@ -46,6 +46,7 @@ pub struct VkAllocationCallbacks {
 pub struct VkDebugUtilsMessengerCallbackDataEXT {
     pub s_type: VkStructureType,
     pub p_next: *const c_void,
+    // Hardcoded VkFlags here, make sure that the real flags type doesn't exist
     pub flags: VkFlags,
     pub p_message_id_name: *const c_char,
     pub message_id_number: i32,

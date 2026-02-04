@@ -44,10 +44,12 @@ types = [
             "VkRenderPassBeginInfo",
             "VkClearValue",
             "VkClearColorValue",
+            "VkClearDepthStencilValue",
             "VkDebugUtilsLabelEXT"
         ],
         "deps": [
-            "use crate::c::vulkan::constants::{enums::structure_type::VkStructureType, flags::command_pool_create::VkCommandPoolCreateFlagBits};"
+            "use std::ffi::c_char;",
+            "use crate::c::vulkan::{constants::{enums::{command_buffer_level::VkCommandBufferLevel, structure_type::VkStructureType}, flags::{command_buffer_usage::VkCommandBufferUsageFlagBits, command_pool_create::VkCommandPoolCreateFlagBits, query_control::VkQueryControlFlagBits, query_pipeline_statistic::VkQueryPipelineStatisticFlagBits}}, types::{base::VkBool32, pipeline::VkRect2D, render_pass::{VkFramebuffer, VkRenderPass}}};"
         ]
     },
     {
@@ -62,7 +64,7 @@ types = [
         ],
         "deps": [
             "use std::ffi::c_char;",
-            "use crate::c::vulkan::{constants::enums::{fault_level::VkFaultLevel, fault_type::VkFaultType, structure_type::VkStructureType}, types::{base::VkFlags, physical_device::VkPhysicalDeviceFeatures}};"
+            "use crate::c::vulkan::{constants::{enums::{fault_level::VkFaultLevel, fault_type::VkFaultType, structure_type::VkStructureType}, flags::device_queue_create::VkDeviceQueueCreateFlagBits}, types::{base::VkFlags, physical_device::VkPhysicalDeviceFeatures}};"
         ]
     },
     {
@@ -113,7 +115,7 @@ types = [
             "VkDeviceMemoryReportCallbackDataEXT"
         ],
         "deps": [
-            "use crate::c::vulkan::{constants::{enums::{device_memory_report_event_type_ext::VkDeviceMemoryReportEventTypeEXT, object_type::VkObjectType, structure_type::VkStructureType}, flags::memory_property::VkMemoryPropertyFlagBits}, types::base::{VkDeviceSize, VkFlags}};"
+            "use crate::c::vulkan::{constants::{enums::{device_memory_report_event_type_ext::VkDeviceMemoryReportEventTypeEXT, object_type::VkObjectType, structure_type::VkStructureType}, flags::{memory_heap::VkMemoryHeapFlagBits, memory_property::VkMemoryPropertyFlagBits}}, types::base::{VkDeviceSize, VkFlags}};"
         ]
     },
     {
@@ -123,12 +125,15 @@ types = [
         ],
         "structs": [
             "VkPhysicalDeviceProperties",
+            "VkPhysicalDeviceSparseProperties",
             "VkPhysicalDeviceFeatures",
             "VkPhysicalDeviceMemoryProperties",
+            "VkPhysicalDeviceLimits",
             "VkQueueFamilyProperties"
         ],
         "deps": [
-            ""
+            "use std::ffi::c_char;",
+            "use crate::c::vulkan::{constants::{enums::physical_device_type::VkPhysicalDeviceType, flags::{queue::VkQueueFlagBits, sample_count::VkSampleCountFlagBits}}, types::{base::{VkBool32, VkDeviceSize}, image::VkExtent3D, memory::{VkMemoryHeap, VkMemoryType}}};"
         ]
     },
     {
@@ -136,7 +141,8 @@ types = [
         "handles": [
             "VkPipeline",
             "VkPipelineCache",
-            "VkPipelineLayout"
+            "VkPipelineLayout",
+            "VkDescriptorSetLayout"
         ],
         "structs": [
             "VkPipelineLayoutCreateInfo",
@@ -145,6 +151,8 @@ types = [
             "VkPipelineInputAssemblyStateCreateInfo",
             "VkPipelineViewportStateCreateInfo",
             "VkPipelineRasterizationStateCreateInfo",
+            "VkPipelineTessellationStateCreateInfo",
+            "VkPipelineDepthStencilStateCreateInfo",
             "VkPipelineMultisampleStateCreateInfo",
             "VkPipelineColorBlendStateCreateInfo",
             "VkPipelineColorBlendAttachmentState",
@@ -154,10 +162,15 @@ types = [
             "VkRect2D",
             "VkOffset2D",
             "VkVertexInputBindingDescription",
-            "VkVertexInputAttributeDescription"
+            "VkVertexInputAttributeDescription",
+            "VkPushConstantRange",
+            "VkSpecializationInfo",
+            "VkSpecializationMapEntry",
+            "VkStencilOpState"
         ],
         "deps": [
-            ""
+            "use std::ffi::c_char;",
+            "use crate::c::vulkan::{constants::{enums::{blend_factor::VkBlendFactor, blend_op::VkBlendOp, compare_op::VkCompareOp, dynamic_state::VkDynamicState, format::VkFormat, front_face::VkFrontFace, logic_op::VkLogicOp, polygon_mode::VkPolygonMode, primitive_topology::VkPrimitiveTopology, stencil_op::VkStencilOp, structure_type::VkStructureType, vertex_input_rate::VkVertexInputRate}, flags::{color_component::VkColorComponentFlagBits, cull_mode::VkCullModeFlagBits, pipeline_color_blend_state_create::VkPipelineColorBlendStateCreateFlagBits, pipeline_create::VkPipelineCreateFlagBits, pipeline_depth_stencil_state_create::VkPipelineDepthStencilStateCreateFlagBits, pipeline_layout_create::VkPipelineLayoutCreateFlagBits, pipeline_shader_stage_create::VkPipelineShaderStageCreateFlagBits, sample_count::VkSampleCountFlagBits, shader_stage::VkShaderStageFlagBits}}, types::{base::{VkBool32, VkFlags, VkSampleMask}, image::VkExtent2D, render_pass::VkRenderPass, shader::VkShaderModule}};"
         ]
     },
     {
@@ -170,7 +183,7 @@ types = [
             "VkPresentInfoKHR"
         ],
         "deps": [
-            ""
+            "use crate::c::vulkan::{constants::{enums::{result::VkResult, structure_type::VkStructureType}, flags::pipeline_stage::VkPipelineStageFlagBits}, types::{command_buffer::VkCommandBuffer, swapchain::VkSwapchainKHR, sync::VkSemaphore}};"
         ]
     },
     {
@@ -188,7 +201,7 @@ types = [
             "VkSubpassDependency"
         ],
         "deps": [
-            ""
+            "use crate::c::vulkan::{constants::{enums::{attachment_load_op::VkAttachmentLoadOp, attachment_store_op::VkAttachmentStoreOp, format::VkFormat, image_layout::VkImageLayout, pipeline_bind_point::VkPipelineBindPoint, structure_type::VkStructureType}, flags::{access::VkAccessFlagBits, attachment_description::VkAttachmentDescriptionFlagBits, dependency::VkDependencyFlagBits, framebuffer_create::VkFramebufferCreateFlagBits, pipeline_stage::VkPipelineStageFlagBits, render_pass_create::VkRenderPassCreateFlagBits, sample_count::VkSampleCountFlagBits, subpass_description::VkSubpassDescriptionFlagBits}}, types::image::VkImageView};"
         ]
     },
     {
@@ -200,7 +213,7 @@ types = [
             "VkShaderModuleCreateInfo"
         ],
         "deps": [
-            ""
+            "use crate::c::vulkan::{constants::enums::structure_type::VkStructureType, types::base::VkFlags};"
         ]
     },
     {
@@ -214,7 +227,7 @@ types = [
             "VkWaylandSurfaceCreateInfoKHR"
         ],
         "deps": [
-            ""
+            "use crate::c::vulkan::{constants::{enums::{format::VkFormat, khr::color_space::VkColorSpaceKHR, structure_type::VkStructureType}, flags::{image_usage::VkImageUsageFlagBits, khr::{composite_alpha::VkCompositeAlphaFlagBitsKHR, surface_transform::VkSurfaceTransformFlagBitsKHR}}}, types::{base::VkFlags, image::VkExtent2D}};"
         ]
     },
     {
@@ -226,7 +239,7 @@ types = [
             "VkSwapchainCreateInfoKHR"
         ],
         "deps": [
-            ""
+            "use crate::c::vulkan::{constants::{enums::{format::VkFormat, khr::{color_space::VkColorSpaceKHR, present_mode::VkPresentModeKHR}, sharing_mode::VkSharingMode, structure_type::VkStructureType}, flags::{image_usage::VkImageUsageFlagBits, khr::{composite_alpha::VkCompositeAlphaFlagBitsKHR, surface_transform::VkSurfaceTransformFlagBitsKHR, swapchain_create::VkSwapchainCreateFlagBitsKHR}}}, types::{base::VkBool32, image::VkExtent2D, surface::VkSurfaceKHR}};"
         ]
     },
     {
@@ -240,7 +253,7 @@ types = [
             "VkSemaphoreCreateInfo"
         ],
         "deps": [
-            ""
+            "use crate::c::vulkan::{constants::{enums::structure_type::VkStructureType, flags::fence_create::VkFenceCreateFlagBits}, types::base::VkFlags};"
         ]
     }
 ]
@@ -263,26 +276,55 @@ def types_parse(root: Element[str]):
                 for type in root.iter('type'):
                     attrs = type.attrib
                     if attrs.get('name') == struct:
-                        if attrs.get('category') == "struct":
+                        if attrs.get('category') == "struct" and struct == "VkWaylandSurfaceCreateInfoKHR":
+                            print("#[cfg(target_os = \"linux\")]", file=f)
+                            print("pub use wayland_surface_create_info_khr::*;", file=f)
+                            print("", file=f)
+                            print("#[cfg(target_os = \"linux\")]", file=f)
+                            print("mod wayland_surface_create_info_khr {", file=f)
+                            print("    use crate::c::linux::wayland::{wl_display, wl_surface};", file=f)
+                            print("    use super::*;", file=f)
+                            print("", file=f)
+                            print("    #[repr(C)]", file=f)
+                            print("    pub struct VkWaylandSurfaceCreateInfoKHR {", file=f)
+                        elif attrs.get('category') == "struct":
                             print("#[repr(C)]", file=f)
+                            if struct == "VkClearDepthStencilValue":
+                                print("#[derive(Clone, Copy)]", file=f)
                             print(f"pub struct {struct} {{", file=f)
                         elif attrs.get('category') == "union":
                             print("#[repr(C)]", file=f)
+                            if struct == "VkClearValue" or struct == "VkClearColorValue":
+                                print("#[derive(Clone, Copy)]", file=f)
                             print(f"pub union {struct} {{", file=f)
                         if attrs.get('category') == "struct" or attrs.get('category') == "union":
                             field_name = ""
                             field_prefix = ""
                             field_type = ""
                             field_suffix = ""
+                            constant_val = ""
+                            stripped_api = False
+                            hardcoded_flags = False
+                            array_syntax = False
+                            already_set_constant = False
                             for elem in type.iter():
-                                hardcoded_flags = False
+                                if elem.tag == "member" and elem.attrib.get('api') == "vulkansc":
+                                    stripped_api = True
                                 if elem.tag == "member" and elem.text is not None:
                                     field_prefix = elem.text.strip()
+                                    enum = elem.find('enum')
+                                    if enum is not None:
+                                        already_set_constant = True
+                                        constant_val = enum.text.strip()
                                 if elem.tag == "name":
                                     field_name = elem.text.strip()
                                     field_name = camel_to_snake(field_name)
                                     if field_name == "type":
                                         field_name = "r#type"
+                                    if elem.tail is not None and not already_set_constant:
+                                        array_syntax = True
+                                        constant_val = elem.tail.strip()
+                                        constant_val = constant_val[1:-1]
                                 if elem.tag == "type":
                                     field_type = elem.text.strip()
                                     field_type = c_type_mapping.get(field_type, elem.text)
@@ -292,24 +334,50 @@ def types_parse(root: Element[str]):
                                         field_suffix = elem.tail.strip()
                                     if field_type.endswith("EXT"):
                                         temp_type = field_type.removesuffix("EXT").removesuffix("s") + "Bits" + "EXT"
+                                    elif field_type.endswith("KHR"):
+                                        temp_type = field_type.removesuffix("KHR").removesuffix("s") + "Bits" + "KHR"
                                     else:
                                         temp_type = field_type.removesuffix("s") + "Bits"
                                     if "Flags" in field_type and temp_type in flags_names:
                                         if field_type.endswith("EXT"):
                                             field_type = field_type.removesuffix("EXT").removesuffix("s") + "Bits" + "EXT"
+                                        elif field_type.endswith("KHR"):
+                                            field_type = field_type.removesuffix("KHR").removesuffix("s") + "Bits" + "KHR"
                                         else:
-                                            field_type = field_type.removesuffix("s")
-                                            field_type += "Bits"
+                                            field_type = field_type.removesuffix("s") + "Bits"
                                     elif "Flags" in field_type:
                                         hardcoded_flags = True
                                         field_type = "VkFlags"
                                 if field_name != "" and field_type != "":
-                                    if hardcoded_flags:
+                                    if stripped_api:
+                                        stripped_api = False
+                                        field_name = ""
+                                        field_type = ""
+                                        field_prefix = ""
+                                        field_suffix = ""
+                                        continue
+                                    if hardcoded_flags and struct == "VkWaylandSurfaceCreateInfoKHR":
+                                        hardcoded_flags = False
+                                        print("        // Hardcoded VkFlags here, make sure that the real flags type doesn't exist", file=f)
+                                    elif hardcoded_flags:
+                                        hardcoded_flags = False
                                         print("    // Hardcoded VkFlags here, make sure that the real flags type doesn't exist", file=f)
-                                    if field_prefix != "":
+                                    if field_prefix == "struct" and struct == "VkWaylandSurfaceCreateInfoKHR":
+                                        print(f"        pub {field_name}: {field_suffix}mut {field_type},", file=f)
+                                    elif field_prefix == "struct":
+                                        print(f"    pub {field_name}: {field_suffix}mut {field_type},", file=f)
+                                    elif field_prefix != "" and struct == "VkWaylandSurfaceCreateInfoKHR":
+                                        print(f"        pub {field_name}: {field_suffix}{field_prefix} {field_type},", file=f)
+                                    elif field_prefix != "":
                                         print(f"    pub {field_name}: {field_suffix}{field_prefix} {field_type},", file=f)
+                                    elif field_suffix != "" and struct == "VkWaylandSurfaceCreateInfoKHR":
+                                        print(f"        pub {field_name}: {field_suffix}mut {field_type},", file=f)
                                     elif field_suffix != "":
                                         print(f"    pub {field_name}: {field_suffix}mut {field_type},", file=f)
+                                    elif struct == "VkWaylandSurfaceCreateInfoKHR":
+                                        print(f"        pub {field_name}: {field_type},", file=f)
+                                    elif array_syntax and constant_val != "":
+                                        print(f"    pub {field_name}: [{field_type}; {constant_val}],", file=f)
                                     else:
                                         print(f"    pub {field_name}: {field_type},", file=f)
                                     field_name = ""
@@ -317,5 +385,10 @@ def types_parse(root: Element[str]):
                                     field_prefix = ""
                                     field_suffix = ""
                                     
+                        if attrs.get('category') == "struct" and struct == "VkWaylandSurfaceCreateInfoKHR":
+                            print("    }", file=f)
+                            print("}", file=f)
+                            print("", file=f)
+                        elif attrs.get('category') == "struct" or attrs.get('category') == "union":
                             print("}", file=f)
                             print("", file=f)

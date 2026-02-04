@@ -55,15 +55,12 @@ functions = [
     {
         "path": device,
         "funcs": [
-            "vkCreateDevice",
-            "vkGetDeviceProcAddr",
             "vkGetDeviceQueue",
             "vkDeviceWaitIdle",
             "vkDestroyDevice"
         ],
         "deps": [
-            "use std::ffi::c_char;",
-            "use crate::c::vulkan::{constants::enums::result::VkResult, functions::func_pointers::PfnVkVoidFunction, types::{device::{VkDevice, VkDeviceCreateInfo}, instance::VkAllocationCallbacks, physical_device::VkPhysicalDevice, queue::VkQueue}};"
+            "use crate::c::vulkan::{constants::enums::result::VkResult, types::{device::VkDevice, instance::VkAllocationCallbacks, queue::VkQueue}};"
         ]
     },
     {
@@ -85,11 +82,13 @@ functions = [
         "funcs": [
             "vkCreateInstance",
             "vkGetInstanceProcAddr",
-            "vkEnumeratePhysicalDevices"
+            "vkEnumeratePhysicalDevices",
+            "vkCreateDevice",
+            "vkGetDeviceProcAddr"
         ],
         "deps": [
             "use std::ffi::c_char;",
-            "use crate::c::vulkan::{constants::enums::result::VkResult, functions::func_pointers::PfnVkVoidFunction, types::{instance::{VkAllocationCallbacks, VkInstance, VkInstanceCreateInfo}, physical_device::VkPhysicalDevice}};"
+            "use crate::c::vulkan::{constants::enums::result::VkResult, functions::func_pointers::PfnVkVoidFunction, types::{device::{VkDevice, VkDeviceCreateInfo}, instance::{VkAllocationCallbacks, VkInstance, VkInstanceCreateInfo}, physical_device::VkPhysicalDevice}};"
         ]
     },
     {
@@ -173,7 +172,7 @@ functions = [
             "vkCreateWaylandSurfaceKHR"
         ],
         "deps": [
-            "use crate::c::vulkan::{constants::enums::{khr::present_mode::VkPresentModeKHR, result::VkResult}, types::{base::VkBool32, instance::{VkAllocationCallbacks, VkInstance}, physical_device::VkPhysicalDevice, surface::{VkSurfaceCapabilitiesKHR, VkSurfaceFormatKHR, VkSurfaceKHR, VkWaylandSurfaceCreateInfoKHR}}};"
+            "use crate::c::vulkan::{constants::enums::{khr::present_mode::VkPresentModeKHR, result::VkResult}, types::{base::VkBool32, instance::{VkAllocationCallbacks, VkInstance}, physical_device::VkPhysicalDevice, surface::{VkSurfaceCapabilitiesKHR, VkSurfaceFormatKHR, VkSurfaceKHR}}};"
         ]
     },
     {
@@ -263,15 +262,31 @@ def funcs_parse_first(root: Element[str]) -> dict[str, list[str]]:
         if len(params_list) != 0:
             str_list = []
             formatted_func_name = func_name[:1].upper() + func_name[1:]
-            str_list.append(f"pub type {formatted_func_name} = unsafe extern \"system\" fn(")
-            for p in params_list:
-                str_list.append(p)
-            if return_type == "void":
-                str_list.append(");")
+            if formatted_func_name == "VkCreateWaylandSurfaceKHR":
+                str_list.append("#[cfg(target_os = \"linux\")]")
+                str_list.append("pub use khr_create_wayland_surface::*;")
+                str_list.append("")
+                str_list.append("#[cfg(target_os = \"linux\")]")
+                str_list.append("mod khr_create_wayland_surface {")
+                str_list.append("   use crate::c::vulkan::types::surface::VkWaylandSurfaceCreateInfoKHR;")
+                str_list.append("   use super::*;")
+                str_list.append("")
+                str_list.append(f"    pub type {formatted_func_name} = unsafe extern \"system\" fn(")
+                for p in params_list:
+                    p = "   " + p
+                    str_list.append(p)
+                str_list.append(f"    ) -> {return_type};")
+                str_list.append("}")
             else:
-                if return_type == "PFN_vkVoidFunction":
-                    return_type = "PfnVkVoidFunction"
-                str_list.append(f") -> {return_type};")
+                str_list.append(f"pub type {formatted_func_name} = unsafe extern \"system\" fn(")
+                for p in params_list:
+                    str_list.append(p)
+                if return_type == "void":
+                    str_list.append(");")
+                else:
+                    if return_type == "PFN_vkVoidFunction":
+                        return_type = "PfnVkVoidFunction"
+                    str_list.append(f") -> {return_type};")
             str_list.append("")
             funcs_dict[f"{func_name}"] = "\n".join(str_list)
     

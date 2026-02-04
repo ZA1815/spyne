@@ -1,6 +1,6 @@
 use std::ffi::c_void;
 
-use crate::c::vulkan::{constants::{enums::{device_memory_report_event_type_ext::VkDeviceMemoryReportEventTypeEXT, object_type::VkObjectType, structure_type::VkStructureType}, flags::memory_property::VkMemoryPropertyFlagBits}, types::base::{VkDeviceSize, VkFlags}};
+use crate::c::vulkan::{constants::{enums::{device_memory_report_event_type_ext::VkDeviceMemoryReportEventTypeEXT, object_type::VkObjectType, structure_type::VkStructureType}, flags::{memory_heap::VkMemoryHeapFlagBits, memory_property::VkMemoryPropertyFlagBits}}, types::base::{VkDeviceSize, VkFlags}};
 
 
 #[repr(transparent)]
@@ -31,13 +31,14 @@ pub struct VkMemoryType {
 #[repr(C)]
 pub struct VkMemoryHeap {
     pub size: VkDeviceSize,
-    pub flags: VkFlags,
+    pub flags: VkMemoryHeapFlagBits,
 }
 
 #[repr(C)]
 pub struct VkDeviceMemoryReportCallbackDataEXT {
     pub s_type: VkStructureType,
     pub p_next: *mut c_void,
+    // Hardcoded VkFlags here, make sure that the real flags type doesn't exist
     pub flags: VkFlags,
     pub r#type: VkDeviceMemoryReportEventTypeEXT,
     pub memory_object_id: u64,

@@ -1,6 +1,8 @@
 use std::ffi::c_void;
 
-use crate::c::vulkan::constants::{enums::structure_type::VkStructureType, flags::command_pool_create::VkCommandPoolCreateFlagBits};
+use std::ffi::c_char;
+
+use crate::c::vulkan::{constants::{enums::{command_buffer_level::VkCommandBufferLevel, structure_type::VkStructureType}, flags::{command_buffer_usage::VkCommandBufferUsageFlagBits, command_pool_create::VkCommandPoolCreateFlagBits, query_control::VkQueryControlFlagBits, query_pipeline_statistic::VkQueryPipelineStatisticFlagBits}}, types::{base::VkBool32, pipeline::VkRect2D, render_pass::{VkFramebuffer, VkRenderPass}}};
 
 
 #[repr(transparent)]
@@ -61,16 +63,25 @@ pub struct VkRenderPassBeginInfo {
 }
 
 #[repr(C)]
+#[derive(Clone, Copy)]
 pub union VkClearValue {
     pub color: VkClearColorValue,
     pub depth_stencil: VkClearDepthStencilValue,
 }
 
 #[repr(C)]
+#[derive(Clone, Copy)]
 pub union VkClearColorValue {
-    pub float32: f32,
-    pub int32: i32,
-    pub uint32: u32,
+    pub float32: [f32; 4],
+    pub int32: [i32; 4],
+    pub uint32: [u32; 4],
+}
+
+#[repr(C)]
+#[derive(Clone, Copy)]
+pub struct VkClearDepthStencilValue {
+    pub depth: f32,
+    pub stencil: u32,
 }
 
 #[repr(C)]
@@ -78,6 +89,6 @@ pub struct VkDebugUtilsLabelEXT {
     pub s_type: VkStructureType,
     pub p_next: *const c_void,
     pub p_label_name: *const c_char,
-    pub color: f32,
+    pub color: [f32; 4],
 }
 

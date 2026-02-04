@@ -1,6 +1,8 @@
 use std::ffi::c_void;
 
+use std::ffi::c_char;
 
+use crate::c::vulkan::{constants::{enums::{blend_factor::VkBlendFactor, blend_op::VkBlendOp, compare_op::VkCompareOp, dynamic_state::VkDynamicState, format::VkFormat, front_face::VkFrontFace, logic_op::VkLogicOp, polygon_mode::VkPolygonMode, primitive_topology::VkPrimitiveTopology, stencil_op::VkStencilOp, structure_type::VkStructureType, vertex_input_rate::VkVertexInputRate}, flags::{color_component::VkColorComponentFlagBits, cull_mode::VkCullModeFlagBits, pipeline_color_blend_state_create::VkPipelineColorBlendStateCreateFlagBits, pipeline_create::VkPipelineCreateFlagBits, pipeline_depth_stencil_state_create::VkPipelineDepthStencilStateCreateFlagBits, pipeline_layout_create::VkPipelineLayoutCreateFlagBits, pipeline_shader_stage_create::VkPipelineShaderStageCreateFlagBits, sample_count::VkSampleCountFlagBits, shader_stage::VkShaderStageFlagBits}}, types::{base::{VkBool32, VkFlags, VkSampleMask}, image::VkExtent2D, render_pass::VkRenderPass, shader::VkShaderModule}};
 
 
 #[repr(transparent)]
@@ -17,11 +19,16 @@ pub struct VkPipelineCache(pub *mut c_void);
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub struct VkPipelineLayout(pub *mut c_void);
 
+
+#[repr(transparent)]
+#[derive(Clone, Copy, PartialEq, Eq)]
+pub struct VkDescriptorSetLayout(pub *mut c_void);
+
 #[repr(C)]
 pub struct VkPipelineLayoutCreateInfo {
     pub s_type: VkStructureType,
     pub p_next: *const c_void,
-    pub flags: VkFlags,
+    pub flags: VkPipelineLayoutCreateFlagBits,
     pub set_layout_count: u32,
     pub p_set_layouts: *const VkDescriptorSetLayout,
     pub push_constant_range_count: u32,
@@ -32,10 +39,9 @@ pub struct VkPipelineLayoutCreateInfo {
 pub struct VkPipelineShaderStageCreateInfo {
     pub s_type: VkStructureType,
     pub p_next: *const c_void,
-    pub flags: VkFlags,
+    pub flags: VkPipelineShaderStageCreateFlagBits,
     pub stage: VkShaderStageFlagBits,
     pub module: VkShaderModule,
-    pub p_name: *const c_char,
     pub p_name: *const c_char,
     pub p_specialization_info: *const VkSpecializationInfo,
 }
@@ -44,6 +50,7 @@ pub struct VkPipelineShaderStageCreateInfo {
 pub struct VkPipelineVertexInputStateCreateInfo {
     pub s_type: VkStructureType,
     pub p_next: *const c_void,
+    // Hardcoded VkFlags here, make sure that the real flags type doesn't exist
     pub flags: VkFlags,
     pub vertex_binding_description_count: u32,
     pub p_vertex_binding_descriptions: *const VkVertexInputBindingDescription,
@@ -55,6 +62,7 @@ pub struct VkPipelineVertexInputStateCreateInfo {
 pub struct VkPipelineInputAssemblyStateCreateInfo {
     pub s_type: VkStructureType,
     pub p_next: *const c_void,
+    // Hardcoded VkFlags here, make sure that the real flags type doesn't exist
     pub flags: VkFlags,
     pub topology: VkPrimitiveTopology,
     pub primitive_restart_enable: VkBool32,
@@ -64,6 +72,7 @@ pub struct VkPipelineInputAssemblyStateCreateInfo {
 pub struct VkPipelineViewportStateCreateInfo {
     pub s_type: VkStructureType,
     pub p_next: *const c_void,
+    // Hardcoded VkFlags here, make sure that the real flags type doesn't exist
     pub flags: VkFlags,
     pub viewport_count: u32,
     pub p_viewports: *const VkViewport,
@@ -75,6 +84,7 @@ pub struct VkPipelineViewportStateCreateInfo {
 pub struct VkPipelineRasterizationStateCreateInfo {
     pub s_type: VkStructureType,
     pub p_next: *const c_void,
+    // Hardcoded VkFlags here, make sure that the real flags type doesn't exist
     pub flags: VkFlags,
     pub depth_clamp_enable: VkBool32,
     pub rasterizer_discard_enable: VkBool32,
@@ -89,9 +99,35 @@ pub struct VkPipelineRasterizationStateCreateInfo {
 }
 
 #[repr(C)]
+pub struct VkPipelineTessellationStateCreateInfo {
+    pub s_type: VkStructureType,
+    pub p_next: *const c_void,
+    // Hardcoded VkFlags here, make sure that the real flags type doesn't exist
+    pub flags: VkFlags,
+    pub patch_control_points: u32,
+}
+
+#[repr(C)]
+pub struct VkPipelineDepthStencilStateCreateInfo {
+    pub s_type: VkStructureType,
+    pub p_next: *const c_void,
+    pub flags: VkPipelineDepthStencilStateCreateFlagBits,
+    pub depth_test_enable: VkBool32,
+    pub depth_write_enable: VkBool32,
+    pub depth_compare_op: VkCompareOp,
+    pub depth_bounds_test_enable: VkBool32,
+    pub stencil_test_enable: VkBool32,
+    pub front: VkStencilOpState,
+    pub back: VkStencilOpState,
+    pub min_depth_bounds: f32,
+    pub max_depth_bounds: f32,
+}
+
+#[repr(C)]
 pub struct VkPipelineMultisampleStateCreateInfo {
     pub s_type: VkStructureType,
     pub p_next: *const c_void,
+    // Hardcoded VkFlags here, make sure that the real flags type doesn't exist
     pub flags: VkFlags,
     pub rasterization_samples: VkSampleCountFlagBits,
     pub sample_shading_enable: VkBool32,
@@ -105,12 +141,12 @@ pub struct VkPipelineMultisampleStateCreateInfo {
 pub struct VkPipelineColorBlendStateCreateInfo {
     pub s_type: VkStructureType,
     pub p_next: *const c_void,
-    pub flags: VkFlags,
+    pub flags: VkPipelineColorBlendStateCreateFlagBits,
     pub logic_op_enable: VkBool32,
     pub logic_op: VkLogicOp,
     pub attachment_count: u32,
     pub p_attachments: *const VkPipelineColorBlendAttachmentState,
-    pub blend_constants: f32,
+    pub blend_constants: [f32; 4],
 }
 
 #[repr(C)]
@@ -122,13 +158,14 @@ pub struct VkPipelineColorBlendAttachmentState {
     pub src_alpha_blend_factor: VkBlendFactor,
     pub dst_alpha_blend_factor: VkBlendFactor,
     pub alpha_blend_op: VkBlendOp,
-    pub color_write_mask: VkFlags,
+    pub color_write_mask: VkColorComponentFlagBits,
 }
 
 #[repr(C)]
 pub struct VkPipelineDynamicStateCreateInfo {
     pub s_type: VkStructureType,
     pub p_next: *const c_void,
+    // Hardcoded VkFlags here, make sure that the real flags type doesn't exist
     pub flags: VkFlags,
     pub dynamic_state_count: u32,
     pub p_dynamic_states: *const VkDynamicState,
@@ -138,9 +175,8 @@ pub struct VkPipelineDynamicStateCreateInfo {
 pub struct VkGraphicsPipelineCreateInfo {
     pub s_type: VkStructureType,
     pub p_next: *const c_void,
-    pub flags: VkFlags,
+    pub flags: VkPipelineCreateFlagBits,
     pub stage_count: u32,
-    pub p_stages: *const VkPipelineShaderStageCreateInfo,
     pub p_stages: *const VkPipelineShaderStageCreateInfo,
     pub p_vertex_input_state: *const VkPipelineVertexInputStateCreateInfo,
     pub p_input_assembly_state: *const VkPipelineInputAssemblyStateCreateInfo,
@@ -193,5 +229,38 @@ pub struct VkVertexInputAttributeDescription {
     pub binding: u32,
     pub format: VkFormat,
     pub offset: u32,
+}
+
+#[repr(C)]
+pub struct VkPushConstantRange {
+    pub stage_flags: VkShaderStageFlagBits,
+    pub offset: u32,
+    pub size: u32,
+}
+
+#[repr(C)]
+pub struct VkSpecializationInfo {
+    pub map_entry_count: u32,
+    pub p_map_entries: *const VkSpecializationMapEntry,
+    pub data_size: usize,
+    pub p_data: *const c_void,
+}
+
+#[repr(C)]
+pub struct VkSpecializationMapEntry {
+    pub constant_i_d: u32,
+    pub offset: u32,
+    pub size: usize,
+}
+
+#[repr(C)]
+pub struct VkStencilOpState {
+    pub fail_op: VkStencilOp,
+    pub pass_op: VkStencilOp,
+    pub depth_fail_op: VkStencilOp,
+    pub compare_op: VkCompareOp,
+    pub compare_mask: u32,
+    pub write_mask: u32,
+    pub reference: u32,
 }
 
