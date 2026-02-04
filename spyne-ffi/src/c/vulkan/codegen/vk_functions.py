@@ -268,8 +268,8 @@ def funcs_parse_first(root: Element[str]) -> dict[str, list[str]]:
                 str_list.append("")
                 str_list.append("#[cfg(target_os = \"linux\")]")
                 str_list.append("mod khr_create_wayland_surface {")
-                str_list.append("   use crate::c::vulkan::types::surface::VkWaylandSurfaceCreateInfoKHR;")
-                str_list.append("   use super::*;")
+                str_list.append("    use crate::c::vulkan::types::surface::VkWaylandSurfaceCreateInfoKHR;")
+                str_list.append("    use super::*;")
                 str_list.append("")
                 str_list.append(f"    pub type {formatted_func_name} = unsafe extern \"system\" fn(")
                 for p in params_list:

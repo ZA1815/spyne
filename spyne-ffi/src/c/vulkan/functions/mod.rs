@@ -21,7 +21,7 @@ use spyne_macros::VulkanFunctions;
 use crate::c::{linux::general::{constants::RTLD_NOW, functions::{dlopen, dlsym}}, vulkan::{functions::{buffer::{VkBindBufferMemory, VkCreateBuffer, VkDestroyBuffer, VkGetBufferMemoryRequirements}, command_buffer::{VkAllocateCommandBuffers, VkBeginCommandBuffer, VkCmdBeginRenderPass, VkCmdBindPipeline, VkCmdBindVertexBuffers, VkCmdDraw, VkCmdEndRenderPass, VkCmdSetScissor, VkCmdSetViewport, VkCreateCommandPool, VkDestroyCommandPool, VkEndCommandBuffer, VkFreeCommandBuffers, VkResetCommandBuffer}, device::{ VkDestroyDevice, VkDeviceWaitIdle, VkGetDeviceQueue}, image::{VkBindImageMemory, VkCreateImage, VkCreateImageView, VkDestroyImage, VkDestroyImageView, VkGetImageMemoryRequirements}, instance::{VkCreateDevice, VkCreateInstance, VkEnumeratePhysicalDevices, VkGetDeviceProcAddr, VkGetInstanceProcAddr}, memory::{VkAllocateMemory, VkFreeMemory, VkMapMemory, VkUnmapMemory}, physical_device::{VkGetPhysicalDeviceFeatures, VkGetPhysicalDeviceMemoryProperties, VkGetPhysicalDeviceProperties, VkGetPhysicalDeviceQueueFamilyProperties}, pipeline::{VkCreateGraphicsPipelines, VkCreatePipelineLayout, VkDestroyPipeline, VkDestroyPipelineLayout}, queue::{VkQueuePresentKHR, VkQueueSubmit, VkQueueWaitIdle}, render_pass::{VkCreateFramebuffer, VkCreateRenderPass, VkDestroyFramebuffer, VkDestroyRenderPass}, shader::{VkCreateShaderModule, VkDestroyShaderModule}, surface::{VkDestroySurfaceKHR, VkGetPhysicalDeviceSurfaceCapabilitiesKHR, VkGetPhysicalDeviceSurfaceFormatsKHR, VkGetPhysicalDeviceSurfacePresentModesKHR, VkGetPhysicalDeviceSurfaceSupportKHR}, swapchain::{VkAcquireNextImageKHR, VkCreateSwapchainKHR, VkDestroySwapchainKHR, VkGetSwapchainImagesKHR}, sync::{VkCreateFence, VkCreateSemaphore, VkDestroyFence, VkDestroySemaphore, VkResetFences, VkWaitForFences}}, types::{device::VkDevice, instance::VkInstance}}};
 
 #[cfg(target_os = "linux")]
-use crate::c::vulkan::functions::func_pointers::VkCreateWaylandSurfaceKHR;
+use crate::c::vulkan::functions::surface::VkCreateWaylandSurfaceKHR;
 
 pub struct VulkanFunctions {
     pub entry_functions: EntryFunctions,
@@ -123,8 +123,6 @@ pub struct CommandBufferFunctions {
 #[derive(VulkanFunctions)]
 #[vulkan(handle = VkInstance, loader = VkGetInstanceProcAddr)]
 pub struct DeviceFunctions {
-    
-    
     #[vulkan(name = "vkGetDeviceQueue")]
     pub vk_get_device_queue: VkGetDeviceQueue,
     
@@ -160,7 +158,7 @@ pub struct ImageFunctions {
 #[derive(VulkanFunctions)]
 #[vulkan(handle = VkInstance, loader = VkGetInstanceProcAddr)]
 pub struct InstanceFunctions {
-    #[vulkan(name = "vkEnumeratePhyiscalDevices")]
+    #[vulkan(name = "vkEnumeratePhysicalDevices")]
     pub vk_enumerate_physical_devices: VkEnumeratePhysicalDevices,
     
     #[vulkan(name = "vkCreateDevice")]
@@ -277,7 +275,7 @@ pub struct SurfaceFunctions {
     
     #[cfg(target_os = "linux")]
     #[vulkan(name = "vkWaylandSurfaceInfoKHR")]
-    pub vk_create_wayland_surface_khr: VkWaylandSurfaceInfoKHR
+    pub vk_create_wayland_surface_khr: VkCreateWaylandSurfaceKHR
 }
 
 #[derive(VulkanFunctions)]
@@ -343,7 +341,7 @@ mod test {
             panic!("Vulkan Failed.");
         }
         let instance_funcs = unsafe { InstanceFunctions::load(entry_funcs.vk_get_instance_proc_addr, instance) };
-        let mut device_count: u32 = 0;
+        let mut device_count: u32 = 1;
         let mut physical_device = VkPhysicalDevice(null_mut());
         let res_device = unsafe { (instance_funcs.vk_enumerate_physical_devices)(instance, &mut device_count, &mut physical_device) };
         if res_device.0 < 0 {

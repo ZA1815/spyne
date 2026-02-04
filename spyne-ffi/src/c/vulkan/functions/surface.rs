@@ -38,8 +38,8 @@ pub use khr_create_wayland_surface::*;
 
 #[cfg(target_os = "linux")]
 mod khr_create_wayland_surface {
-   use crate::c::vulkan::types::surface::VkWaylandSurfaceCreateInfoKHR;
-   use super::*;
+    use crate::c::vulkan::types::surface::VkWaylandSurfaceCreateInfoKHR;
+    use super::*;
 
     pub type VkCreateWaylandSurfaceKHR = unsafe extern "system" fn(
        instance: VkInstance,

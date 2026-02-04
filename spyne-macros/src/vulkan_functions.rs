@@ -37,6 +37,9 @@ fn vulkan_struct_help(
     for field in parsed_struct.fields {
         field_names.push(TokenTree::Ident(field.name.unwrap(), field.span));
         for attr in field.attrs {
+            if attr.name == "cfg" {
+                continue;
+            }
             field_attrs.push(
                 attr.args
                     .get("name")
