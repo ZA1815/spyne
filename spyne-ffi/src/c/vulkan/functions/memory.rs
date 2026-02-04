@@ -1,3 +1,7 @@
+use std::ffi::c_void;
+
+use crate::c::vulkan::{constants::{enums::result::VkResult, flags::memory_map::VkMemoryMapFlagBits}, types::{base::VkDeviceSize, device::VkDevice, instance::VkAllocationCallbacks, memory::{VkDeviceMemory, VkMemoryAllocateInfo}}};
+
 pub type VkAllocateMemory = unsafe extern "system" fn(
     device: VkDevice,
     p_allocate_info: *const VkMemoryAllocateInfo,
@@ -16,7 +20,7 @@ pub type VkMapMemory = unsafe extern "system" fn(
     memory: VkDeviceMemory,
     offset: VkDeviceSize,
     size: VkDeviceSize,
-    flags: VkMemoryMapFlags,
+    flags: VkMemoryMapFlagBits,
     pp_data: *mut *mut c_void,
 ) -> VkResult;
 

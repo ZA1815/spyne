@@ -6,7 +6,11 @@ blend_factor = Path("/Users/zaidahmed/Desktop/spyne/spyne-ffi/src/c/vulkan/const
 blend_op = Path("/Users/zaidahmed/Desktop/spyne/spyne-ffi/src/c/vulkan/constants/enums/blend_op.rs")
 command_buffer_level = Path("/Users/zaidahmed/Desktop/spyne/spyne-ffi/src/c/vulkan/constants/enums/command_buffer_level.rs")
 component_swizzle = Path("/Users/zaidahmed/Desktop/spyne/spyne-ffi/src/c/vulkan/constants/enums/component_swizzle.rs")
+debug_report_object_type_ext = Path("/Users/zaidahmed/Desktop/spyne/spyne-ffi/src/c/vulkan/constants/enums/debug_report_object_type_ext.rs")
+device_memory_report_event_type_ext = Path("/Users/zaidahmed/Desktop/spyne/spyne-ffi/src/c/vulkan/constants/enums/device_memory_report_event_type_ext.rs")
 dynamic_state = Path("/Users/zaidahmed/Desktop/spyne/spyne-ffi/src/c/vulkan/constants/enums/dynamic_state.rs")
+fault_level = Path("/Users/zaidahmed/Desktop/spyne/spyne-ffi/src/c/vulkan/constants/enums/fault_level.rs")
+fault_type = Path("/Users/zaidahmed/Desktop/spyne/spyne-ffi/src/c/vulkan/constants/enums/fault_type.rs")
 khr_color_space = Path("/Users/zaidahmed/Desktop/spyne/spyne-ffi/src/c/vulkan/constants/enums/khr/color_space.rs")
 khr_present_mode = Path("/Users/zaidahmed/Desktop/spyne/spyne-ffi/src/c/vulkan/constants/enums/khr/present_mode.rs")
 format = Path("/Users/zaidahmed/Desktop/spyne/spyne-ffi/src/c/vulkan/constants/enums/format.rs")
@@ -16,6 +20,9 @@ image_tiling = Path("/Users/zaidahmed/Desktop/spyne/spyne-ffi/src/c/vulkan/const
 image_type = Path("/Users/zaidahmed/Desktop/spyne/spyne-ffi/src/c/vulkan/constants/enums/image_type.rs")
 image_view_type = Path("/Users/zaidahmed/Desktop/spyne/spyne-ffi/src/c/vulkan/constants/enums/image_view_type.rs")
 index_type = Path("/Users/zaidahmed/Desktop/spyne/spyne-ffi/src/c/vulkan/constants/enums/index_type.rs")
+internal_allocation_type = Path("/Users/zaidahmed/Desktop/spyne/spyne-ffi/src/c/vulkan/constants/enums/internal_allocation_type.rs")
+object_type = Path("/Users/zaidahmed/Desktop/spyne/spyne-ffi/src/c/vulkan/constants/enums/object_type.rs")
+physical_device_type = Path("/Users/zaidahmed/Desktop/spyne/spyne-ffi/src/c/vulkan/constants/enums/physical_device_type.rs")
 pipeline_bind_point = Path("/Users/zaidahmed/Desktop/spyne/spyne-ffi/src/c/vulkan/constants/enums/pipeline_bind_point.rs")
 polygon_mode = Path("/Users/zaidahmed/Desktop/spyne/spyne-ffi/src/c/vulkan/constants/enums/polygon_mode.rs")
 primitive_topology = Path("/Users/zaidahmed/Desktop/spyne/spyne-ffi/src/c/vulkan/constants/enums/primitive_topology.rs")
@@ -23,6 +30,7 @@ result = Path("/Users/zaidahmed/Desktop/spyne/spyne-ffi/src/c/vulkan/constants/e
 sharing_mode = Path("/Users/zaidahmed/Desktop/spyne/spyne-ffi/src/c/vulkan/constants/enums/sharing_mode.rs")
 structure_type = Path("/Users/zaidahmed/Desktop/spyne/spyne-ffi/src/c/vulkan/constants/enums/structure_type.rs")
 subpass_contents = Path("/Users/zaidahmed/Desktop/spyne/spyne-ffi/src/c/vulkan/constants/enums/subpass_contents.rs")
+system_allocation_scope = Path("/Users/zaidahmed/Desktop/spyne/spyne-ffi/src/c/vulkan/constants/enums/system_allocation_scope.rs")
 enums_paths = [
     attachment_load_op,
     attachment_store_op,
@@ -30,7 +38,11 @@ enums_paths = [
     blend_op,
     command_buffer_level,
     component_swizzle,
+    debug_report_object_type_ext,
+    device_memory_report_event_type_ext,
     dynamic_state,
+    fault_level,
+    fault_type,
     khr_color_space,
     khr_present_mode,
     format,
@@ -40,13 +52,17 @@ enums_paths = [
     image_type,
     image_view_type,
     index_type,
+    internal_allocation_type,
+    object_type,
+    physical_device_type,
     pipeline_bind_point,
     polygon_mode,
     primitive_topology,
     result,
     sharing_mode,
     structure_type,
-    subpass_contents
+    subpass_contents,
+    system_allocation_scope
 ]
 enums_names = [
     "VkAttachmentLoadOp",
@@ -55,7 +71,11 @@ enums_names = [
     "VkBlendOp",
     "VkCommandBufferLevel",
     "VkComponentSwizzle",
+    "VkDebugReportObjectTypeEXT",
+    "VkDeviceMemoryReportEventTypeEXT",
     "VkDynamicState",
+    "VkFaultLevel",
+    "VkFaultType",
     "VkColorSpaceKHR",
     "VkPresentModeKHR",
     "VkFormat",
@@ -65,13 +85,17 @@ enums_names = [
     "VkImageType",
     "VkImageViewType",
     "VkIndexType",
+    "VkInternalAllocationType",
+    "VkObjectType",
+    "VkPhysicalDeviceType",
     "VkPipelineBindPoint",
     "VkPolygonMode",
     "VkPrimitiveTopology",
     "VkResult",
     "VkSharingMode",
     "VkStructureType",
-    "VkSubpassContents"
+    "VkSubpassContents",
+    "VkSystemAllocationScope"
 ]
 enums_types = [
     "u32",
@@ -93,7 +117,15 @@ enums_types = [
     "u32",
     "u32",
     "u32",
+    "u32",
+    "u32",
+    "u32",
+    "u32",
+    "u32",
+    "u32",
+    "u32",
     "i32",
+    "u32",
     "u32",
     "u32",
     "u32"

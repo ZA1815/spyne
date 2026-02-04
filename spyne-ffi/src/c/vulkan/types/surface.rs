@@ -1,5 +1,8 @@
 use std::ffi::c_void;
 
+
+
+
 #[repr(transparent)]
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub struct VkSurfaceKHR(pub *mut c_void);
@@ -12,10 +15,10 @@ pub struct VkSurfaceCapabilitiesKHR {
     pub min_image_extent: VkExtent2D,
     pub max_image_extent: VkExtent2D,
     pub max_image_array_layers: u32,
-    pub supported_transforms: VkSurfaceTransformFlagsKHR,
+    pub supported_transforms: VkFlags,
     pub current_transform: VkSurfaceTransformFlagBitsKHR,
-    pub supported_composite_alpha: VkCompositeAlphaFlagsKHR,
-    pub supported_usage_flags: VkImageUsageFlags,
+    pub supported_composite_alpha: VkFlags,
+    pub supported_usage_flags: VkImageUsageFlagBits,
 }
 
 #[repr(C)]
@@ -28,7 +31,7 @@ pub struct VkSurfaceFormatKHR {
 pub struct VkWaylandSurfaceCreateInfoKHR {
     pub s_type: VkStructureType,
     pub p_next: *const c_void,
-    pub flags: VkWaylandSurfaceCreateFlagsKHR,
+    pub flags: VkFlags,
     pub display: *struct wl_display,
     pub surface: *struct wl_surface,
 }

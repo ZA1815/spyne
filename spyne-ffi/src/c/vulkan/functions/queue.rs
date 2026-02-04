@@ -1,3 +1,5 @@
+use crate::c::vulkan::{constants::enums::result::VkResult, types::{queue::{VkPresentInfoKHR, VkQueue, VkSubmitInfo}, sync::VkFence}};
+
 pub type VkQueueSubmit = unsafe extern "system" fn(
     queue: VkQueue,
     submit_count: u32,

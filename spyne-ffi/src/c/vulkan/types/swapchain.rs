@@ -1,5 +1,8 @@
 use std::ffi::c_void;
 
+
+
+
 #[repr(transparent)]
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub struct VkSwapchainKHR(pub *mut c_void);
@@ -8,14 +11,14 @@ pub struct VkSwapchainKHR(pub *mut c_void);
 pub struct VkSwapchainCreateInfoKHR {
     pub s_type: VkStructureType,
     pub p_next: *const c_void,
-    pub flags: VkSwapchainCreateFlagsKHR,
+    pub flags: VkFlags,
     pub surface: VkSurfaceKHR,
     pub min_image_count: u32,
     pub image_format: VkFormat,
     pub image_color_space: VkColorSpaceKHR,
     pub image_extent: VkExtent2D,
     pub image_array_layers: u32,
-    pub image_usage: VkImageUsageFlags,
+    pub image_usage: VkImageUsageFlagBits,
     pub image_sharing_mode: VkSharingMode,
     pub queue_family_index_count: u32,
     pub p_queue_family_indices: *const u32,

@@ -1,3 +1,5 @@
+use crate::c::vulkan::{constants::enums::result::VkResult, types::{device::VkDevice, instance::VkAllocationCallbacks, pipeline::{VkGraphicsPipelineCreateInfo, VkPipeline, VkPipelineCache, VkPipelineLayout, VkPipelineLayoutCreateInfo}}};
+
 pub type VkCreatePipelineLayout = unsafe extern "system" fn(
     device: VkDevice,
     p_create_info: *const VkPipelineLayoutCreateInfo,

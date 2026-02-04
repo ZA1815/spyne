@@ -1,5 +1,8 @@
 use std::ffi::c_void;
 
+use crate::c::vulkan::constants::{enums::{component_swizzle::VkComponentSwizzle, format::VkFormat, image_layout::VkImageLayout, image_tiling::VkImageTiling, image_type::VkImageType, image_view_type::VkImageViewType, sharing_mode::VkSharingMode, structure_type::VkStructureType}, flags::{image_aspect::VkImageAspectFlagBits, image_create::VkImageCreateFlagBits, image_usage::VkImageUsageFlagBits, image_view_create::VkImageViewCreateFlagBits, sample_count::VkSampleCountFlagBits}};
+
+
 #[repr(transparent)]
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub struct VkImage(pub *mut c_void);
@@ -13,7 +16,7 @@ pub struct VkImageView(pub *mut c_void);
 pub struct VkImageCreateInfo {
     pub s_type: VkStructureType,
     pub p_next: *const c_void,
-    pub flags: VkImageCreateFlags,
+    pub flags: VkImageCreateFlagBits,
     pub image_type: VkImageType,
     pub format: VkFormat,
     pub extent: VkExtent3D,
@@ -21,7 +24,7 @@ pub struct VkImageCreateInfo {
     pub array_layers: u32,
     pub samples: VkSampleCountFlagBits,
     pub tiling: VkImageTiling,
-    pub usage: VkImageUsageFlags,
+    pub usage: VkImageUsageFlagBits,
     pub sharing_mode: VkSharingMode,
     pub queue_family_index_count: u32,
     pub p_queue_family_indices: *const u32,
@@ -32,7 +35,7 @@ pub struct VkImageCreateInfo {
 pub struct VkImageViewCreateInfo {
     pub s_type: VkStructureType,
     pub p_next: *const c_void,
-    pub flags: VkImageViewCreateFlags,
+    pub flags: VkImageViewCreateFlagBits,
     pub image: VkImage,
     pub view_type: VkImageViewType,
     pub format: VkFormat,
@@ -50,7 +53,7 @@ pub struct VkComponentMapping {
 
 #[repr(C)]
 pub struct VkImageSubresourceRange {
-    pub aspect_mask: VkImageAspectFlags,
+    pub aspect_mask: VkImageAspectFlagBits,
     pub base_mip_level: u32,
     pub level_count: u32,
     pub base_array_layer: u32,

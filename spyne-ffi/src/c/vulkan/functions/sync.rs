@@ -1,3 +1,5 @@
+use crate::c::vulkan::{constants::enums::result::VkResult, types::{base::VkBool32, device::VkDevice, instance::VkAllocationCallbacks, sync::{VkFence, VkFenceCreateInfo, VkSemaphore, VkSemaphoreCreateInfo}}};
+
 pub type VkCreateFence = unsafe extern "system" fn(
     device: VkDevice,
     p_create_info: *const VkFenceCreateInfo,

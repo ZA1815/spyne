@@ -1,5 +1,8 @@
 use std::ffi::c_void;
 
+
+
+
 #[repr(transparent)]
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub struct VkRenderPass(pub *mut c_void);
@@ -13,7 +16,7 @@ pub struct VkFramebuffer(pub *mut c_void);
 pub struct VkRenderPassCreateInfo {
     pub s_type: VkStructureType,
     pub p_next: *const c_void,
-    pub flags: VkRenderPassCreateFlags,
+    pub flags: VkFlags,
     pub attachment_count: u32,
     pub p_attachments: *const VkAttachmentDescription,
     pub subpass_count: u32,
@@ -26,7 +29,7 @@ pub struct VkRenderPassCreateInfo {
 pub struct VkFramebufferCreateInfo {
     pub s_type: VkStructureType,
     pub p_next: *const c_void,
-    pub flags: VkFramebufferCreateFlags,
+    pub flags: VkFlags,
     pub render_pass: VkRenderPass,
     pub attachment_count: u32,
     pub p_attachments: *const VkImageView,
@@ -37,7 +40,7 @@ pub struct VkFramebufferCreateInfo {
 
 #[repr(C)]
 pub struct VkAttachmentDescription {
-    pub flags: VkAttachmentDescriptionFlags,
+    pub flags: VkFlags,
     pub format: VkFormat,
     pub samples: VkSampleCountFlagBits,
     pub load_op: VkAttachmentLoadOp,
@@ -56,7 +59,7 @@ pub struct VkAttachmentReference {
 
 #[repr(C)]
 pub struct VkSubpassDescription {
-    pub flags: VkSubpassDescriptionFlags,
+    pub flags: VkFlags,
     pub pipeline_bind_point: VkPipelineBindPoint,
     pub input_attachment_count: u32,
     pub p_input_attachments: *const VkAttachmentReference,
@@ -72,10 +75,10 @@ pub struct VkSubpassDescription {
 pub struct VkSubpassDependency {
     pub src_subpass: u32,
     pub dst_subpass: u32,
-    pub src_stage_mask: VkPipelineStageFlags,
-    pub dst_stage_mask: VkPipelineStageFlags,
-    pub src_access_mask: VkAccessFlags,
-    pub dst_access_mask: VkAccessFlags,
-    pub dependency_flags: VkDependencyFlags,
+    pub src_stage_mask: VkPipelineStageFlagBits,
+    pub dst_stage_mask: VkPipelineStageFlagBits,
+    pub src_access_mask: VkAccessFlagBits,
+    pub dst_access_mask: VkAccessFlagBits,
+    pub dependency_flags: VkFlags,
 }
 

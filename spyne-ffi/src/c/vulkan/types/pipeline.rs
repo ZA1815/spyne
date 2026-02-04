@@ -1,8 +1,16 @@
 use std::ffi::c_void;
 
+
+
+
 #[repr(transparent)]
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub struct VkPipeline(pub *mut c_void);
+
+
+#[repr(transparent)]
+#[derive(Clone, Copy, PartialEq, Eq)]
+pub struct VkPipelineCache(pub *mut c_void);
 
 
 #[repr(transparent)]
@@ -13,7 +21,7 @@ pub struct VkPipelineLayout(pub *mut c_void);
 pub struct VkPipelineLayoutCreateInfo {
     pub s_type: VkStructureType,
     pub p_next: *const c_void,
-    pub flags: VkPipelineLayoutCreateFlags,
+    pub flags: VkFlags,
     pub set_layout_count: u32,
     pub p_set_layouts: *const VkDescriptorSetLayout,
     pub push_constant_range_count: u32,
@@ -24,7 +32,7 @@ pub struct VkPipelineLayoutCreateInfo {
 pub struct VkPipelineShaderStageCreateInfo {
     pub s_type: VkStructureType,
     pub p_next: *const c_void,
-    pub flags: VkPipelineShaderStageCreateFlags,
+    pub flags: VkFlags,
     pub stage: VkShaderStageFlagBits,
     pub module: VkShaderModule,
     pub p_name: *const c_char,
@@ -36,7 +44,7 @@ pub struct VkPipelineShaderStageCreateInfo {
 pub struct VkPipelineVertexInputStateCreateInfo {
     pub s_type: VkStructureType,
     pub p_next: *const c_void,
-    pub flags: VkPipelineVertexInputStateCreateFlags,
+    pub flags: VkFlags,
     pub vertex_binding_description_count: u32,
     pub p_vertex_binding_descriptions: *const VkVertexInputBindingDescription,
     pub vertex_attribute_description_count: u32,
@@ -47,7 +55,7 @@ pub struct VkPipelineVertexInputStateCreateInfo {
 pub struct VkPipelineInputAssemblyStateCreateInfo {
     pub s_type: VkStructureType,
     pub p_next: *const c_void,
-    pub flags: VkPipelineInputAssemblyStateCreateFlags,
+    pub flags: VkFlags,
     pub topology: VkPrimitiveTopology,
     pub primitive_restart_enable: VkBool32,
 }
@@ -56,7 +64,7 @@ pub struct VkPipelineInputAssemblyStateCreateInfo {
 pub struct VkPipelineViewportStateCreateInfo {
     pub s_type: VkStructureType,
     pub p_next: *const c_void,
-    pub flags: VkPipelineViewportStateCreateFlags,
+    pub flags: VkFlags,
     pub viewport_count: u32,
     pub p_viewports: *const VkViewport,
     pub scissor_count: u32,
@@ -67,11 +75,11 @@ pub struct VkPipelineViewportStateCreateInfo {
 pub struct VkPipelineRasterizationStateCreateInfo {
     pub s_type: VkStructureType,
     pub p_next: *const c_void,
-    pub flags: VkPipelineRasterizationStateCreateFlags,
+    pub flags: VkFlags,
     pub depth_clamp_enable: VkBool32,
     pub rasterizer_discard_enable: VkBool32,
     pub polygon_mode: VkPolygonMode,
-    pub cull_mode: VkCullModeFlags,
+    pub cull_mode: VkCullModeFlagBits,
     pub front_face: VkFrontFace,
     pub depth_bias_enable: VkBool32,
     pub depth_bias_constant_factor: f32,
@@ -84,7 +92,7 @@ pub struct VkPipelineRasterizationStateCreateInfo {
 pub struct VkPipelineMultisampleStateCreateInfo {
     pub s_type: VkStructureType,
     pub p_next: *const c_void,
-    pub flags: VkPipelineMultisampleStateCreateFlags,
+    pub flags: VkFlags,
     pub rasterization_samples: VkSampleCountFlagBits,
     pub sample_shading_enable: VkBool32,
     pub min_sample_shading: f32,
@@ -97,7 +105,7 @@ pub struct VkPipelineMultisampleStateCreateInfo {
 pub struct VkPipelineColorBlendStateCreateInfo {
     pub s_type: VkStructureType,
     pub p_next: *const c_void,
-    pub flags: VkPipelineColorBlendStateCreateFlags,
+    pub flags: VkFlags,
     pub logic_op_enable: VkBool32,
     pub logic_op: VkLogicOp,
     pub attachment_count: u32,
@@ -114,14 +122,14 @@ pub struct VkPipelineColorBlendAttachmentState {
     pub src_alpha_blend_factor: VkBlendFactor,
     pub dst_alpha_blend_factor: VkBlendFactor,
     pub alpha_blend_op: VkBlendOp,
-    pub color_write_mask: VkColorComponentFlags,
+    pub color_write_mask: VkFlags,
 }
 
 #[repr(C)]
 pub struct VkPipelineDynamicStateCreateInfo {
     pub s_type: VkStructureType,
     pub p_next: *const c_void,
-    pub flags: VkPipelineDynamicStateCreateFlags,
+    pub flags: VkFlags,
     pub dynamic_state_count: u32,
     pub p_dynamic_states: *const VkDynamicState,
 }
@@ -130,7 +138,7 @@ pub struct VkPipelineDynamicStateCreateInfo {
 pub struct VkGraphicsPipelineCreateInfo {
     pub s_type: VkStructureType,
     pub p_next: *const c_void,
-    pub flags: VkPipelineCreateFlags,
+    pub flags: VkFlags,
     pub stage_count: u32,
     pub p_stages: *const VkPipelineShaderStageCreateInfo,
     pub p_stages: *const VkPipelineShaderStageCreateInfo,
@@ -147,7 +155,7 @@ pub struct VkGraphicsPipelineCreateInfo {
     pub render_pass: VkRenderPass,
     pub subpass: u32,
     pub base_pipeline_handle: VkPipeline,
-    pub base_pipeline_index: int32_t,
+    pub base_pipeline_index: i32,
 }
 
 #[repr(C)]
@@ -168,8 +176,8 @@ pub struct VkRect2D {
 
 #[repr(C)]
 pub struct VkOffset2D {
-    pub x: int32_t,
-    pub y: int32_t,
+    pub x: i32,
+    pub y: i32,
 }
 
 #[repr(C)]

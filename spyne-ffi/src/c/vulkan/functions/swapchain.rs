@@ -1,3 +1,5 @@
+use crate::c::vulkan::{constants::enums::result::VkResult, types::{device::VkDevice, image::VkImage, instance::VkAllocationCallbacks, swapchain::{VkSwapchainCreateInfoKHR, VkSwapchainKHR}, sync::{VkFence, VkSemaphore}}};
+
 pub type VkCreateSwapchainKHR = unsafe extern "system" fn(
     device: VkDevice,
     p_create_info: *const VkSwapchainCreateInfoKHR,

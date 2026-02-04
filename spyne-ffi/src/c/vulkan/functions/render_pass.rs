@@ -1,3 +1,5 @@
+use crate::c::vulkan::{constants::enums::result::VkResult, types::{device::VkDevice, instance::VkAllocationCallbacks, render_pass::{VkFramebuffer, VkFramebufferCreateInfo, VkRenderPass, VkRenderPassCreateInfo}}};
+
 pub type VkCreateRenderPass = unsafe extern "system" fn(
     device: VkDevice,
     p_create_info: *const VkRenderPassCreateInfo,

@@ -1,4 +1,4 @@
-use crate::c::vulkan::{constants::enums::{pipeline_bind_point::VkPipelineBindPoint, result::VkResult, subpass_contents::VkSubpassContents}, types::{base::VkDeviceSize, buffer::VkBuffer, command_buffer::{VkCommandBuffer, VkCommandBufferAllocateInfo, VkCommandBufferBeginInfo, VkCommandPool, VkCommandPoolCreateInfo, VkRenderPassBeginInfo}, device::VkDevice, instance::VkAllocationCallbacks, pipeline::{VkPipeline, VkRect2D, VkViewport}}};
+use crate::c::vulkan::{constants::{enums::{pipeline_bind_point::VkPipelineBindPoint, result::VkResult, subpass_contents::VkSubpassContents}, flags::command_buffer_reset::VkCommandBufferResetFlagBits}, types::{base::VkDeviceSize, buffer::VkBuffer, command_buffer::{VkCommandBuffer, VkCommandBufferAllocateInfo, VkCommandBufferBeginInfo, VkCommandPool, VkCommandPoolCreateInfo, VkRenderPassBeginInfo}, device::VkDevice, instance::VkAllocationCallbacks, pipeline::{VkPipeline, VkRect2D, VkViewport}}};
 
 pub type VkCreateCommandPool = unsafe extern "system" fn(
     device: VkDevice,
@@ -29,18 +29,15 @@ pub type VkFreeCommandBuffers = unsafe extern "system" fn(
 pub type VkBeginCommandBuffer = unsafe extern "system" fn(
     command_buffer: VkCommandBuffer,
     p_begin_info: *const VkCommandBufferBeginInfo,
-    p_begin_info: *const VkCommandBufferBeginInfo,
 ) -> VkResult;
 
 pub type VkEndCommandBuffer = unsafe extern "system" fn(
-    command_buffer: VkCommandBuffer,
     command_buffer: VkCommandBuffer,
 ) -> VkResult;
 
 pub type VkResetCommandBuffer = unsafe extern "system" fn(
     command_buffer: VkCommandBuffer,
-    flags: VkCommandBufferResetFlags,
-    flags: VkCommandBufferResetFlags,
+    flags: VkCommandBufferResetFlagBits,
 ) -> VkResult;
 
 pub type VkCmdBeginRenderPass = unsafe extern "system" fn(

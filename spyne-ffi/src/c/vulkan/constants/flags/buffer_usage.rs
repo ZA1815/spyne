@@ -2,6 +2,14 @@
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct VkBufferUsageFlagBits(pub u32);
 
+impl std::ops::BitOr for VkBufferUsageFlagBits {
+    type Output = Self;
+
+    fn bitor(self, rhs: Self) -> Self {
+        Self(self.0 | rhs.0)
+    }
+}
+
 pub const VK_BUFFER_USAGE_TRANSFER_SRC_BIT: VkBufferUsageFlagBits = VkBufferUsageFlagBits(1 << 0);
 pub const VK_BUFFER_USAGE_TRANSFER_DST_BIT: VkBufferUsageFlagBits = VkBufferUsageFlagBits(1 << 1);
 pub const VK_BUFFER_USAGE_UNIFORM_TEXEL_BUFFER_BIT: VkBufferUsageFlagBits = VkBufferUsageFlagBits(1 << 2);

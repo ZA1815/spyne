@@ -1,3 +1,5 @@
+use crate::c::vulkan::types::physical_device::{VkPhysicalDevice, VkPhysicalDeviceFeatures, VkPhysicalDeviceMemoryProperties, VkPhysicalDeviceProperties, VkQueueFamilyProperties};
+
 pub type VkGetPhysicalDeviceProperties = unsafe extern "system" fn(
     physical_device: VkPhysicalDevice,
     p_properties: *mut VkPhysicalDeviceProperties,

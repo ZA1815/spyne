@@ -1,6 +1,7 @@
 mod buffer;
 mod command_buffer;
 mod device;
+pub mod func_pointers;
 mod image;
 mod instance;
 mod memory;

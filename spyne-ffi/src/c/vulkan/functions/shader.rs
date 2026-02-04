@@ -1,3 +1,5 @@
+use crate::c::vulkan::{constants::enums::result::VkResult, types::{device::VkDevice, instance::VkAllocationCallbacks, shader::{VkShaderModule, VkShaderModuleCreateInfo}}};
+
 pub type VkCreateShaderModule = unsafe extern "system" fn(
     device: VkDevice,
     p_create_info: *const VkShaderModuleCreateInfo,

@@ -7,6 +7,9 @@ c_type_mapping = {
     "uint8_t": "u8",
     "uint32_t": "u32",
     "uint64_t": "u64",
+    "size_t": "usize",
+    "int32_t": "i32",
+    "ssize_t": "isize",
     "void": "c_void",
     "float": "f32",
     "char": "c_char"

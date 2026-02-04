@@ -1,5 +1,8 @@
 use std::ffi::c_void;
 
+
+
+
 #[repr(transparent)]
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub struct VkFence(pub *mut c_void);
@@ -13,13 +16,13 @@ pub struct VkSemaphore(pub *mut c_void);
 pub struct VkFenceCreateInfo {
     pub s_type: VkStructureType,
     pub p_next: *const c_void,
-    pub flags: VkFenceCreateFlags,
+    pub flags: VkFenceCreateFlagBits,
 }
 
 #[repr(C)]
 pub struct VkSemaphoreCreateInfo {
     pub s_type: VkStructureType,
     pub p_next: *const c_void,
-    pub flags: VkSemaphoreCreateFlags,
+    pub flags: VkFlags,
 }
 

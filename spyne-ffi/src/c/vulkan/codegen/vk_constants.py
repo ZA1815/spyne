@@ -13,6 +13,15 @@ def consts_parse(root: Element[str]):
             print("#[derive(Debug, Clone, Copy, PartialEq, Eq)]", file=f)
             print(f"pub struct {const_name}(pub {type});", file=f)
             print("", file=f)
+            if "FlagBits" in const_name:
+                print(f"impl std::ops::BitOr for {const_name} {{", file=f)
+                print("    type Output = Self;", file=f)
+                print("", file=f)
+                print("    fn bitor(self, rhs: Self) -> Self {", file=f)
+                print("        Self(self.0 | rhs.0)", file=f)
+                print("    }", file=f)
+                print("}", file=f)
+                print("", file=f)
             for enum in root.iter('enums'):
                 if enum.attrib.get('name') == const_name:
                     for enum_var in enum:

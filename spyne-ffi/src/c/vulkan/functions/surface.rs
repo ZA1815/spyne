@@ -1,3 +1,5 @@
+use crate::c::vulkan::{constants::enums::{khr::present_mode::VkPresentModeKHR, result::VkResult}, types::{base::VkBool32, instance::{VkAllocationCallbacks, VkInstance}, physical_device::VkPhysicalDevice, surface::{VkSurfaceCapabilitiesKHR, VkSurfaceFormatKHR, VkSurfaceKHR, VkWaylandSurfaceCreateInfoKHR}}};
+
 pub type VkDestroySurfaceKHR = unsafe extern "system" fn(
     instance: VkInstance,
     surface: VkSurfaceKHR,

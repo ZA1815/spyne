@@ -1,12 +1,19 @@
 #[repr(transparent)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct VkShaderStageFlagBits(pub u32);
+pub struct VkSampleCountFlagBits(pub u32);
 
-pub const VK_SHADER_STAGE_VERTEX_BIT: VkShaderStageFlagBits = VkShaderStageFlagBits(1 << 0);
-pub const VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT: VkShaderStageFlagBits = VkShaderStageFlagBits(1 << 1);
-pub const VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT: VkShaderStageFlagBits = VkShaderStageFlagBits(1 << 2);
-pub const VK_SHADER_STAGE_GEOMETRY_BIT: VkShaderStageFlagBits = VkShaderStageFlagBits(1 << 3);
-pub const VK_SHADER_STAGE_FRAGMENT_BIT: VkShaderStageFlagBits = VkShaderStageFlagBits(1 << 4);
-pub const VK_SHADER_STAGE_COMPUTE_BIT: VkShaderStageFlagBits = VkShaderStageFlagBits(1 << 5);
-pub const VK_SHADER_STAGE_ALL_GRAPHICS: VkShaderStageFlagBits = VkShaderStageFlagBits(0x0000001F);
-pub const VK_SHADER_STAGE_ALL: VkShaderStageFlagBits = VkShaderStageFlagBits(0x7FFFFFFF);
+impl std::ops::BitOr for VkSampleCountFlagBits {
+    type Output = Self;
+
+    fn bitor(self, rhs: Self) -> Self {
+        Self(self.0 | rhs.0)
+    }
+}
+
+pub const VK_SAMPLE_COUNT_1_BIT: VkSampleCountFlagBits = VkSampleCountFlagBits(1 << 0);
+pub const VK_SAMPLE_COUNT_2_BIT: VkSampleCountFlagBits = VkSampleCountFlagBits(1 << 1);
+pub const VK_SAMPLE_COUNT_4_BIT: VkSampleCountFlagBits = VkSampleCountFlagBits(1 << 2);
+pub const VK_SAMPLE_COUNT_8_BIT: VkSampleCountFlagBits = VkSampleCountFlagBits(1 << 3);
+pub const VK_SAMPLE_COUNT_16_BIT: VkSampleCountFlagBits = VkSampleCountFlagBits(1 << 4);
+pub const VK_SAMPLE_COUNT_32_BIT: VkSampleCountFlagBits = VkSampleCountFlagBits(1 << 5);
+pub const VK_SAMPLE_COUNT_64_BIT: VkSampleCountFlagBits = VkSampleCountFlagBits(1 << 6);
