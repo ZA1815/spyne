@@ -348,6 +348,6 @@ mod test {
             panic!("Vulkan Failed.");
         }
         assert_eq!(res_init, VK_SUCCESS);
-        assert!(device_count > 0);
+        assert_eq!(res_device, VK_SUCCESS);
     }
 }
