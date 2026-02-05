@@ -16,13 +16,13 @@ pub type SelRegisterName = unsafe extern "C" fn(
 
 pub type ObjCMsgSend = unsafe extern "C" fn();
 
-pub struct ObjCFunctionPointers {
+pub struct ObjCFunctions {
     pub objc_get_class: ObjCGetClass,
     pub sel_register_name: SelRegisterName,
     pub objc_msg_send: ObjCMsgSend
 }
 
-impl ObjCFunctionPointers {
+impl ObjCFunctions {
     pub unsafe fn load() -> Self {
         let lib = unsafe { dlopen(CString::new("libobjc.dylib").unwrap().as_ptr(), RTLD_NOW) };
         let objc_get_class: ObjCGetClass = unsafe { transmute(dlsym(lib, CString::new("objc_getClass").unwrap().as_ptr())) };
@@ -40,11 +40,11 @@ impl ObjCFunctionPointers {
 mod test {
     use std::ffi::CString;
 
-    use crate::c::macos::metal::objc_runtime::ObjCFunctionPointers;
+    use crate::c::macos::metal::objc_runtime::ObjCFunctions;
 
     #[test]
     fn test_objc_funcs() {
-        let funcs = unsafe { ObjCFunctionPointers::load() };
+        let funcs = unsafe { ObjCFunctions::load() };
         let cls = unsafe { (funcs.objc_get_class)(CString::new("NSObject").unwrap().as_ptr()) };
         assert!(!cls.is_null())
     }
