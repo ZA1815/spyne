@@ -6,7 +6,7 @@ description = "Quasi-quoting macro for the spyne crate"
 license = "MIT"
 
 [dependencies]
-spyne-syntax = "0.2.3"
+spyne-syntax = "0.2.0"
 
 [lib]
 proc-macro = true
