@@ -1,12 +1,13 @@
 use std::{ffi::CString, ptr::{null, null_mut}};
 
-use spyne_ffi::c::vulkan::{constants::{enums::{result::{VK_ERROR_DEVICE_LOST, VK_ERROR_EXTENSION_NOT_PRESENT, VK_ERROR_FEATURE_NOT_PRESENT, VK_ERROR_FORMAT_NOT_SUPPORTED, VK_ERROR_FRAGMENTED_POOL, VK_ERROR_INCOMPATIBLE_DRIVER, VK_ERROR_INITIALIZATION_FAILED, VK_ERROR_LAYER_NOT_PRESENT, VK_ERROR_MEMORY_MAP_FAILED, VK_ERROR_OUT_OF_DEVICE_MEMORY, VK_ERROR_OUT_OF_HOST_MEMORY, VK_ERROR_TOO_MANY_OBJECTS, VK_ERROR_UNKNOWN, VK_EVENT_RESET, VK_EVENT_SET, VK_INCOMPLETE, VK_NOT_READY, VK_SUCCESS, VK_TIMEOUT, VkResult}, structure_type::{VK_STRUCTURE_TYPE_APPLICATION_INFO, VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO}}, flags::instance_create::VkInstanceCreateFlagBits, versions::VK_API_VERSION_1_4}, functions::{EntryFunctions, InstanceFunctions}, types::{instance::{VkAllocationCallbacks, VkApplicationInfo, VkInstance, VkInstanceCreateInfo}, physical_device::VkPhysicalDevice}};
+use spyne_ffi::c::vulkan::{constants::{enums::{result::{VK_ERROR_DEVICE_LOST, VK_ERROR_EXTENSION_NOT_PRESENT, VK_ERROR_FEATURE_NOT_PRESENT, VK_ERROR_FORMAT_NOT_SUPPORTED, VK_ERROR_FRAGMENTED_POOL, VK_ERROR_INCOMPATIBLE_DRIVER, VK_ERROR_INITIALIZATION_FAILED, VK_ERROR_LAYER_NOT_PRESENT, VK_ERROR_MEMORY_MAP_FAILED, VK_ERROR_OUT_OF_DEVICE_MEMORY, VK_ERROR_OUT_OF_HOST_MEMORY, VK_ERROR_TOO_MANY_OBJECTS, VK_ERROR_UNKNOWN, VK_EVENT_RESET, VK_EVENT_SET, VK_INCOMPLETE, VK_NOT_READY, VK_SUCCESS, VK_TIMEOUT, VkResult}, structure_type::{VK_STRUCTURE_TYPE_APPLICATION_INFO, VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO, VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO, VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO}}, flags::{device_queue_create::VkDeviceQueueCreateFlagBits, instance_create::VkInstanceCreateFlagBits, queue::{VK_QUEUE_COMPUTE_BIT, VK_QUEUE_GRAPHICS_BIT, VkQueueFlagBits}}, versions::VK_API_VERSION_1_4}, functions::{DeviceFunctions, EntryFunctions, InstanceFunctions, PhysicalDeviceFunctions}, types::{device::{VkDevice, VkDeviceCreateInfo, VkDeviceQueueCreateInfo}, instance::{VkApplicationInfo, VkInstance, VkInstanceCreateInfo}, physical_device::{VkPhysicalDevice, VkQueueFamilyProperties}, queue::VkQueue}};
 
-use crate::gpu::{Gpu, GpuError};
+use crate::gpu::{Gpu, GpuError, QueueCapabilities, QueueRequest};
 
 pub struct VulkanBackend {
     entry_functions: EntryFunctions,
-    vk_instance: VkInstance
+    vk_instance: VkInstance,
+    instance_functions: InstanceFunctions
 }
 
 impl VulkanBackend {
@@ -80,39 +81,138 @@ impl VulkanBackend {
         if res != VK_SUCCESS {
             return Err(map_vk_error(res));
         }
+        let instance_functions = unsafe { InstanceFunctions::load(entry_functions.vk_get_instance_proc_addr, vk_instance) };
         
         Ok(Self {
             entry_functions,
-            vk_instance
+            vk_instance,
+            instance_functions
         })
     }
 }
 
 impl Gpu for VulkanBackend {
     type PhysicalDevice = VulkanPhysicalDevice;
+    type Device = VulkanDevice;
+    type CommandQueue = VulkanQueue;
+    
     fn enumerate_devices(&self) -> Result<Vec<Self::PhysicalDevice>, GpuError> {
-        let instance_functions = unsafe { InstanceFunctions::load(self.entry_functions.vk_get_instance_proc_addr, self.vk_instance) };
         let mut num_devices: u32 = 0;
-        let res = unsafe { (instance_functions.vk_enumerate_physical_devices)(self.vk_instance, &mut num_devices, null_mut()) };
+        let res = unsafe { (self.instance_functions.vk_enumerate_physical_devices)(self.vk_instance, &mut num_devices, null_mut()) };
         if res != VK_SUCCESS {
             return Err(map_vk_error(res))
         }
         let mut vk_phys_devices: Vec<VkPhysicalDevice> = Vec::with_capacity(num_devices as usize);
         unsafe { vk_phys_devices.set_len(num_devices as usize); }
-        let res = unsafe { (instance_functions.vk_enumerate_physical_devices)(self.vk_instance, &mut num_devices, vk_phys_devices.as_mut_ptr()) };
+        let res = unsafe { (self.instance_functions.vk_enumerate_physical_devices)(self.vk_instance, &mut num_devices, vk_phys_devices.as_mut_ptr()) };
         if res != VK_SUCCESS {
             return Err(map_vk_error(res))
         }
         let phys_devices: Vec<VulkanPhysicalDevice> = vk_phys_devices
             .into_iter()
-            .map(|pd| VulkanPhysicalDevice(pd))
+            .map(|pd| {
+                VulkanPhysicalDevice {
+                    vk_physical_device: pd,
+                    physical_device_functions: unsafe {
+                        PhysicalDeviceFunctions::load(self.entry_functions.vk_get_instance_proc_addr, self.vk_instance)
+                    }
+                }
+            })
             .collect();
         
         Ok(phys_devices)
     }
+    
+    fn open_device(&self, physical_device: &Self::PhysicalDevice, queues: &[QueueRequest]) -> Result<Self::Device, GpuError> {
+        let mut num_queue_family: u32 = 0;
+        let queue_num = queues.iter().map(|n| n.count).sum();
+        let mut queue_indices: Vec<(usize, QueueCapabilities, usize)> = Vec::with_capacity(queue_num);
+        unsafe { (physical_device.physical_device_functions.vk_get_physical_device_queue_family_properties)(physical_device.vk_physical_device, &mut num_queue_family, null_mut()) };
+        let mut queue_family_properties: Vec<VkQueueFamilyProperties> = Vec::with_capacity(num_queue_family as usize);
+        unsafe { queue_family_properties.set_len(num_queue_family as usize); }
+        unsafe { (physical_device.physical_device_functions.vk_get_physical_device_queue_family_properties)(physical_device.vk_physical_device, &mut num_queue_family, queue_family_properties.as_mut_ptr()) };
+        
+        let mut p_queue_create_infos: Vec<VkDeviceQueueCreateInfo> = Vec::new();
+        let mut p_queue_priorities_vec_store: Vec<Vec<f32>> = Vec::new();
+        for q in queues {
+            let p_queue_priorities_vec: Vec<f32> = vec![1.0; q.count];
+            p_queue_priorities_vec_store.push(p_queue_priorities_vec);
+            let vec_ptr = p_queue_priorities_vec_store.last().unwrap();
+            let found = queue_family_properties.iter_mut().enumerate().filter(|(_, qf)| (q.capabilities.0 & qf.queue_flags.0) == q.capabilities.0).min_by_key(|(_, qf)| qf.queue_flags.0.count_ones());
+            match found {
+                Some(qf) => {
+                    if q.count > qf.1.queue_count as usize {
+                        return Err(GpuError::QueueCapabilityMismatch(format!("VulkanBackend: Requested too many queues for this family ({} > {})", q.count, qf.1.queue_count)))
+                    }
+                    let queue_info = VkDeviceQueueCreateInfo {
+                        s_type: VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
+                        p_next: null(),
+                        flags: VkDeviceQueueCreateFlagBits(0),
+                        queue_family_index: qf.0 as u32,
+                        queue_count: q.count as u32,
+                        p_queue_priorities: vec_ptr.as_ptr()
+                    };
+                    p_queue_create_infos.push(queue_info);
+                    queue_indices.push((qf.0, q.capabilities, q.count));
+                    qf.1.queue_count -= q.count as u32;
+                },
+                None => return Err(GpuError::QueueCapabilityMismatch(format!("VulkanBackend: Couldn't find a queue that supports {:#?}", q.capabilities)))
+            }
+        }
+        
+        let extension_name = CString::new("VK_KHR_swapchain").unwrap();
+        let extension_ptr = extension_name.as_ptr();
+        let device_info = VkDeviceCreateInfo {
+            s_type: VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
+            p_next: null(),
+            flags: 0,
+            queue_create_info_count: queues.len() as u32,
+            p_queue_create_infos: p_queue_create_infos.as_ptr(),
+            enabled_layer_count: 0,
+            pp_enabled_layer_names: null(),
+            enabled_extension_count: 1,
+            pp_enabled_extension_names: &extension_ptr,
+            p_enabled_features: null()
+        };
+        
+        let mut vk_device = VkDevice(null_mut());
+        let res = unsafe { (self.instance_functions.vk_create_device)(physical_device.vk_physical_device, &device_info, null(), &mut vk_device) };
+        if res != VK_SUCCESS {
+            return Err(map_vk_error(res));
+        }
+        let device_functions = unsafe { DeviceFunctions::load(self.instance_functions.vk_get_device_proc_addr, vk_device) };
+        let mut queues: Vec<VulkanQueue> = Vec::with_capacity(queue_num);
+        for (fam_idx, fam_capabilities, num_queues) in queue_indices {
+            for i in 0..num_queues {
+                let mut vk_queue = VkQueue(null_mut());
+                unsafe { (device_functions.vk_get_device_queue)(vk_device, fam_idx as u32, i as u32, &mut vk_queue) };
+                queues.push(VulkanQueue { vk_queue, capabilities: fam_capabilities});
+            }
+        }
+        
+        Ok(VulkanDevice {
+            vk_device,
+            device_functions,
+            queues
+        })
+    }
 }
 
-pub struct VulkanPhysicalDevice(pub VkPhysicalDevice);
+pub struct VulkanPhysicalDevice {
+    vk_physical_device: VkPhysicalDevice,
+    physical_device_functions: PhysicalDeviceFunctions
+}
+
+pub struct VulkanDevice {
+    vk_device: VkDevice,
+    device_functions: DeviceFunctions,
+    queues: Vec<VulkanQueue>
+}
+
+pub struct VulkanQueue {
+    vk_queue: VkQueue,
+    capabilities: QueueCapabilities
+}
 
 pub enum VulkanExtensions {
     

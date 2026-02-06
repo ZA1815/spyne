@@ -15,7 +15,7 @@ trait Gpu {
     type Swapchain;
     
     fn enumerate_devices(&self) -> Result<Vec<Self::PhysicalDevice>, GpuError>;
-    fn open_device(&self, info: &Self::PhysicalDevice, queues: &[QueueRequest]) -> Self::Device;
+    fn open_device(&self, physical_device: &Self::PhysicalDevice, queues: &[QueueRequest]) -> Result<Self::Device, GpuError>;
 
     fn device_name(&self, info: &Self::PhysicalDevice) -> String;
     fn supports_compute(&self, info: &Self::PhysicalDevice) -> bool;
@@ -117,6 +117,7 @@ pub struct QueueRequest {
     pub count: usize
 }
 
+#[derive(Debug, Clone, Copy)]
 pub struct QueueCapabilities(u32);
 impl BitOr for QueueCapabilities {
     type Output = Self;
