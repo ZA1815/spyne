@@ -1,13 +1,13 @@
 [package]
 name = "spyne-macros"
-version = "0.1.1"
+version = "0.2.0"
 edition = "2024"
 description = "Macros for the spyne crate"
 license = "MIT"
 
 [dependencies]
-spyne-quote = { path = "../spyne-quote" }
-spyne-syntax = { path = "../spyne-syntax" }
+spyne-quote = "0.1.8"
+spyne-syntax = "0.2.0"
 
 [lib]
 proc-macro = true
