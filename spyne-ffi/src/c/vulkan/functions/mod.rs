@@ -121,7 +121,7 @@ pub struct CommandBufferFunctions {
 }
 
 #[derive(VulkanFunctions)]
-#[vulkan(handle = VkInstance, loader = VkGetInstanceProcAddr)]
+#[vulkan(handle = VkDevice, loader = VkGetDeviceProcAddr)]
 pub struct DeviceFunctions {
     #[vulkan(name = "vkGetDeviceQueue")]
     pub vk_get_device_queue: VkGetDeviceQueue,
