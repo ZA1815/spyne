@@ -133,7 +133,7 @@ types = [
         ],
         "deps": [
             "use std::ffi::c_char;",
-            "use crate::c::vulkan::{constants::{enums::physical_device_type::VkPhysicalDeviceType, flags::{queue::VkQueueFlagBits, sample_count::VkSampleCountFlagBits}}, types::{base::{VkBool32, VkDeviceSize}, image::VkExtent3D, memory::{VkMemoryHeap, VkMemoryType}}};"
+            "use crate::c::vulkan::{constants::{api_constants::{VK_MAX_MEMORY_HEAPS, VK_MAX_MEMORY_TYPES, VK_MAX_PHYSICAL_DEVICE_NAME_SIZE, VK_UUID_SIZE}, enums::physical_device_type::VkPhysicalDeviceType, flags::{queue::VkQueueFlagBits, sample_count::VkSampleCountFlagBits}}, types::{base::{VkBool32, VkDeviceSize}, image::VkExtent3D, memory::{VkMemoryHeap, VkMemoryType}}};"
         ]
     },
     {
@@ -310,12 +310,14 @@ def types_parse(root: Element[str]):
                             for elem in type.iter():
                                 if elem.tag == "member" and elem.attrib.get('api') == "vulkansc":
                                     stripped_api = True
-                                if elem.tag == "member" and elem.text is not None:
-                                    field_prefix = elem.text.strip()
+                                if elem.tag == "member" and not already_set_constant:
                                     enum = elem.find('enum')
                                     if enum is not None:
                                         already_set_constant = True
+                                        array_syntax = True
                                         constant_val = enum.text.strip()
+                                if elem.tag == "member" and elem.text is not None:
+                                    field_prefix = elem.text.strip()
                                 if elem.tag == "name":
                                     field_name = elem.text.strip()
                                     field_name = camel_to_snake(field_name)
@@ -323,6 +325,7 @@ def types_parse(root: Element[str]):
                                         field_name = "r#type"
                                     if elem.tail is not None and not already_set_constant:
                                         array_syntax = True
+                                        already_set_constant = True
                                         constant_val = elem.tail.strip()
                                         constant_val = constant_val[1:-1]
                                 if elem.tag == "type":
@@ -355,6 +358,8 @@ def types_parse(root: Element[str]):
                                         field_type = ""
                                         field_prefix = ""
                                         field_suffix = ""
+                                        array_syntax = False
+                                        already_set_constant = False
                                         continue
                                     if hardcoded_flags and struct == "VkWaylandSurfaceCreateInfoKHR":
                                         hardcoded_flags = False
@@ -384,6 +389,8 @@ def types_parse(root: Element[str]):
                                     field_type = ""
                                     field_prefix = ""
                                     field_suffix = ""
+                                    array_syntax = False
+                                    already_set_constant = False
                                     
                         if attrs.get('category') == "struct" and struct == "VkWaylandSurfaceCreateInfoKHR":
                             print("    }", file=f)
