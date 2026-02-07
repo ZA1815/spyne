@@ -23,6 +23,7 @@ use crate::c::{linux::general::{constants::RTLD_NOW, functions::{dlopen, dlsym}}
 #[cfg(target_os = "linux")]
 use crate::c::vulkan::functions::surface::VkCreateWaylandSurfaceKHR;
 
+#[derive(Clone, Copy)]
 pub struct VulkanFunctions {
     pub entry_functions: EntryFunctions,
     pub buffer_functions: BufferFunctions,
@@ -80,6 +81,7 @@ impl VulkanFunctions {
     }
 }
 
+#[derive(Clone, Copy)]
 pub struct EntryFunctions {
     pub vk_get_instance_proc_addr: VkGetInstanceProcAddr,
     pub vk_create_instance: VkCreateInstance
@@ -97,7 +99,7 @@ impl EntryFunctions {
     }
 }
 
-#[derive(VulkanFunctions)]
+#[derive(VulkanFunctions, Clone, Copy)]
 #[vulkan(handle = VkDevice, loader = VkGetDeviceProcAddr)]
 pub struct BufferFunctions {
     #[vulkan(name = "vkCreateBuffer")]
@@ -113,7 +115,7 @@ pub struct BufferFunctions {
     pub vk_bind_buffer_memory: VkBindBufferMemory
 }
 
-#[derive(VulkanFunctions)]
+#[derive(VulkanFunctions, Clone, Copy)]
 #[vulkan(handle = VkDevice, loader = VkGetDeviceProcAddr)]
 pub struct CommandBufferFunctions {
     #[vulkan(name = "vkCreateCommandPool")]
@@ -159,7 +161,7 @@ pub struct CommandBufferFunctions {
     pub vk_cmd_draw: VkCmdDraw
 }
 
-#[derive(VulkanFunctions)]
+#[derive(VulkanFunctions, Clone, Copy)]
 #[vulkan(handle = VkDevice, loader = VkGetDeviceProcAddr)]
 pub struct DeviceFunctions {
     #[vulkan(name = "vkGetDeviceQueue")]
@@ -172,7 +174,7 @@ pub struct DeviceFunctions {
     pub vk_destroy_device: VkDestroyDevice
 }
 
-#[derive(VulkanFunctions)]
+#[derive(VulkanFunctions, Clone, Copy)]
 #[vulkan(handle = VkDevice, loader = VkGetDeviceProcAddr)]
 pub struct ImageFunctions {
     #[vulkan(name = "vkCreateImage")]
@@ -194,7 +196,7 @@ pub struct ImageFunctions {
     pub vk_destroy_image_view: VkDestroyImageView
 }
 
-#[derive(VulkanFunctions)]
+#[derive(VulkanFunctions, Clone, Copy)]
 #[vulkan(handle = VkInstance, loader = VkGetInstanceProcAddr)]
 pub struct InstanceFunctions {
     #[vulkan(name = "vkEnumeratePhysicalDevices")]
@@ -207,7 +209,7 @@ pub struct InstanceFunctions {
     pub vk_get_device_proc_addr: VkGetDeviceProcAddr,
 }
 
-#[derive(VulkanFunctions)]
+#[derive(VulkanFunctions, Clone, Copy)]
 #[vulkan(handle = VkDevice, loader = VkGetDeviceProcAddr)]
 pub struct MemoryFunctions {
     #[vulkan(name = "vkAllocateMemory")]
@@ -223,7 +225,7 @@ pub struct MemoryFunctions {
     pub vk_unmap_memory: VkUnmapMemory
 }
 
-#[derive(VulkanFunctions)]
+#[derive(VulkanFunctions, Clone, Copy)]
 #[vulkan(handle = VkInstance, loader = VkGetInstanceProcAddr)]
 pub struct PhysicalDeviceFunctions {
     #[vulkan(name = "vkGetPhysicalDeviceProperties")]
@@ -239,7 +241,7 @@ pub struct PhysicalDeviceFunctions {
     pub vk_get_physical_device_queue_family_properties: VkGetPhysicalDeviceQueueFamilyProperties
 }
 
-#[derive(VulkanFunctions)]
+#[derive(VulkanFunctions, Clone, Copy)]
 #[vulkan(handle = VkDevice, loader = VkGetDeviceProcAddr)]
 pub struct PipelineFunctions {
     #[vulkan(name = "vkCreatePipelineLayout")]
@@ -255,7 +257,7 @@ pub struct PipelineFunctions {
     pub vk_destroy_pipeline: VkDestroyPipeline
 }
 
-#[derive(VulkanFunctions)]
+#[derive(VulkanFunctions, Clone, Copy)]
 #[vulkan(handle = VkDevice, loader = VkGetDeviceProcAddr)]
 pub struct QueueFunctions {
     #[vulkan(name = "vkQueueSubmit")]
@@ -268,7 +270,7 @@ pub struct QueueFunctions {
     pub vk_queue_present_khr: VkQueuePresentKHR
 }
 
-#[derive(VulkanFunctions)]
+#[derive(VulkanFunctions, Clone, Copy)]
 #[vulkan(handle = VkDevice, loader = VkGetDeviceProcAddr)]
 pub struct RenderPassFunctions {
     #[vulkan(name = "vkCreateRenderPass")]
@@ -284,7 +286,7 @@ pub struct RenderPassFunctions {
     pub vk_destroy_framebuffer: VkDestroyFramebuffer
 }
 
-#[derive(VulkanFunctions)]
+#[derive(VulkanFunctions, Clone, Copy)]
 #[vulkan(handle = VkDevice, loader = VkGetDeviceProcAddr)]
 pub struct ShaderFunctions {
     #[vulkan(name = "vkCreateShaderModule")]
@@ -294,7 +296,7 @@ pub struct ShaderFunctions {
     pub vk_destroy_shader_module: VkDestroyShaderModule
 }
 
-#[derive(VulkanFunctions)]
+#[derive(VulkanFunctions, Clone, Copy)]
 #[vulkan(handle = VkInstance, loader = VkGetInstanceProcAddr)]
 pub struct SurfaceFunctions {
     #[vulkan(name = "vkDestroySurfaceKHR")]
@@ -317,7 +319,7 @@ pub struct SurfaceFunctions {
     pub vk_create_wayland_surface_khr: VkCreateWaylandSurfaceKHR
 }
 
-#[derive(VulkanFunctions)]
+#[derive(VulkanFunctions, Clone, Copy)]
 #[vulkan(handle = VkDevice, loader = VkGetDeviceProcAddr)]
 pub struct SwapchainFunctions {
     #[vulkan(name = "vkCreateSwapchainKHR")]
@@ -333,7 +335,7 @@ pub struct SwapchainFunctions {
     pub vk_acquire_next_image_khr: VkAcquireNextImageKHR
 }
 
-#[derive(VulkanFunctions)]
+#[derive(VulkanFunctions, Clone, Copy)]
 #[vulkan(handle = VkDevice, loader = VkGetDeviceProcAddr)]
 pub struct SyncFunctions {
     #[vulkan(name = "vkCreateFence")]
