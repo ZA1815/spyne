@@ -1,6 +1,6 @@
-use std::{ffi::CString, ptr::{null, null_mut}};
+use std::{ffi::CString, mem::MaybeUninit, ptr::{null, null_mut}};
 
-use spyne_ffi::c::vulkan::{constants::{enums::{result::{VK_ERROR_DEVICE_LOST, VK_ERROR_EXTENSION_NOT_PRESENT, VK_ERROR_FEATURE_NOT_PRESENT, VK_ERROR_FORMAT_NOT_SUPPORTED, VK_ERROR_FRAGMENTED_POOL, VK_ERROR_INCOMPATIBLE_DRIVER, VK_ERROR_INITIALIZATION_FAILED, VK_ERROR_LAYER_NOT_PRESENT, VK_ERROR_MEMORY_MAP_FAILED, VK_ERROR_OUT_OF_DEVICE_MEMORY, VK_ERROR_OUT_OF_HOST_MEMORY, VK_ERROR_TOO_MANY_OBJECTS, VK_ERROR_UNKNOWN, VK_EVENT_RESET, VK_EVENT_SET, VK_INCOMPLETE, VK_NOT_READY, VK_SUCCESS, VK_TIMEOUT, VkResult}, structure_type::{VK_STRUCTURE_TYPE_APPLICATION_INFO, VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO, VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO, VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO}}, flags::{device_queue_create::VkDeviceQueueCreateFlagBits, instance_create::VkInstanceCreateFlagBits, queue::{VK_QUEUE_COMPUTE_BIT, VK_QUEUE_GRAPHICS_BIT, VkQueueFlagBits}}, versions::VK_API_VERSION_1_4}, functions::{DeviceFunctions, EntryFunctions, InstanceFunctions, PhysicalDeviceFunctions}, types::{device::{VkDevice, VkDeviceCreateInfo, VkDeviceQueueCreateInfo}, instance::{VkApplicationInfo, VkInstance, VkInstanceCreateInfo}, physical_device::{VkPhysicalDevice, VkQueueFamilyProperties}, queue::VkQueue}};
+use spyne_ffi::c::vulkan::{constants::{enums::{result::{VK_ERROR_DEVICE_LOST, VK_ERROR_EXTENSION_NOT_PRESENT, VK_ERROR_FEATURE_NOT_PRESENT, VK_ERROR_FORMAT_NOT_SUPPORTED, VK_ERROR_FRAGMENTED_POOL, VK_ERROR_INCOMPATIBLE_DRIVER, VK_ERROR_INITIALIZATION_FAILED, VK_ERROR_LAYER_NOT_PRESENT, VK_ERROR_MEMORY_MAP_FAILED, VK_ERROR_OUT_OF_DEVICE_MEMORY, VK_ERROR_OUT_OF_HOST_MEMORY, VK_ERROR_TOO_MANY_OBJECTS, VK_ERROR_UNKNOWN, VK_EVENT_RESET, VK_EVENT_SET, VK_INCOMPLETE, VK_NOT_READY, VK_SUCCESS, VK_TIMEOUT, VkResult}, structure_type::{VK_STRUCTURE_TYPE_APPLICATION_INFO, VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO, VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO, VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO}}, flags::{device_queue_create::VkDeviceQueueCreateFlagBits, instance_create::VkInstanceCreateFlagBits, queue::{VK_QUEUE_COMPUTE_BIT, VK_QUEUE_GRAPHICS_BIT, VkQueueFlagBits}}, versions::VK_API_VERSION_1_4}, functions::{DeviceFunctions, EntryFunctions, InstanceFunctions, PhysicalDeviceFunctions}, types::{device::{VkDevice, VkDeviceCreateInfo, VkDeviceQueueCreateInfo}, instance::{VkApplicationInfo, VkInstance, VkInstanceCreateInfo}, physical_device::{VkPhysicalDevice, VkPhysicalDeviceProperties, VkQueueFamilyProperties}, queue::VkQueue}};
 
 use crate::gpu::{Gpu, GpuError, QueueCapabilities, QueueRequest};
 
@@ -110,12 +110,19 @@ impl Gpu for VulkanBackend {
         }
         let phys_devices: Vec<VulkanPhysicalDevice> = vk_phys_devices
             .into_iter()
-            .map(|pd| {
+            .map(|vk_physical_device| {
+                let physical_device_functions = unsafe {
+                   PhysicalDeviceFunctions::load(self.entry_functions.vk_get_instance_proc_addr, self.vk_instance)
+                };
+                let mut vk_physical_device_properties = MaybeUninit::<VkPhysicalDeviceProperties>::uninit();
+                let vk_physical_device_properties = unsafe {
+                    (physical_device_functions.vk_get_physical_device_properties)(vk_physical_device, vk_physical_device_properties.as_mut_ptr());
+                    vk_physical_device_properties.assume_init()
+                };
                 VulkanPhysicalDevice {
-                    vk_physical_device: pd,
-                    physical_device_functions: unsafe {
-                        PhysicalDeviceFunctions::load(self.entry_functions.vk_get_instance_proc_addr, self.vk_instance)
-                    }
+                    vk_physical_device,
+                    physical_device_functions,
+                    vk_physical_device_properties
                 }
             })
             .collect();
@@ -196,11 +203,16 @@ impl Gpu for VulkanBackend {
             queues
         })
     }
+    
+    fn device_name(&self, physical_device: &Self::PhysicalDevice) -> String {
+        physical_device.vk_physical_device_properties.device_name
+    }
 }
 
 pub struct VulkanPhysicalDevice {
     vk_physical_device: VkPhysicalDevice,
-    physical_device_functions: PhysicalDeviceFunctions
+    physical_device_functions: PhysicalDeviceFunctions,
+    vk_physical_device_properties: VkPhysicalDeviceProperties
 }
 
 pub struct VulkanDevice {

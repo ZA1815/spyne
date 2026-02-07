@@ -17,11 +17,11 @@ trait Gpu {
     fn enumerate_devices(&self) -> Result<Vec<Self::PhysicalDevice>, GpuError>;
     fn open_device(&self, physical_device: &Self::PhysicalDevice, queues: &[QueueRequest]) -> Result<Self::Device, GpuError>;
 
-    fn device_name(&self, info: &Self::PhysicalDevice) -> String;
-    fn supports_compute(&self, info: &Self::PhysicalDevice) -> bool;
-    fn has_unified_memory(&self, info: &Self::PhysicalDevice) -> bool;
-    fn max_texture_size(&self, info: &Self::PhysicalDevice) -> usize;
-    fn supported_msaa_samples(&self, info: &Self::PhysicalDevice) -> MsaaSampleCount;
+    fn device_name(&self, physical_device: &Self::PhysicalDevice) -> String;
+    fn supports_compute(&self, physical_device: &Self::PhysicalDevice) -> bool;
+    fn has_unified_memory(&self, physical_device: &Self::PhysicalDevice) -> bool;
+    fn max_texture_size(&self, physical_device: &Self::PhysicalDevice) -> usize;
+    fn supported_msaa_samples(&self, physical_device: &Self::PhysicalDevice) -> MsaaSampleCount;
 
     fn create_buffer(&self, device: &Self::Device, size: usize, location: MemoryLocation) -> Self::Buffer;
     fn read_buffer(&self, buffer: &Self::Buffer, offset: usize, length: usize) -> Vec<u8>;
