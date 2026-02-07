@@ -1,8 +1,8 @@
-use std::{ffi::CString, mem::MaybeUninit, ptr::{null, null_mut}};
+use std::{ffi::{CStr, CString}, mem::MaybeUninit, ptr::{null, null_mut}};
 
-use spyne_ffi::c::vulkan::{constants::{enums::{result::{VK_ERROR_DEVICE_LOST, VK_ERROR_EXTENSION_NOT_PRESENT, VK_ERROR_FEATURE_NOT_PRESENT, VK_ERROR_FORMAT_NOT_SUPPORTED, VK_ERROR_FRAGMENTED_POOL, VK_ERROR_INCOMPATIBLE_DRIVER, VK_ERROR_INITIALIZATION_FAILED, VK_ERROR_LAYER_NOT_PRESENT, VK_ERROR_MEMORY_MAP_FAILED, VK_ERROR_OUT_OF_DEVICE_MEMORY, VK_ERROR_OUT_OF_HOST_MEMORY, VK_ERROR_TOO_MANY_OBJECTS, VK_ERROR_UNKNOWN, VK_EVENT_RESET, VK_EVENT_SET, VK_INCOMPLETE, VK_NOT_READY, VK_SUCCESS, VK_TIMEOUT, VkResult}, structure_type::{VK_STRUCTURE_TYPE_APPLICATION_INFO, VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO, VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO, VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO}}, flags::{device_queue_create::VkDeviceQueueCreateFlagBits, instance_create::VkInstanceCreateFlagBits, queue::{VK_QUEUE_COMPUTE_BIT, VK_QUEUE_GRAPHICS_BIT, VkQueueFlagBits}}, versions::VK_API_VERSION_1_4}, functions::{DeviceFunctions, EntryFunctions, InstanceFunctions, PhysicalDeviceFunctions}, types::{device::{VkDevice, VkDeviceCreateInfo, VkDeviceQueueCreateInfo}, instance::{VkApplicationInfo, VkInstance, VkInstanceCreateInfo}, physical_device::{VkPhysicalDevice, VkPhysicalDeviceProperties, VkQueueFamilyProperties}, queue::VkQueue}};
+use spyne_ffi::c::vulkan::{constants::{enums::{result::{VK_ERROR_DEVICE_LOST, VK_ERROR_EXTENSION_NOT_PRESENT, VK_ERROR_FEATURE_NOT_PRESENT, VK_ERROR_FORMAT_NOT_SUPPORTED, VK_ERROR_FRAGMENTED_POOL, VK_ERROR_INCOMPATIBLE_DRIVER, VK_ERROR_INITIALIZATION_FAILED, VK_ERROR_LAYER_NOT_PRESENT, VK_ERROR_MEMORY_MAP_FAILED, VK_ERROR_OUT_OF_DEVICE_MEMORY, VK_ERROR_OUT_OF_HOST_MEMORY, VK_ERROR_TOO_MANY_OBJECTS, VK_ERROR_UNKNOWN, VK_EVENT_RESET, VK_EVENT_SET, VK_INCOMPLETE, VK_NOT_READY, VK_SUCCESS, VK_TIMEOUT, VkResult}, structure_type::{VK_STRUCTURE_TYPE_APPLICATION_INFO, VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO, VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO, VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO}}, flags::{device_queue_create::VkDeviceQueueCreateFlagBits, instance_create::VkInstanceCreateFlagBits, memory_property::{VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, VkMemoryPropertyFlagBits}, queue::{VK_QUEUE_COMPUTE_BIT, VK_QUEUE_GRAPHICS_BIT, VkQueueFlagBits}, sample_count::{VK_SAMPLE_COUNT_1_BIT, VK_SAMPLE_COUNT_2_BIT, VK_SAMPLE_COUNT_4_BIT, VK_SAMPLE_COUNT_8_BIT, VK_SAMPLE_COUNT_16_BIT, VK_SAMPLE_COUNT_32_BIT, VK_SAMPLE_COUNT_64_BIT}}, versions::VK_API_VERSION_1_4}, functions::{DeviceFunctions, EntryFunctions, InstanceFunctions, PhysicalDeviceFunctions}, types::{device::{VkDevice, VkDeviceCreateInfo, VkDeviceQueueCreateInfo}, instance::{VkApplicationInfo, VkInstance, VkInstanceCreateInfo}, physical_device::{VkPhysicalDevice, VkPhysicalDeviceMemoryProperties, VkPhysicalDeviceProperties, VkQueueFamilyProperties}, queue::VkQueue}};
 
-use crate::gpu::{Gpu, GpuError, QueueCapabilities, QueueRequest};
+use crate::gpu::{Gpu, GpuError, MsaaSampleCount, QueueCapabilities, QueueRequest};
 
 pub struct VulkanBackend {
     entry_functions: EntryFunctions,
@@ -119,10 +119,16 @@ impl Gpu for VulkanBackend {
                     (physical_device_functions.vk_get_physical_device_properties)(vk_physical_device, vk_physical_device_properties.as_mut_ptr());
                     vk_physical_device_properties.assume_init()
                 };
+                let mut num_queue_family: u32 = 0;
+                unsafe { (physical_device_functions.vk_get_physical_device_queue_family_properties)(vk_physical_device, &mut num_queue_family, null_mut()) };
+                let mut queue_family_properties: Vec<VkQueueFamilyProperties> = Vec::with_capacity(num_queue_family as usize);
+                unsafe { queue_family_properties.set_len(num_queue_family as usize); }
+                unsafe { (physical_device_functions.vk_get_physical_device_queue_family_properties)(vk_physical_device, &mut num_queue_family, queue_family_properties.as_mut_ptr()) };
                 VulkanPhysicalDevice {
                     vk_physical_device,
                     physical_device_functions,
-                    vk_physical_device_properties
+                    vk_physical_device_properties,
+                    queue_family_properties
                 }
             })
             .collect();
@@ -131,13 +137,9 @@ impl Gpu for VulkanBackend {
     }
     
     fn open_device(&self, physical_device: &Self::PhysicalDevice, queues: &[QueueRequest]) -> Result<Self::Device, GpuError> {
-        let mut num_queue_family: u32 = 0;
         let queue_num = queues.iter().map(|n| n.count).sum();
         let mut queue_indices: Vec<(usize, QueueCapabilities, usize)> = Vec::with_capacity(queue_num);
-        unsafe { (physical_device.physical_device_functions.vk_get_physical_device_queue_family_properties)(physical_device.vk_physical_device, &mut num_queue_family, null_mut()) };
-        let mut queue_family_properties: Vec<VkQueueFamilyProperties> = Vec::with_capacity(num_queue_family as usize);
-        unsafe { queue_family_properties.set_len(num_queue_family as usize); }
-        unsafe { (physical_device.physical_device_functions.vk_get_physical_device_queue_family_properties)(physical_device.vk_physical_device, &mut num_queue_family, queue_family_properties.as_mut_ptr()) };
+        let mut queue_family_properties = physical_device.queue_family_properties.to_vec();
         
         let mut p_queue_create_infos: Vec<VkDeviceQueueCreateInfo> = Vec::new();
         let mut p_queue_priorities_vec_store: Vec<Vec<f32>> = Vec::new();
@@ -205,14 +207,64 @@ impl Gpu for VulkanBackend {
     }
     
     fn device_name(&self, physical_device: &Self::PhysicalDevice) -> String {
-        physical_device.vk_physical_device_properties.device_name
+        unsafe { CStr::from_ptr(physical_device.vk_physical_device_properties.device_name.as_ptr()).to_string_lossy().into_owned() }
+    }
+    
+    fn supports_compute(&self, physical_device: &Self::PhysicalDevice) -> bool {
+        physical_device
+            .queue_family_properties
+            .iter()
+            .any(|queue_fam| queue_fam.queue_flags | VK_QUEUE_COMPUTE_BIT != VkQueueFlagBits(0))
+    }
+    
+    fn has_unified_memory(&self, physical_device: &Self::PhysicalDevice) -> bool {
+        let mut vk_physical_device_memory_properties = MaybeUninit::<VkPhysicalDeviceMemoryProperties>::uninit();
+        let vk_physical_device_memory_properties = unsafe {
+            (physical_device.physical_device_functions.vk_get_physical_device_memory_properties)(physical_device.vk_physical_device, vk_physical_device_memory_properties.as_mut_ptr());
+            vk_physical_device_memory_properties.assume_init()
+        };
+        let unified_bits = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT | VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
+        vk_physical_device_memory_properties
+            .memory_types
+            .iter()
+            .any(|mem_type| mem_type.property_flags & unified_bits == unified_bits)
+    }
+    
+    fn max_texture_size_1d(&self, physical_device: &Self::PhysicalDevice) -> usize {
+        physical_device.vk_physical_device_properties.limits.max_image_dimension_1d as usize
+    }
+    
+    fn max_texture_size_2d(&self, physical_device: &Self::PhysicalDevice) -> usize {
+        physical_device.vk_physical_device_properties.limits.max_image_dimension_2d as usize
+    }
+    
+    fn max_texture_size_3d(&self, physical_device: &Self::PhysicalDevice) -> usize {
+        physical_device.vk_physical_device_properties.limits.max_image_dimension_3d as usize
+    }
+    
+    fn max_texture_size_cube(&self, physical_device: &Self::PhysicalDevice) -> usize {
+        physical_device.vk_physical_device_properties.limits.max_image_dimension_cube as usize
+    }
+    
+    fn supported_msaa_samples(&self, physical_device: &Self::PhysicalDevice) -> MsaaSampleCount {
+        match physical_device.vk_physical_device_properties.limits.framebuffer_color_sample_counts {
+            VK_SAMPLE_COUNT_1_BIT => MsaaSampleCount::ONE,
+            VK_SAMPLE_COUNT_2_BIT => MsaaSampleCount::TWO,
+            VK_SAMPLE_COUNT_4_BIT => MsaaSampleCount::FOUR,
+            VK_SAMPLE_COUNT_8_BIT => MsaaSampleCount::EIGHT,
+            VK_SAMPLE_COUNT_16_BIT => MsaaSampleCount::SIXTEEN,
+            VK_SAMPLE_COUNT_32_BIT => MsaaSampleCount::THIRTY_TWO,
+            VK_SAMPLE_COUNT_64_BIT => MsaaSampleCount::SIXTY_FOUR,
+            _ => unreachable!()
+        }
     }
 }
 
 pub struct VulkanPhysicalDevice {
     vk_physical_device: VkPhysicalDevice,
     physical_device_functions: PhysicalDeviceFunctions,
-    vk_physical_device_properties: VkPhysicalDeviceProperties
+    vk_physical_device_properties: VkPhysicalDeviceProperties,
+    queue_family_properties: Vec<VkQueueFamilyProperties>
 }
 
 pub struct VulkanDevice {

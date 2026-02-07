@@ -20,7 +20,10 @@ trait Gpu {
     fn device_name(&self, physical_device: &Self::PhysicalDevice) -> String;
     fn supports_compute(&self, physical_device: &Self::PhysicalDevice) -> bool;
     fn has_unified_memory(&self, physical_device: &Self::PhysicalDevice) -> bool;
-    fn max_texture_size(&self, physical_device: &Self::PhysicalDevice) -> usize;
+    fn max_texture_size_1d(&self, physical_device: &Self::PhysicalDevice) -> usize;
+    fn max_texture_size_2d(&self, physical_device: &Self::PhysicalDevice) -> usize;
+    fn max_texture_size_3d(&self, physical_device: &Self::PhysicalDevice) -> usize;
+    fn max_texture_size_cube(&self, physical_device: &Self::PhysicalDevice) -> usize;
     fn supported_msaa_samples(&self, physical_device: &Self::PhysicalDevice) -> MsaaSampleCount;
 
     fn create_buffer(&self, device: &Self::Device, size: usize, location: MemoryLocation) -> Self::Buffer;
@@ -130,6 +133,24 @@ impl QueueCapabilities {
     pub const GRAPHICS: Self = Self(1 << 0);
     pub const COMPUTE: Self = Self(1 << 1);
     pub const TRANSFER: Self = Self(1 << 2);
+}
+
+pub struct MsaaSampleCount(u32);
+impl BitOr for MsaaSampleCount {
+    type Output = Self;
+    
+    fn bitor(self, rhs: Self) -> Self::Output {
+        Self(self.0 | rhs.0)
+    }
+}
+impl MsaaSampleCount {
+    pub const ONE: Self = Self(1 << 0);
+    pub const TWO: Self = Self(1 << 1);
+    pub const FOUR: Self = Self(1 << 2);
+    pub const EIGHT: Self = Self(1 << 3);
+    pub const SIXTEEN: Self = Self(1 << 4);
+    pub const THIRTY_TWO: Self = Self(1 << 5);
+    pub const SIXTY_FOUR: Self = Self(1 << 6);
 }
 
 pub enum MemoryLocation {
