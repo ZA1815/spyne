@@ -10,4 +10,12 @@ impl std::ops::BitOr for VkAttachmentDescriptionFlagBits {
     }
 }
 
+impl std::ops::BitAnd for VkAttachmentDescriptionFlagBits {
+    type Output = Self;
+
+    fn bitand(self, rhs: Self) -> Self {
+        Self(self.0 & rhs.0)
+    }
+}
+
 pub const VK_ATTACHMENT_DESCRIPTION_MAY_ALIAS_BIT: VkAttachmentDescriptionFlagBits = VkAttachmentDescriptionFlagBits(1 << 0);

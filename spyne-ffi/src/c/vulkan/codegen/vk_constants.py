@@ -22,6 +22,14 @@ def consts_parse(root: Element[str]):
                 print("    }", file=f)
                 print("}", file=f)
                 print("", file=f)
+                print(f"impl std::ops::BitAnd for {const_name} {{", file=f)
+                print("    type Output = Self;", file=f)
+                print("", file=f)
+                print("    fn bitand(self, rhs: Self) -> Self {", file=f)
+                print("        Self(self.0 & rhs.0)", file=f)
+                print("    }", file=f)
+                print("}", file=f)
+                print("", file=f)
             for enum in root.iter('enums'):
                 if enum.attrib.get('name') == const_name:
                     for enum_var in enum:

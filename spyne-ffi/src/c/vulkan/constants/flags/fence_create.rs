@@ -10,4 +10,12 @@ impl std::ops::BitOr for VkFenceCreateFlagBits {
     }
 }
 
+impl std::ops::BitAnd for VkFenceCreateFlagBits {
+    type Output = Self;
+
+    fn bitand(self, rhs: Self) -> Self {
+        Self(self.0 & rhs.0)
+    }
+}
+
 pub const VK_FENCE_CREATE_SIGNALED_BIT: VkFenceCreateFlagBits = VkFenceCreateFlagBits(1 << 0);

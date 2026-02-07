@@ -10,4 +10,12 @@ impl std::ops::BitOr for VkMemoryHeapFlagBits {
     }
 }
 
+impl std::ops::BitAnd for VkMemoryHeapFlagBits {
+    type Output = Self;
+
+    fn bitand(self, rhs: Self) -> Self {
+        Self(self.0 & rhs.0)
+    }
+}
+
 pub const VK_MEMORY_HEAP_DEVICE_LOCAL_BIT: VkMemoryHeapFlagBits = VkMemoryHeapFlagBits(1 << 0);

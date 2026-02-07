@@ -10,6 +10,14 @@ impl std::ops::BitOr for VkBufferUsageFlagBits {
     }
 }
 
+impl std::ops::BitAnd for VkBufferUsageFlagBits {
+    type Output = Self;
+
+    fn bitand(self, rhs: Self) -> Self {
+        Self(self.0 & rhs.0)
+    }
+}
+
 pub const VK_BUFFER_USAGE_TRANSFER_SRC_BIT: VkBufferUsageFlagBits = VkBufferUsageFlagBits(1 << 0);
 pub const VK_BUFFER_USAGE_TRANSFER_DST_BIT: VkBufferUsageFlagBits = VkBufferUsageFlagBits(1 << 1);
 pub const VK_BUFFER_USAGE_UNIFORM_TEXEL_BUFFER_BIT: VkBufferUsageFlagBits = VkBufferUsageFlagBits(1 << 2);

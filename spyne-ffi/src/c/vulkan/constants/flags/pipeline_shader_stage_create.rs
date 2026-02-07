@@ -10,3 +10,11 @@ impl std::ops::BitOr for VkPipelineShaderStageCreateFlagBits {
     }
 }
 
+impl std::ops::BitAnd for VkPipelineShaderStageCreateFlagBits {
+    type Output = Self;
+
+    fn bitand(self, rhs: Self) -> Self {
+        Self(self.0 & rhs.0)
+    }
+}
+

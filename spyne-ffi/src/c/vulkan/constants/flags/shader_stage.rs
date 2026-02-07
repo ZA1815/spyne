@@ -10,6 +10,14 @@ impl std::ops::BitOr for VkShaderStageFlagBits {
     }
 }
 
+impl std::ops::BitAnd for VkShaderStageFlagBits {
+    type Output = Self;
+
+    fn bitand(self, rhs: Self) -> Self {
+        Self(self.0 & rhs.0)
+    }
+}
+
 pub const VK_SHADER_STAGE_VERTEX_BIT: VkShaderStageFlagBits = VkShaderStageFlagBits(1 << 0);
 pub const VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT: VkShaderStageFlagBits = VkShaderStageFlagBits(1 << 1);
 pub const VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT: VkShaderStageFlagBits = VkShaderStageFlagBits(1 << 2);

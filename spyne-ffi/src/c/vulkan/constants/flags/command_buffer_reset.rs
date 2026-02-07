@@ -10,4 +10,12 @@ impl std::ops::BitOr for VkCommandBufferResetFlagBits {
     }
 }
 
+impl std::ops::BitAnd for VkCommandBufferResetFlagBits {
+    type Output = Self;
+
+    fn bitand(self, rhs: Self) -> Self {
+        Self(self.0 & rhs.0)
+    }
+}
+
 pub const VK_COMMAND_BUFFER_RESET_RELEASE_RESOURCES_BIT: VkCommandBufferResetFlagBits = VkCommandBufferResetFlagBits(1 << 0);

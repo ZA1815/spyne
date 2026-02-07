@@ -10,3 +10,11 @@ impl std::ops::BitOr for VkSwapchainCreateFlagBitsKHR {
     }
 }
 
+impl std::ops::BitAnd for VkSwapchainCreateFlagBitsKHR {
+    type Output = Self;
+
+    fn bitand(self, rhs: Self) -> Self {
+        Self(self.0 & rhs.0)
+    }
+}
+

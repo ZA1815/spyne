@@ -10,6 +10,14 @@ impl std::ops::BitOr for VkDebugReportFlagBitsEXT {
     }
 }
 
+impl std::ops::BitAnd for VkDebugReportFlagBitsEXT {
+    type Output = Self;
+
+    fn bitand(self, rhs: Self) -> Self {
+        Self(self.0 & rhs.0)
+    }
+}
+
 pub const VK_DEBUG_REPORT_INFORMATION_BIT_EXT: VkDebugReportFlagBitsEXT = VkDebugReportFlagBitsEXT(1 << 0);
 pub const VK_DEBUG_REPORT_WARNING_BIT_EXT: VkDebugReportFlagBitsEXT = VkDebugReportFlagBitsEXT(1 << 1);
 pub const VK_DEBUG_REPORT_PERFORMANCE_WARNING_BIT_EXT: VkDebugReportFlagBitsEXT = VkDebugReportFlagBitsEXT(1 << 2);

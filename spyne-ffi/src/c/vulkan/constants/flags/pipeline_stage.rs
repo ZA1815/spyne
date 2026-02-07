@@ -10,6 +10,14 @@ impl std::ops::BitOr for VkPipelineStageFlagBits {
     }
 }
 
+impl std::ops::BitAnd for VkPipelineStageFlagBits {
+    type Output = Self;
+
+    fn bitand(self, rhs: Self) -> Self {
+        Self(self.0 & rhs.0)
+    }
+}
+
 pub const VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT: VkPipelineStageFlagBits = VkPipelineStageFlagBits(1 << 0);
 pub const VK_PIPELINE_STAGE_DRAW_INDIRECT_BIT: VkPipelineStageFlagBits = VkPipelineStageFlagBits(1 << 1);
 pub const VK_PIPELINE_STAGE_VERTEX_INPUT_BIT: VkPipelineStageFlagBits = VkPipelineStageFlagBits(1 << 2);

@@ -10,3 +10,11 @@ impl std::ops::BitOr for VkPipelineColorBlendStateCreateFlagBits {
     }
 }
 
+impl std::ops::BitAnd for VkPipelineColorBlendStateCreateFlagBits {
+    type Output = Self;
+
+    fn bitand(self, rhs: Self) -> Self {
+        Self(self.0 & rhs.0)
+    }
+}
+

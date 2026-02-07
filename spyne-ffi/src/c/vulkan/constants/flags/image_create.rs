@@ -10,6 +10,14 @@ impl std::ops::BitOr for VkImageCreateFlagBits {
     }
 }
 
+impl std::ops::BitAnd for VkImageCreateFlagBits {
+    type Output = Self;
+
+    fn bitand(self, rhs: Self) -> Self {
+        Self(self.0 & rhs.0)
+    }
+}
+
 pub const VK_IMAGE_CREATE_SPARSE_BINDING_BIT: VkImageCreateFlagBits = VkImageCreateFlagBits(1 << 0);
 pub const VK_IMAGE_CREATE_SPARSE_RESIDENCY_BIT: VkImageCreateFlagBits = VkImageCreateFlagBits(1 << 1);
 pub const VK_IMAGE_CREATE_SPARSE_ALIASED_BIT: VkImageCreateFlagBits = VkImageCreateFlagBits(1 << 2);

@@ -10,3 +10,11 @@ impl std::ops::BitOr for VkFramebufferCreateFlagBits {
     }
 }
 
+impl std::ops::BitAnd for VkFramebufferCreateFlagBits {
+    type Output = Self;
+
+    fn bitand(self, rhs: Self) -> Self {
+        Self(self.0 & rhs.0)
+    }
+}
+

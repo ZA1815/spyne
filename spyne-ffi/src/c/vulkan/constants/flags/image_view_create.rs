@@ -10,3 +10,11 @@ impl std::ops::BitOr for VkImageViewCreateFlagBits {
     }
 }
 
+impl std::ops::BitAnd for VkImageViewCreateFlagBits {
+    type Output = Self;
+
+    fn bitand(self, rhs: Self) -> Self {
+        Self(self.0 & rhs.0)
+    }
+}
+
