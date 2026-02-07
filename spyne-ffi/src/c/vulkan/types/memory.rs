@@ -8,6 +8,7 @@ use crate::c::vulkan::{constants::{enums::{device_memory_report_event_type_ext::
 pub struct VkDeviceMemory(pub *mut c_void);
 
 #[repr(C)]
+#[derive(Clone, Copy)]
 pub struct VkMemoryRequirements {
     pub size: VkDeviceSize,
     pub alignment: VkDeviceSize,
@@ -15,6 +16,7 @@ pub struct VkMemoryRequirements {
 }
 
 #[repr(C)]
+#[derive(Clone, Copy)]
 pub struct VkMemoryAllocateInfo {
     pub s_type: VkStructureType,
     pub p_next: *const c_void,
@@ -23,18 +25,21 @@ pub struct VkMemoryAllocateInfo {
 }
 
 #[repr(C)]
+#[derive(Clone, Copy)]
 pub struct VkMemoryType {
     pub property_flags: VkMemoryPropertyFlagBits,
     pub heap_index: u32,
 }
 
 #[repr(C)]
+#[derive(Clone, Copy)]
 pub struct VkMemoryHeap {
     pub size: VkDeviceSize,
     pub flags: VkMemoryHeapFlagBits,
 }
 
 #[repr(C)]
+#[derive(Clone, Copy)]
 pub struct VkDeviceMemoryReportCallbackDataEXT {
     pub s_type: VkStructureType,
     pub p_next: *mut c_void,

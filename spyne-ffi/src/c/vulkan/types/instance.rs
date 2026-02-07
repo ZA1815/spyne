@@ -10,6 +10,7 @@ use crate::c::vulkan::{constants::{enums::{object_type::VkObjectType, structure_
 pub struct VkInstance(pub *mut c_void);
 
 #[repr(C)]
+#[derive(Clone, Copy)]
 pub struct VkInstanceCreateInfo {
     pub s_type: VkStructureType,
     pub p_next: *const c_void,
@@ -22,6 +23,7 @@ pub struct VkInstanceCreateInfo {
 }
 
 #[repr(C)]
+#[derive(Clone, Copy)]
 pub struct VkApplicationInfo {
     pub s_type: VkStructureType,
     pub p_next: *const c_void,
@@ -33,6 +35,7 @@ pub struct VkApplicationInfo {
 }
 
 #[repr(C)]
+#[derive(Clone, Copy)]
 pub struct VkAllocationCallbacks {
     pub p_user_data: *mut c_void,
     pub pfn_allocation: PfnVkAllocationFunction,
@@ -43,6 +46,7 @@ pub struct VkAllocationCallbacks {
 }
 
 #[repr(C)]
+#[derive(Clone, Copy)]
 pub struct VkDebugUtilsMessengerCallbackDataEXT {
     pub s_type: VkStructureType,
     pub p_next: *const c_void,
@@ -60,6 +64,7 @@ pub struct VkDebugUtilsMessengerCallbackDataEXT {
 }
 
 #[repr(C)]
+#[derive(Clone, Copy)]
 pub struct VkDebugUtilsObjectNameInfoEXT {
     pub s_type: VkStructureType,
     pub p_next: *const c_void,

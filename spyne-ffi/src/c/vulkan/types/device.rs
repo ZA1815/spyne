@@ -10,6 +10,7 @@ use crate::c::vulkan::{constants::{enums::{fault_level::VkFaultLevel, fault_type
 pub struct VkDevice(pub *mut c_void);
 
 #[repr(C)]
+#[derive(Clone, Copy)]
 pub struct VkDeviceCreateInfo {
     pub s_type: VkStructureType,
     pub p_next: *const c_void,
@@ -25,6 +26,7 @@ pub struct VkDeviceCreateInfo {
 }
 
 #[repr(C)]
+#[derive(Clone, Copy)]
 pub struct VkDeviceQueueCreateInfo {
     pub s_type: VkStructureType,
     pub p_next: *const c_void,
@@ -35,6 +37,7 @@ pub struct VkDeviceQueueCreateInfo {
 }
 
 #[repr(C)]
+#[derive(Clone, Copy)]
 pub struct VkFaultData {
     pub s_type: VkStructureType,
     pub p_next: *mut c_void,

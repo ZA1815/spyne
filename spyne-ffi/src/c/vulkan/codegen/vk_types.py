@@ -289,8 +289,7 @@ def types_parse(root: Element[str]):
                             print("    pub struct VkWaylandSurfaceCreateInfoKHR {", file=f)
                         elif attrs.get('category') == "struct":
                             print("#[repr(C)]", file=f)
-                            if struct == "VkClearDepthStencilValue":
-                                print("#[derive(Clone, Copy)]", file=f)
+                            print("#[derive(Clone, Copy)]", file=f)
                             print(f"pub struct {struct} {{", file=f)
                         elif attrs.get('category') == "union":
                             print("#[repr(C)]", file=f)

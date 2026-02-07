@@ -13,6 +13,7 @@ pub struct VkImage(pub *mut c_void);
 pub struct VkImageView(pub *mut c_void);
 
 #[repr(C)]
+#[derive(Clone, Copy)]
 pub struct VkImageCreateInfo {
     pub s_type: VkStructureType,
     pub p_next: *const c_void,
@@ -32,6 +33,7 @@ pub struct VkImageCreateInfo {
 }
 
 #[repr(C)]
+#[derive(Clone, Copy)]
 pub struct VkImageViewCreateInfo {
     pub s_type: VkStructureType,
     pub p_next: *const c_void,
@@ -44,6 +46,7 @@ pub struct VkImageViewCreateInfo {
 }
 
 #[repr(C)]
+#[derive(Clone, Copy)]
 pub struct VkComponentMapping {
     pub r: VkComponentSwizzle,
     pub g: VkComponentSwizzle,
@@ -52,6 +55,7 @@ pub struct VkComponentMapping {
 }
 
 #[repr(C)]
+#[derive(Clone, Copy)]
 pub struct VkImageSubresourceRange {
     pub aspect_mask: VkImageAspectFlagBits,
     pub base_mip_level: u32,
@@ -61,12 +65,14 @@ pub struct VkImageSubresourceRange {
 }
 
 #[repr(C)]
+#[derive(Clone, Copy)]
 pub struct VkExtent2D {
     pub width: u32,
     pub height: u32,
 }
 
 #[repr(C)]
+#[derive(Clone, Copy)]
 pub struct VkExtent3D {
     pub width: u32,
     pub height: u32,

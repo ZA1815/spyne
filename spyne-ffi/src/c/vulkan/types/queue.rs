@@ -8,6 +8,7 @@ use crate::c::vulkan::{constants::{enums::{result::VkResult, structure_type::VkS
 pub struct VkQueue(pub *mut c_void);
 
 #[repr(C)]
+#[derive(Clone, Copy)]
 pub struct VkSubmitInfo {
     pub s_type: VkStructureType,
     pub p_next: *const c_void,
@@ -21,6 +22,7 @@ pub struct VkSubmitInfo {
 }
 
 #[repr(C)]
+#[derive(Clone, Copy)]
 pub struct VkPresentInfoKHR {
     pub s_type: VkStructureType,
     pub p_next: *const c_void,

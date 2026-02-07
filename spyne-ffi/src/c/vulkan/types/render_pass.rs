@@ -13,6 +13,7 @@ pub struct VkRenderPass(pub *mut c_void);
 pub struct VkFramebuffer(pub *mut c_void);
 
 #[repr(C)]
+#[derive(Clone, Copy)]
 pub struct VkRenderPassCreateInfo {
     pub s_type: VkStructureType,
     pub p_next: *const c_void,
@@ -26,6 +27,7 @@ pub struct VkRenderPassCreateInfo {
 }
 
 #[repr(C)]
+#[derive(Clone, Copy)]
 pub struct VkFramebufferCreateInfo {
     pub s_type: VkStructureType,
     pub p_next: *const c_void,
@@ -39,6 +41,7 @@ pub struct VkFramebufferCreateInfo {
 }
 
 #[repr(C)]
+#[derive(Clone, Copy)]
 pub struct VkAttachmentDescription {
     pub flags: VkAttachmentDescriptionFlagBits,
     pub format: VkFormat,
@@ -52,12 +55,14 @@ pub struct VkAttachmentDescription {
 }
 
 #[repr(C)]
+#[derive(Clone, Copy)]
 pub struct VkAttachmentReference {
     pub attachment: u32,
     pub layout: VkImageLayout,
 }
 
 #[repr(C)]
+#[derive(Clone, Copy)]
 pub struct VkSubpassDescription {
     pub flags: VkSubpassDescriptionFlagBits,
     pub pipeline_bind_point: VkPipelineBindPoint,
@@ -72,6 +77,7 @@ pub struct VkSubpassDescription {
 }
 
 #[repr(C)]
+#[derive(Clone, Copy)]
 pub struct VkSubpassDependency {
     pub src_subpass: u32,
     pub dst_subpass: u32,

@@ -8,6 +8,7 @@ use crate::c::vulkan::{constants::{enums::{sharing_mode::VkSharingMode, structur
 pub struct VkBuffer(pub *mut c_void);
 
 #[repr(C)]
+#[derive(Clone, Copy)]
 pub struct VkBufferCreateInfo {
     pub s_type: VkStructureType,
     pub p_next: *const c_void,

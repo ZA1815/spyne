@@ -15,6 +15,7 @@ pub struct VkCommandPool(pub *mut c_void);
 pub struct VkCommandBuffer(pub *mut c_void);
 
 #[repr(C)]
+#[derive(Clone, Copy)]
 pub struct VkCommandPoolCreateInfo {
     pub s_type: VkStructureType,
     pub p_next: *const c_void,
@@ -23,6 +24,7 @@ pub struct VkCommandPoolCreateInfo {
 }
 
 #[repr(C)]
+#[derive(Clone, Copy)]
 pub struct VkCommandBufferAllocateInfo {
     pub s_type: VkStructureType,
     pub p_next: *const c_void,
@@ -32,6 +34,7 @@ pub struct VkCommandBufferAllocateInfo {
 }
 
 #[repr(C)]
+#[derive(Clone, Copy)]
 pub struct VkCommandBufferBeginInfo {
     pub s_type: VkStructureType,
     pub p_next: *const c_void,
@@ -40,6 +43,7 @@ pub struct VkCommandBufferBeginInfo {
 }
 
 #[repr(C)]
+#[derive(Clone, Copy)]
 pub struct VkCommandBufferInheritanceInfo {
     pub s_type: VkStructureType,
     pub p_next: *const c_void,
@@ -52,6 +56,7 @@ pub struct VkCommandBufferInheritanceInfo {
 }
 
 #[repr(C)]
+#[derive(Clone, Copy)]
 pub struct VkRenderPassBeginInfo {
     pub s_type: VkStructureType,
     pub p_next: *const c_void,
@@ -85,6 +90,7 @@ pub struct VkClearDepthStencilValue {
 }
 
 #[repr(C)]
+#[derive(Clone, Copy)]
 pub struct VkDebugUtilsLabelEXT {
     pub s_type: VkStructureType,
     pub p_next: *const c_void,

@@ -13,6 +13,7 @@ pub struct VkFence(pub *mut c_void);
 pub struct VkSemaphore(pub *mut c_void);
 
 #[repr(C)]
+#[derive(Clone, Copy)]
 pub struct VkFenceCreateInfo {
     pub s_type: VkStructureType,
     pub p_next: *const c_void,
@@ -20,6 +21,7 @@ pub struct VkFenceCreateInfo {
 }
 
 #[repr(C)]
+#[derive(Clone, Copy)]
 pub struct VkSemaphoreCreateInfo {
     pub s_type: VkStructureType,
     pub p_next: *const c_void,

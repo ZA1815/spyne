@@ -25,6 +25,7 @@ pub struct VkPipelineLayout(pub *mut c_void);
 pub struct VkDescriptorSetLayout(pub *mut c_void);
 
 #[repr(C)]
+#[derive(Clone, Copy)]
 pub struct VkPipelineLayoutCreateInfo {
     pub s_type: VkStructureType,
     pub p_next: *const c_void,
@@ -36,6 +37,7 @@ pub struct VkPipelineLayoutCreateInfo {
 }
 
 #[repr(C)]
+#[derive(Clone, Copy)]
 pub struct VkPipelineShaderStageCreateInfo {
     pub s_type: VkStructureType,
     pub p_next: *const c_void,
@@ -47,6 +49,7 @@ pub struct VkPipelineShaderStageCreateInfo {
 }
 
 #[repr(C)]
+#[derive(Clone, Copy)]
 pub struct VkPipelineVertexInputStateCreateInfo {
     pub s_type: VkStructureType,
     pub p_next: *const c_void,
@@ -59,6 +62,7 @@ pub struct VkPipelineVertexInputStateCreateInfo {
 }
 
 #[repr(C)]
+#[derive(Clone, Copy)]
 pub struct VkPipelineInputAssemblyStateCreateInfo {
     pub s_type: VkStructureType,
     pub p_next: *const c_void,
@@ -69,6 +73,7 @@ pub struct VkPipelineInputAssemblyStateCreateInfo {
 }
 
 #[repr(C)]
+#[derive(Clone, Copy)]
 pub struct VkPipelineViewportStateCreateInfo {
     pub s_type: VkStructureType,
     pub p_next: *const c_void,
@@ -81,6 +86,7 @@ pub struct VkPipelineViewportStateCreateInfo {
 }
 
 #[repr(C)]
+#[derive(Clone, Copy)]
 pub struct VkPipelineRasterizationStateCreateInfo {
     pub s_type: VkStructureType,
     pub p_next: *const c_void,
@@ -99,6 +105,7 @@ pub struct VkPipelineRasterizationStateCreateInfo {
 }
 
 #[repr(C)]
+#[derive(Clone, Copy)]
 pub struct VkPipelineTessellationStateCreateInfo {
     pub s_type: VkStructureType,
     pub p_next: *const c_void,
@@ -108,6 +115,7 @@ pub struct VkPipelineTessellationStateCreateInfo {
 }
 
 #[repr(C)]
+#[derive(Clone, Copy)]
 pub struct VkPipelineDepthStencilStateCreateInfo {
     pub s_type: VkStructureType,
     pub p_next: *const c_void,
@@ -124,6 +132,7 @@ pub struct VkPipelineDepthStencilStateCreateInfo {
 }
 
 #[repr(C)]
+#[derive(Clone, Copy)]
 pub struct VkPipelineMultisampleStateCreateInfo {
     pub s_type: VkStructureType,
     pub p_next: *const c_void,
@@ -138,6 +147,7 @@ pub struct VkPipelineMultisampleStateCreateInfo {
 }
 
 #[repr(C)]
+#[derive(Clone, Copy)]
 pub struct VkPipelineColorBlendStateCreateInfo {
     pub s_type: VkStructureType,
     pub p_next: *const c_void,
@@ -150,6 +160,7 @@ pub struct VkPipelineColorBlendStateCreateInfo {
 }
 
 #[repr(C)]
+#[derive(Clone, Copy)]
 pub struct VkPipelineColorBlendAttachmentState {
     pub blend_enable: VkBool32,
     pub src_color_blend_factor: VkBlendFactor,
@@ -162,6 +173,7 @@ pub struct VkPipelineColorBlendAttachmentState {
 }
 
 #[repr(C)]
+#[derive(Clone, Copy)]
 pub struct VkPipelineDynamicStateCreateInfo {
     pub s_type: VkStructureType,
     pub p_next: *const c_void,
@@ -172,6 +184,7 @@ pub struct VkPipelineDynamicStateCreateInfo {
 }
 
 #[repr(C)]
+#[derive(Clone, Copy)]
 pub struct VkGraphicsPipelineCreateInfo {
     pub s_type: VkStructureType,
     pub p_next: *const c_void,
@@ -195,6 +208,7 @@ pub struct VkGraphicsPipelineCreateInfo {
 }
 
 #[repr(C)]
+#[derive(Clone, Copy)]
 pub struct VkViewport {
     pub x: f32,
     pub y: f32,
@@ -205,18 +219,21 @@ pub struct VkViewport {
 }
 
 #[repr(C)]
+#[derive(Clone, Copy)]
 pub struct VkRect2D {
     pub offset: VkOffset2D,
     pub extent: VkExtent2D,
 }
 
 #[repr(C)]
+#[derive(Clone, Copy)]
 pub struct VkOffset2D {
     pub x: i32,
     pub y: i32,
 }
 
 #[repr(C)]
+#[derive(Clone, Copy)]
 pub struct VkVertexInputBindingDescription {
     pub binding: u32,
     pub stride: u32,
@@ -224,6 +241,7 @@ pub struct VkVertexInputBindingDescription {
 }
 
 #[repr(C)]
+#[derive(Clone, Copy)]
 pub struct VkVertexInputAttributeDescription {
     pub location: u32,
     pub binding: u32,
@@ -232,6 +250,7 @@ pub struct VkVertexInputAttributeDescription {
 }
 
 #[repr(C)]
+#[derive(Clone, Copy)]
 pub struct VkPushConstantRange {
     pub stage_flags: VkShaderStageFlagBits,
     pub offset: u32,
@@ -239,6 +258,7 @@ pub struct VkPushConstantRange {
 }
 
 #[repr(C)]
+#[derive(Clone, Copy)]
 pub struct VkSpecializationInfo {
     pub map_entry_count: u32,
     pub p_map_entries: *const VkSpecializationMapEntry,
@@ -247,6 +267,7 @@ pub struct VkSpecializationInfo {
 }
 
 #[repr(C)]
+#[derive(Clone, Copy)]
 pub struct VkSpecializationMapEntry {
     pub constant_i_d: u32,
     pub offset: u32,
@@ -254,6 +275,7 @@ pub struct VkSpecializationMapEntry {
 }
 
 #[repr(C)]
+#[derive(Clone, Copy)]
 pub struct VkStencilOpState {
     pub fail_op: VkStencilOp,
     pub pass_op: VkStencilOp,

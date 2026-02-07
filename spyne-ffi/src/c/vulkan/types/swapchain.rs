@@ -8,6 +8,7 @@ use crate::c::vulkan::{constants::{enums::{format::VkFormat, khr::{color_space::
 pub struct VkSwapchainKHR(pub *mut c_void);
 
 #[repr(C)]
+#[derive(Clone, Copy)]
 pub struct VkSwapchainCreateInfoKHR {
     pub s_type: VkStructureType,
     pub p_next: *const c_void,

@@ -8,6 +8,7 @@ use crate::c::vulkan::{constants::{enums::{format::VkFormat, khr::color_space::V
 pub struct VkSurfaceKHR(pub *mut c_void);
 
 #[repr(C)]
+#[derive(Clone, Copy)]
 pub struct VkSurfaceCapabilitiesKHR {
     pub min_image_count: u32,
     pub max_image_count: u32,
@@ -22,6 +23,7 @@ pub struct VkSurfaceCapabilitiesKHR {
 }
 
 #[repr(C)]
+#[derive(Clone, Copy)]
 pub struct VkSurfaceFormatKHR {
     pub format: VkFormat,
     pub color_space: VkColorSpaceKHR,

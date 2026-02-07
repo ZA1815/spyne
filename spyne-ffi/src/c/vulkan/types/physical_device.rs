@@ -10,6 +10,7 @@ use crate::c::vulkan::{constants::{api_constants::{VK_MAX_MEMORY_HEAPS, VK_MAX_M
 pub struct VkPhysicalDevice(pub *mut c_void);
 
 #[repr(C)]
+#[derive(Clone, Copy)]
 pub struct VkPhysicalDeviceProperties {
     pub api_version: u32,
     pub driver_version: u32,
@@ -23,6 +24,7 @@ pub struct VkPhysicalDeviceProperties {
 }
 
 #[repr(C)]
+#[derive(Clone, Copy)]
 pub struct VkPhysicalDeviceSparseProperties {
     pub residency_standard2_d_block_shape: VkBool32,
     pub residency_standard2_d_multisample_block_shape: VkBool32,
@@ -32,6 +34,7 @@ pub struct VkPhysicalDeviceSparseProperties {
 }
 
 #[repr(C)]
+#[derive(Clone, Copy)]
 pub struct VkPhysicalDeviceFeatures {
     pub robust_buffer_access: VkBool32,
     pub full_draw_index_uint32: VkBool32,
@@ -91,6 +94,7 @@ pub struct VkPhysicalDeviceFeatures {
 }
 
 #[repr(C)]
+#[derive(Clone, Copy)]
 pub struct VkPhysicalDeviceMemoryProperties {
     pub memory_type_count: u32,
     pub memory_types: [VkMemoryType; VK_MAX_MEMORY_TYPES],
@@ -99,6 +103,7 @@ pub struct VkPhysicalDeviceMemoryProperties {
 }
 
 #[repr(C)]
+#[derive(Clone, Copy)]
 pub struct VkPhysicalDeviceLimits {
     pub max_image_dimension1_d: u32,
     pub max_image_dimension2_d: u32,
@@ -209,6 +214,7 @@ pub struct VkPhysicalDeviceLimits {
 }
 
 #[repr(C)]
+#[derive(Clone, Copy)]
 pub struct VkQueueFamilyProperties {
     pub queue_flags: VkQueueFlagBits,
     pub queue_count: u32,
