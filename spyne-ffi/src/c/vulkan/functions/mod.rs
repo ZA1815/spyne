@@ -41,6 +41,45 @@ pub struct VulkanFunctions {
     pub sync_functions: SyncFunctions
 }
 
+impl VulkanFunctions {
+    pub unsafe fn load(entry_functions: EntryFunctions, instance: VkInstance, device: VkDevice) -> Self {
+        let vk_get_instance_proc_addr = entry_functions.vk_get_instance_proc_addr;
+        let instance_functions = unsafe { InstanceFunctions::load(vk_get_instance_proc_addr, instance) };
+        let physical_device_functions = unsafe { PhysicalDeviceFunctions::load(vk_get_instance_proc_addr, instance) };
+        let surface_functions = unsafe { SurfaceFunctions::load(vk_get_instance_proc_addr, instance) };
+        let vk_get_device_proc_addr = instance_functions.vk_get_device_proc_addr;
+        let buffer_functions = unsafe { BufferFunctions::load(vk_get_device_proc_addr, device) };
+        let command_buffer_functions = unsafe { CommandBufferFunctions::load(vk_get_device_proc_addr, device) };
+        let device_functions = unsafe { DeviceFunctions::load(vk_get_device_proc_addr, device) };
+        let image_functions = unsafe { ImageFunctions::load(vk_get_device_proc_addr, device) };
+        let memory_functions = unsafe { MemoryFunctions::load(vk_get_device_proc_addr, device) };
+        let pipeline_functions = unsafe { PipelineFunctions::load(vk_get_device_proc_addr, device) };
+        let queue_functions = unsafe { QueueFunctions::load(vk_get_device_proc_addr, device) };
+        let render_pass_functions = unsafe { RenderPassFunctions::load(vk_get_device_proc_addr, device) };
+        let shader_functions = unsafe { ShaderFunctions::load(vk_get_device_proc_addr, device) };
+        let swapchain_functions = unsafe { SwapchainFunctions::load(vk_get_device_proc_addr, device) };
+        let sync_functions = unsafe { SyncFunctions::load(vk_get_device_proc_addr, device) };
+        
+        Self {
+            entry_functions,
+            buffer_functions,
+            command_buffer_functions,
+            device_functions,
+            image_functions,
+            instance_functions,
+            memory_functions,
+            physical_device_functions,
+            pipeline_functions,
+            queue_functions,
+            render_pass_functions,
+            shader_functions,
+            surface_functions,
+            swapchain_functions,
+            sync_functions
+        }
+    }
+}
+
 pub struct EntryFunctions {
     pub vk_get_instance_proc_addr: VkGetInstanceProcAddr,
     pub vk_create_instance: VkCreateInstance
