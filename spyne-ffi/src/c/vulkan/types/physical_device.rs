@@ -105,9 +105,9 @@ pub struct VkPhysicalDeviceMemoryProperties {
 #[repr(C)]
 #[derive(Clone, Copy)]
 pub struct VkPhysicalDeviceLimits {
-    pub max_image_dimension1_d: u32,
-    pub max_image_dimension2_d: u32,
-    pub max_image_dimension3_d: u32,
+    pub max_image_dimension_1d: u32,
+    pub max_image_dimension_2d: u32,
+    pub max_image_dimension_3d: u32,
     pub max_image_dimension_cube: u32,
     pub max_image_array_layers: u32,
     pub max_texel_buffer_elements: u32,
