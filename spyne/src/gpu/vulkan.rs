@@ -119,6 +119,11 @@ impl Gpu for VulkanBackend {
                     (physical_device_functions.vk_get_physical_device_properties)(vk_physical_device, vk_physical_device_properties.as_mut_ptr());
                     vk_physical_device_properties.assume_init()
                 };
+                let mut vk_physical_device_memory_properties = MaybeUninit::<VkPhysicalDeviceMemoryProperties>::uninit();
+                let vk_physical_device_memory_properties = unsafe {
+                    (physical_device_functions.vk_get_physical_device_memory_properties)(vk_physical_device, vk_physical_device_memory_properties.as_mut_ptr());
+                    vk_physical_device_memory_properties.assume_init()
+                };
                 let mut num_queue_family: u32 = 0;
                 unsafe { (physical_device_functions.vk_get_physical_device_queue_family_properties)(vk_physical_device, &mut num_queue_family, null_mut()) };
                 let mut queue_family_properties: Vec<VkQueueFamilyProperties> = Vec::with_capacity(num_queue_family as usize);
@@ -128,7 +133,8 @@ impl Gpu for VulkanBackend {
                     vk_physical_device,
                     physical_device_functions,
                     vk_physical_device_properties,
-                    queue_family_properties
+                    queue_family_properties,
+                    vk_physical_device_memory_properties
                 }
             })
             .collect();
@@ -218,13 +224,9 @@ impl Gpu for VulkanBackend {
     }
     
     fn has_unified_memory(&self, physical_device: &Self::PhysicalDevice) -> bool {
-        let mut vk_physical_device_memory_properties = MaybeUninit::<VkPhysicalDeviceMemoryProperties>::uninit();
-        let vk_physical_device_memory_properties = unsafe {
-            (physical_device.physical_device_functions.vk_get_physical_device_memory_properties)(physical_device.vk_physical_device, vk_physical_device_memory_properties.as_mut_ptr());
-            vk_physical_device_memory_properties.assume_init()
-        };
         let unified_bits = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT | VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
-        vk_physical_device_memory_properties
+        physical_device
+            .vk_physical_device_memory_properties
             .memory_types
             .iter()
             .any(|mem_type| mem_type.property_flags & unified_bits == unified_bits)
@@ -264,7 +266,9 @@ pub struct VulkanPhysicalDevice {
     vk_physical_device: VkPhysicalDevice,
     physical_device_functions: PhysicalDeviceFunctions,
     vk_physical_device_properties: VkPhysicalDeviceProperties,
-    queue_family_properties: Vec<VkQueueFamilyProperties>
+    queue_family_properties: Vec<VkQueueFamilyProperties>,
+    vk_physical_device_memory_properties: VkPhysicalDeviceMemoryProperties
+    
 }
 
 pub struct VulkanDevice {
