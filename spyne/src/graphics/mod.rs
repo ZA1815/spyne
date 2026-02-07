@@ -2,9 +2,9 @@ mod vulkan;
 
 use std::ops::BitOr;
 
-trait Gpu {
+trait Graphics {
     type PhysicalDevice;
-    type Device;
+    type Device<'a>;
     type CommandQueue;
     type Buffer;
     type Texture;
@@ -14,8 +14,8 @@ trait Gpu {
     type CommandBuffer;
     type Swapchain;
     
-    fn enumerate_devices(&self) -> Result<Vec<Self::PhysicalDevice>, GpuError>;
-    fn open_device(&self, physical_device: &Self::PhysicalDevice, queues: &[QueueRequest]) -> Result<Self::Device, GpuError>;
+    fn enumerate_devices(&self) -> Result<Vec<Self::PhysicalDevice>, GraphicsError>;
+    fn open_device<'a>(&self, physical_device: &'a Self::PhysicalDevice, queues: &[QueueRequest]) -> Result<Self::Device<'a>, GraphicsError>;
 
     fn device_name(&self, physical_device: &Self::PhysicalDevice) -> String;
     fn supports_compute(&self, physical_device: &Self::PhysicalDevice) -> bool;
@@ -26,13 +26,13 @@ trait Gpu {
     fn max_texture_size_cube(&self, physical_device: &Self::PhysicalDevice) -> usize;
     fn supported_msaa_samples(&self, physical_device: &Self::PhysicalDevice) -> MsaaSampleCount;
 
-    fn create_buffer(&self, device: &Self::Device, size: usize, location: MemoryLocation) -> Self::Buffer;
-    fn read_buffer(&self, buffer: &Self::Buffer, offset: usize, length: usize) -> Vec<u8>;
-    fn write_buffer(&self, buffer: &Self::Buffer, offset: usize, data: &[u8]);
+    fn create_buffer<'a>(&self, device: &Self::Device<'a>, size: usize, usage: BufferUsage, location: MemoryLocation) -> Result<Self::Buffer, GraphicsError>;
+    fn read_buffer<'a>(&self, device: &Self::Device<'a>, buffer: &Self::Buffer, offset: usize, size: usize) -> Result<Vec<u8>, GraphicsError>;
+    fn write_buffer<'a>(&self, device: &Self::Device<'a>, buffer: &Self::Buffer, offset: usize, data: &[u8]) -> Result<(), GraphicsError>;
 
-    fn create_texture(
+    fn create_texture<'a>(
         &self,
-        device: &Self::Device,
+        device: &Self::Device<'a>,
         dimension: TextureDimension,
         format: TextureFormat,
         width: u32,
@@ -67,21 +67,21 @@ trait Gpu {
         data: &[u8],
     );
     
-    fn create_shader(&self, device: &Self::Device, bytecode: &[u8], stage: ShaderStage) -> Self::Shader;
+    fn create_shader<'a>(&self, device: &Self::Device<'a>, bytecode: &[u8], stage: ShaderStage) -> Self::Shader;
     // Stub for now, complete when I create a GLSL to SPIR-V Compiler
-    fn compile_shader(&self, device: &Self::Device, source: &str, stage: ShaderStage) -> Result<Self::Shader, ShaderCompileError>;
+    fn compile_shader<'a>(&self, device: &Self::Device<'a>, source: &str, stage: ShaderStage) -> Result<Self::Shader, ShaderCompileError>;
 
-    fn create_graphics_pipeline(&self, device: &Self::Device, desc: &GraphicsPipelineDesc<Self>) -> Self::GraphicsPipeline;
-    fn create_compute_pipeline(&self, device: &Self::Device, shader: &Self::Shader) -> Self::ComputePipeline;
+    fn create_graphics_pipeline<'a>(&self, device: &Self::Device<'a>, desc: &GraphicsPipelineDesc<Self>) -> Self::GraphicsPipeline;
+    fn create_compute_pipeline<'a>(&self, device: &Self::Device<'a>, shader: &Self::Shader) -> Self::ComputePipeline;
 
     fn create_command_buffer(&self, queue: &Self::CommandQueue) -> Self::CommandBuffer;
     fn begin_command_buffer(&self, cmd: &mut Self::CommandBuffer);
     fn end_command_buffer(&self, cmd: &mut Self::CommandBuffer);
 
-    fn begin_render_pass(&self, cmd: &mut Self::CommandBuffer, desc: &RenderPassDesc<Self>) -> Result<(), GpuError>;
+    fn begin_render_pass(&self, cmd: &mut Self::CommandBuffer, desc: &RenderPassDesc<Self>) -> Result<(), GraphicsError>;
     fn end_render_pass(&self, cmd: &mut Self::CommandBuffer);
 
-    fn begin_compute_pass(&self, cmd: &mut Self::CommandBuffer) -> Result<(), GpuError>;
+    fn begin_compute_pass(&self, cmd: &mut Self::CommandBuffer) -> Result<(), GraphicsError>;
     fn end_compute_pass(&self, cmd: &mut Self::CommandBuffer);
 
     fn cmd_bind_graphics_pipeline(&self, cmd: &mut Self::CommandBuffer, pipeline: &Self::GraphicsPipeline);
@@ -100,13 +100,13 @@ trait Gpu {
 
     fn submit(&self, queue: &Self::CommandQueue, cmd: &Self::CommandBuffer);
     
-    fn create_swapchain(&self, device: &Self::Device, surface: SurfaceHandle, width: u32, height: u32, config: &SwapchainConfig) -> Self::Swapchain;
+    fn create_swapchain<'a>(&self, device: &Self::Device<'a>, surface: SurfaceHandle, width: u32, height: u32, config: &SwapchainConfig) -> Self::Swapchain;
     fn resize_swapchain(&self, swapchain: &mut Self::Swapchain, width: u32, height: u32);
     fn acquire_next_image(&self, swapchain: &Self::Swapchain) -> Self::Texture;
     fn present(&self, queue: &Self::CommandQueue, swapchain: &Self::Swapchain);
 }
 
-pub enum GpuError {
+pub enum GraphicsError {
     InitializationFailed(String),
     OutOfMemory(String),
     DeviceLost(String),
@@ -151,6 +151,26 @@ impl MsaaSampleCount {
     pub const SIXTEEN: Self = Self(1 << 4);
     pub const THIRTY_TWO: Self = Self(1 << 5);
     pub const SIXTY_FOUR: Self = Self(1 << 6);
+}
+
+pub struct BufferUsage(u32);
+impl BitOr for BufferUsage {
+    type Output = Self;
+    
+    fn bitor(self, rhs: Self) -> Self::Output {
+        Self(self.0 | rhs.0)
+    }
+}
+impl BufferUsage {
+    pub const TRANSFER_SRC: Self = Self(1 << 0);
+    pub const TRANSFER_DST: Self = Self(1 << 1);
+    pub const UNIFORM_TEXEL: Self = Self(1 << 2);
+    pub const STORAGE_TEXEL: Self = Self(1 << 3);
+    pub const UNIFORM: Self = Self(1 << 4);
+    pub const STORAGE: Self = Self(1 << 5);
+    pub const INDEX: Self = Self(1 << 6);
+    pub const VERTEX: Self = Self(1 << 7);
+    pub const INDIRECT: Self = Self(1 << 8);
 }
 
 pub enum MemoryLocation {
