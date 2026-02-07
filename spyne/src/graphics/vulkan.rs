@@ -1,8 +1,8 @@
 use std::{ffi::{CStr, CString, c_void}, mem::MaybeUninit, ptr::{copy_nonoverlapping, null, null_mut}};
 
-use spyne_ffi::c::vulkan::{constants::{enums::{result::{VK_ERROR_DEVICE_LOST, VK_ERROR_EXTENSION_NOT_PRESENT, VK_ERROR_FEATURE_NOT_PRESENT, VK_ERROR_FORMAT_NOT_SUPPORTED, VK_ERROR_FRAGMENTED_POOL, VK_ERROR_INCOMPATIBLE_DRIVER, VK_ERROR_INITIALIZATION_FAILED, VK_ERROR_LAYER_NOT_PRESENT, VK_ERROR_MEMORY_MAP_FAILED, VK_ERROR_OUT_OF_DEVICE_MEMORY, VK_ERROR_OUT_OF_HOST_MEMORY, VK_ERROR_TOO_MANY_OBJECTS, VK_ERROR_UNKNOWN, VK_EVENT_RESET, VK_EVENT_SET, VK_INCOMPLETE, VK_NOT_READY, VK_SUCCESS, VK_TIMEOUT, VkResult}, sharing_mode::VK_SHARING_MODE_EXCLUSIVE, structure_type::{VK_STRUCTURE_TYPE_APPLICATION_INFO, VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO, VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO, VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO, VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO, VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO}}, flags::{buffer_create::VkBufferCreateFlagBits, buffer_usage::VkBufferUsageFlagBits, device_queue_create::VkDeviceQueueCreateFlagBits, instance_create::VkInstanceCreateFlagBits, memory_map::VkMemoryMapFlagBits, memory_property::{VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT}, queue::{VK_QUEUE_COMPUTE_BIT, VkQueueFlagBits}, sample_count::{VK_SAMPLE_COUNT_1_BIT, VK_SAMPLE_COUNT_2_BIT, VK_SAMPLE_COUNT_4_BIT, VK_SAMPLE_COUNT_8_BIT, VK_SAMPLE_COUNT_16_BIT, VK_SAMPLE_COUNT_32_BIT, VK_SAMPLE_COUNT_64_BIT}}, versions::VK_API_VERSION_1_4}, functions::{DeviceFunctions, EntryFunctions, InstanceFunctions, PhysicalDeviceFunctions, VulkanFunctions}, types::{buffer::{VkBuffer, VkBufferCreateInfo}, device::{VkDevice, VkDeviceCreateInfo, VkDeviceQueueCreateInfo}, instance::{VkApplicationInfo, VkInstance, VkInstanceCreateInfo}, memory::{VkDeviceMemory, VkMemoryAllocateInfo, VkMemoryRequirements}, physical_device::{VkPhysicalDevice, VkPhysicalDeviceMemoryProperties, VkPhysicalDeviceProperties, VkQueueFamilyProperties}, queue::VkQueue}};
+use spyne_ffi::c::vulkan::{constants::{enums::{format::{VK_FORMAT_B8G8R8A8_UNORM, VK_FORMAT_D24_UNORM_S8_UINT, VK_FORMAT_D32_SFLOAT, VK_FORMAT_R8_UNORM, VK_FORMAT_R8G8B8A8_UNORM, VK_FORMAT_R16G16B16A16_SFLOAT, VK_FORMAT_R32G32B32A32_SFLOAT}, image_layout::VK_IMAGE_LAYOUT_UNDEFINED, image_tiling::VK_IMAGE_TILING_OPTIMAL, image_type::{VK_IMAGE_TYPE_1D, VK_IMAGE_TYPE_2D, VK_IMAGE_TYPE_3D}, result::{VK_ERROR_DEVICE_LOST, VK_ERROR_EXTENSION_NOT_PRESENT, VK_ERROR_FEATURE_NOT_PRESENT, VK_ERROR_FORMAT_NOT_SUPPORTED, VK_ERROR_FRAGMENTED_POOL, VK_ERROR_INCOMPATIBLE_DRIVER, VK_ERROR_INITIALIZATION_FAILED, VK_ERROR_LAYER_NOT_PRESENT, VK_ERROR_MEMORY_MAP_FAILED, VK_ERROR_OUT_OF_DEVICE_MEMORY, VK_ERROR_OUT_OF_HOST_MEMORY, VK_ERROR_TOO_MANY_OBJECTS, VK_ERROR_UNKNOWN, VK_EVENT_RESET, VK_EVENT_SET, VK_INCOMPLETE, VK_NOT_READY, VK_SUCCESS, VK_TIMEOUT, VkResult}, sharing_mode::VK_SHARING_MODE_EXCLUSIVE, structure_type::{VK_STRUCTURE_TYPE_APPLICATION_INFO, VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO, VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO, VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO, VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO, VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO, VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO}}, flags::{buffer_create::VkBufferCreateFlagBits, buffer_usage::VkBufferUsageFlagBits, device_queue_create::VkDeviceQueueCreateFlagBits, image_create::{VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT, VkImageCreateFlagBits}, image_usage::{VK_IMAGE_USAGE_SAMPLED_BIT, VkImageUsageFlagBits}, instance_create::VkInstanceCreateFlagBits, memory_map::VkMemoryMapFlagBits, memory_property::{VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT}, queue::{VK_QUEUE_COMPUTE_BIT, VkQueueFlagBits}, sample_count::{VK_SAMPLE_COUNT_1_BIT, VK_SAMPLE_COUNT_2_BIT, VK_SAMPLE_COUNT_4_BIT, VK_SAMPLE_COUNT_8_BIT, VK_SAMPLE_COUNT_16_BIT, VK_SAMPLE_COUNT_32_BIT, VK_SAMPLE_COUNT_64_BIT, VkSampleCountFlagBits}}, versions::VK_API_VERSION_1_4}, functions::{DeviceFunctions, EntryFunctions, InstanceFunctions, PhysicalDeviceFunctions, VulkanFunctions}, types::{buffer::{VkBuffer, VkBufferCreateInfo}, device::{VkDevice, VkDeviceCreateInfo, VkDeviceQueueCreateInfo}, image::{VkExtent3D, VkImage, VkImageCreateInfo}, instance::{VkApplicationInfo, VkInstance, VkInstanceCreateInfo}, memory::{VkDeviceMemory, VkMemoryAllocateInfo, VkMemoryRequirements}, physical_device::{VkPhysicalDevice, VkPhysicalDeviceMemoryProperties, VkPhysicalDeviceProperties, VkQueueFamilyProperties}, queue::VkQueue}};
 
-use crate::graphics::{BufferUsage, Graphics, GraphicsError, MemoryLocation, MsaaSampleCount, QueueCapabilities, QueueRequest};
+use crate::graphics::{BufferUsage, Graphics, GraphicsError, MemoryLocation, MsaaSampleCount, QueueCapabilities, QueueRequest, TextureDimension, TextureFormat, TextureUsage}, TextureFormat
 
 pub struct VulkanBackend {
     entry_functions: EntryFunctions,
@@ -96,6 +96,7 @@ impl Graphics for VulkanBackend {
     type Device<'a> = VulkanDevice<'a>;
     type CommandQueue = VulkanQueue;
     type Buffer = VulkanBuffer;
+    type Texture = VulkanImage;
     
     fn enumerate_devices(&self) -> Result<Vec<Self::PhysicalDevice>, GraphicsError> {
         let mut num_devices: u32 = 0;
@@ -301,6 +302,7 @@ impl Graphics for VulkanBackend {
                     let private_bits = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
                     match location {
                         MemoryLocation::Shared => mem_type.property_flags.0 & shared_bits.0 == shared_bits.0,
+                        // Handle staging buffer in this case
                         MemoryLocation::Private => mem_type.property_flags.0 & private_bits.0 == private_bits.0
                     }
                 }
@@ -374,6 +376,111 @@ impl Graphics for VulkanBackend {
             MemoryLocation::Private => Err(GraphicsError::FeatureNotSupported("VulkanBackend: Private buffers are not allowed to be wrote to.".to_string()))
         }
     }
+    
+    fn create_texture<'a>(
+            &self,
+            device: &Self::Device<'a>,
+            dimension: TextureDimension,
+            format: TextureFormat,
+            width: u32,
+            height: u32,
+            depth: u32,
+            layers: u32,
+            mip_levels: u32,
+            samples: MsaaSampleCount,
+            usage: TextureUsage
+        ) -> Result<Self::Texture, GpuError> {
+            let flags = match dimension {
+                TextureDimension::Cube => VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT,
+                _ => VkImageCreateFlagBits(0)
+            };
+            let image_type = match dimension {
+                TextureDimension::D1 => VK_IMAGE_TYPE_1D,
+                TextureDimension::D2 => VK_IMAGE_TYPE_2D,
+                TextureDimension::D3 => VK_IMAGE_TYPE_3D,
+                TextureDimension::Cube => VK_IMAGE_TYPE_2D
+            };
+            let image_format = match format {
+                TextureFormat::RGBA8 => VK_FORMAT_R8G8B8A8_UNORM,
+                TextureFormat::BGRA8 => VK_FORMAT_B8G8R8A8_UNORM,
+                TextureFormat::R8 => VK_FORMAT_R8_UNORM,
+                TextureFormat::RGBA16F => VK_FORMAT_R16G16B16A16_SFLOAT,
+                TextureFormat::RGBA32F => VK_FORMAT_R32G32B32A32_SFLOAT,
+                TextureFormat::Depth24 => VK_FORMAT_D24_UNORM_S8_UINT,
+                TextureFormat::Depth32F => VK_FORMAT_D32_SFLOAT
+            };
+            let extent = VkExtent3D { width, height, depth };
+            let array_layers = match dimension {
+                TextureDimension::Cube => layers * 6,
+                _ => layers
+            };
+            let samples = VkSampleCountFlagBits(samples.0);
+            let image_create_info = VkImageCreateInfo {
+                s_type: VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
+                p_next: null(),
+                flags,
+                image_type,
+                format: image_format,
+                extent,
+                mip_levels,
+                array_layers,
+                samples,
+                tiling: VK_IMAGE_TILING_OPTIMAL,
+                usage: VkImageUsageFlagBits(usage.0),
+                sharing_mode: VK_SHARING_MODE_EXCLUSIVE,
+                queue_family_index_count: 0,
+                p_queue_family_indices: null(),
+                initial_layout: VK_IMAGE_LAYOUT_UNDEFINED
+            };
+            let mut vk_image = VkImage(null_mut());
+            let res = unsafe { (device.functions.image_functions.vk_create_image)(device.vk_device, &image_create_info, null(), &mut vk_image) };
+            if res != VK_SUCCESS {
+                return Err(map_vk_error(res));
+            }
+            
+            let mut vk_memory_requirements = MaybeUninit::<VkMemoryRequirements>::uninit();
+            let vk_memory_requirements = unsafe {
+                (device.functions.image_functions.vk_get_image_memory_requirements)(device.vk_device, vk_image, vk_memory_requirements.as_mut_ptr());
+                vk_memory_requirements.assume_init()
+            };
+            let mem_type = device
+                .physical_device
+                .vk_physical_device_memory_properties
+                .memory_types
+                .iter()
+                .enumerate()
+                .find(|(idx, mem_type)| {
+                    (1 << idx) & vk_memory_requirements.memory_type_bits != 0
+                    &&
+                    mem_type.property_flags.0 & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT.0 == VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT.0
+                });
+            let memory_allocate_info: VkMemoryAllocateInfo = match mem_type {
+                Some(mt) => {
+                    VkMemoryAllocateInfo {
+                        s_type: VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
+                        p_next: null(),
+                        allocation_size: vk_memory_requirements.size,
+                        memory_type_index: mt.0 as u32
+                    }
+                }
+                None => return Err(GraphicsError::QueueCapabilityMismatch(format!("VulkanBackend: Couldn't find a queue that supports {:#?}", q.capabilities)))
+            };
+            let mut vk_device_memory = VkDeviceMemory(null_mut());
+            let res = unsafe { (device.functions.memory_functions.vk_allocate_memory)(device.vk_device, &memory_allocate_info, null(), &mut vk_device_memory) };
+            if res != VK_SUCCESS {
+                return Err(map_vk_error(res))
+            }
+            let res = unsafe { (device.functions.image_functions.vk_bind_image_memory)(device.vk_device, vk_image, vk_device_memory, 0) };
+            if res != VK_SUCCESS {
+                return Err(map_vk_error(res))
+            }
+            
+            Ok(VulkanImage {
+                vk_image,
+                vk_device_memory,
+                allocated_size: vk_memory_requirements.size as usize
+            })
+    }
 }
 
 pub struct VulkanPhysicalDevice {
@@ -405,6 +512,12 @@ pub struct VulkanBuffer {
     vk_device_memory: VkDeviceMemory,
     allocated_size: usize,
     location: MemoryLocation
+}
+
+pub struct VulkanImage {
+    vk_image: VkImage,
+    vk_device_memory: VkDeviceMemory,
+    allocated_size: usize
 }
 
 fn map_vk_error(res: VkResult) -> GraphicsError {

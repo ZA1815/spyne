@@ -40,8 +40,9 @@ trait Graphics {
         depth: u32,
         layers: u32,
         mip_levels: u32,
-        usage: TextureUsage,
-    ) -> Self::Texture;
+        samples: MsaaSampleCount,
+        usage: TextureUsage
+    ) -> Result<Self::Texture, GraphicsError>;
     
     // Stub for now
     fn read_texture(
@@ -52,7 +53,7 @@ trait Graphics {
         x: u32,
         y: u32,
         width: u32,
-        height: u32,
+        height: u32
     ) -> Vec<u8>;
     
     fn write_texture(
@@ -64,7 +65,7 @@ trait Graphics {
         y: u32,
         width: u32,
         height: u32,
-        data: &[u8],
+        data: &[u8]
     );
     
     fn create_shader<'a>(&self, device: &Self::Device<'a>, bytecode: &[u8], stage: ShaderStage) -> Self::Shader;
@@ -204,9 +205,14 @@ impl BitOr for TextureUsage {
     }
 }
 impl TextureUsage {
-    pub const SAMPLE: Self = Self(1 << 0);
-    pub const RENDER_TARGET: Self = Self(1 << 1);
-    pub const STORAGE: Self = Self(1 << 2);
+    pub const TRANSFER_SRC: Self = Self(1 << 0);
+    pub const TRANSFER_DST: Self = Self(1 << 1);
+    pub const SAMPLED: Self = Self(1 << 2);
+    pub const STORAGE: Self = Self(1 << 3);
+    pub const COLOR_ATTACHMENT: Self = Self(1 << 4);
+    pub const DEPTH_STENCIL_ATTACHMENT: Self = Self(1 << 5);
+    pub const TRANSIENT_ATTACHMENT: Self = Self(1 << 6);
+    pub const INPUT_ATTACHMENT: Self = Self(1 << 7);
 }
 
 pub enum ShaderStage {
