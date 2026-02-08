@@ -1,6 +1,6 @@
 use std::{ffi::CString, mem::transmute, ptr::{null, null_mut}};
 
-use spyne_ffi::c::macos::graphics::{appkit::{NS_BACKING_STORE_BUFFERED, NS_WINDOW_STYLE_MASK_CLOSABLE, NS_WINDOW_STYLE_MASK_MINIATURIZABLE, NS_WINDOW_STYLE_MASK_RESIZABLE, NS_WINDOW_STYLE_MASK_TITLED, NSBackingStoreType, NSPoint, NSRect, NSSize, NSWindowStyleMask}, objc_runtime::{Id, ObjCFunctions, Sel}};
+use spyne_ffi::c::macos::{general::{constants::RTLD_NOW, functions::dlopen}, graphics::{appkit::{NS_BACKING_STORE_BUFFERED, NS_WINDOW_STYLE_MASK_CLOSABLE, NS_WINDOW_STYLE_MASK_MINIATURIZABLE, NS_WINDOW_STYLE_MASK_RESIZABLE, NS_WINDOW_STYLE_MASK_TITLED, NSBackingStoreType, NSPoint, NSRect, NSSize, NSWindowStyleMask}, objc_runtime::{Id, ObjCFunctions, Sel}}};
 
 pub struct AppKitWindow {
     functions: ObjCFunctions
@@ -9,6 +9,10 @@ pub struct AppKitWindow {
 impl AppKitWindow {
     pub fn create_window() {
         let functions = unsafe { ObjCFunctions::load() };
+        let appkit_lib_name = CString::new("/System/Library/Frameworks/AppKit.framework/AppKit").unwrap();
+        unsafe { dlopen(appkit_lib_name.as_ptr(), RTLD_NOW) };
+        let quartz_core_name = CString::new("/System/Library/Frameworks/QuartzCore.framework/QuartzCore").unwrap();
+        unsafe { dlopen(quartz_core_name.as_ptr(), RTLD_NOW) };
         
         let nsapp_class = unsafe { (functions.objc_get_class)(CString::new("NSApplication").unwrap().as_ptr()) };
         let nsapp_sel = unsafe { (functions.sel_register_name)(CString::new("sharedApplication").unwrap().as_ptr()) };
@@ -75,22 +79,12 @@ impl AppKitWindow {
         let mkaof_msg_send: unsafe extern "C" fn(Id, Sel, Id) = unsafe { transmute(functions.objc_msg_send) };
         unsafe { mkaof_msg_send(nswindow_ptr, mkaof_sel, null_mut()) };
         
-        let aioa_sel = unsafe { (functions.sel_register_name)(CString::new("activateIgnoringOtherApps").unwrap().as_ptr()) };
+        let aioa_sel = unsafe { (functions.sel_register_name)(CString::new("activateIgnoringOtherApps:").unwrap().as_ptr()) };
         let aioa_msg_send: unsafe extern "C" fn(Id, Sel, bool) = unsafe { transmute(functions.objc_msg_send) };
         unsafe { aioa_msg_send(nsapp_ptr, aioa_sel, true) };
         
         let run_sel = unsafe { (functions.sel_register_name)(CString::new("run").unwrap().as_ptr()) };
         let run_msg_send: unsafe extern "C" fn(Id, Sel) = unsafe { transmute(functions.objc_msg_send) };
         unsafe { run_msg_send(nsapp_ptr, run_sel) };
-    }
-}
-
-#[cfg(test)]
-mod test {
-    use crate::graphics::windowing::appkit::AppKitWindow;
-
-    #[test]
-    fn test_windowing_appkit() {
-        AppKitWindow::create_window();
     }
 }

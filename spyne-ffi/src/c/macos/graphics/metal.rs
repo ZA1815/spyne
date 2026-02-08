@@ -22,7 +22,7 @@ impl MetalFunctions {
 mod test {
     use std::{ffi::CString, mem::transmute};
 
-    use crate::c::macos::metal::{MetalFunctions, objc_runtime::{Id, ObjCFunctions, Sel}};
+    use crate::c::macos::graphics::{metal::MetalFunctions, objc_runtime::{Id, ObjCFunctions, Sel}};
 
     #[test]
     fn test_metal_funcs() {

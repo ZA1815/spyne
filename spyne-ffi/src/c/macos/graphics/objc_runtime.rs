@@ -1,6 +1,6 @@
 use std::{ffi::{CString, c_char, c_void}, mem::transmute};
 
-use crate::c::{linux::general::constants::RTLD_NOW, macos::general::functions::{dlopen, dlsym}};
+use crate::c::macos::general::{constants::RTLD_NOW, functions::{dlopen, dlsym}};
 
 pub type Id = *mut c_void;
 
@@ -40,7 +40,7 @@ impl ObjCFunctions {
 mod test {
     use std::ffi::CString;
 
-    use crate::c::macos::metal::objc_runtime::ObjCFunctions;
+    use crate::c::macos::graphics::objc_runtime::ObjCFunctions;
 
     #[test]
     fn test_objc_funcs() {
