@@ -1,6 +1,9 @@
 // #[cfg(feature = "ffi")]
 pub mod ffi;
 
+// #[cfg(feature = "graphics")]
+pub mod graphics;
+
 // #[cfg(feature = "io")]
 pub mod io;
 
