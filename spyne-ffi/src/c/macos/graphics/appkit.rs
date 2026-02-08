@@ -28,7 +28,7 @@ impl NSWindowStyleMask {
     pub const NS_WINDOW_STYLE_MASK_DOC_MODAL_WINDOW: Self = Self(1 << 6);
     pub const NS_WINDOW_STYLE_MASK_NONACTIVATING_PANEL: Self = Self(1 << 7);
     pub const NS_WINDOW_STYLE_MASK_TEXTURED_BACKGROUND: Self = Self(1 << 8);
-    pub const NS_WINDODW_STYLE_MASK_UNIFIED_TITLE_AND_TOOLBAR: Self = Self(1 << 12);
+    pub const NS_WINDOW_STYLE_MASK_UNIFIED_TITLE_AND_TOOLBAR: Self = Self(1 << 12);
     pub const NS_WINDOW_STYLE_MASK_HUD_WINDOW: Self = Self(1 << 13);
     pub const NS_WINDOW_STYLE_MASK_FULL_SCREEN: Self = Self(1 << 14);
     pub const NS_WINDOW_STYLE_MASK_FULL_SIZE_CONTENT_VIEW: Self = Self(1 << 15);
