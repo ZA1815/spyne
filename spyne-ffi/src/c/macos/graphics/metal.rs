@@ -1,8 +1,6 @@
-pub mod objc_runtime;
-
 use std::{ffi::CString, mem::transmute};
 
-use crate::c::macos::{general::{constants::RTLD_NOW, functions::{dlopen, dlsym}}, metal::objc_runtime::Id};
+use crate::c::macos::{general::{constants::RTLD_NOW, functions::{dlopen, dlsym}}, graphics::objc_runtime::Id};
 
 pub type MTLCreateSystemDefaultDevice = unsafe extern "C" fn() -> Id;
 
