@@ -10,6 +10,7 @@ pub type NSSize = CGSize;
 
 pub type NSUInteger = usize;
 
+#[repr(transparent)]
 pub struct NSWindowStyleMask(NSUInteger);
 impl BitOr for NSWindowStyleMask {
     type Output = Self;
@@ -32,6 +33,7 @@ pub const NS_WINDOW_STYLE_MASK_HUD_WINDOW: NSWindowStyleMask = NSWindowStyleMask
 pub const NS_WINDOW_STYLE_MASK_FULL_SCREEN: NSWindowStyleMask = NSWindowStyleMask(1 << 14);
 pub const NS_WINDOW_STYLE_MASK_FULL_SIZE_CONTENT_VIEW: NSWindowStyleMask = NSWindowStyleMask(1 << 15);
 
+#[repr(transparent)]
 pub struct NSBackingStoreType(usize);
 impl BitOr for NSBackingStoreType {
     type Output = Self;
