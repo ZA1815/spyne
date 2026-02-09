@@ -18,76 +18,99 @@ impl MetalFunctions {
     }
 }
 
+#[repr(C)]
+pub struct MTLClearColor {
+    alpha: f64,
+    blue: f64,
+    green: f64,
+    red: f64
+}
+
 #[repr(transparent)]
 pub struct MTLPixelFormat(NSUInteger);
 // 8-bit
-pub const INVALID: MTLPixelFormat = MTLPixelFormat(0);
-pub const A8_UNORM: MTLPixelFormat = MTLPixelFormat(1);
-pub const R8_UNORM: MTLPixelFormat = MTLPixelFormat(10);
-pub const R8_UNORM_SRGB: MTLPixelFormat = MTLPixelFormat(11);
-pub const R8_SNORM: MTLPixelFormat = MTLPixelFormat(12);
-pub const R8_UINT: MTLPixelFormat = MTLPixelFormat(13);
-pub const R8_SINT: MTLPixelFormat = MTLPixelFormat(14);
+pub const MTL_PIXEL_FORMAT_INVALID: MTLPixelFormat = MTLPixelFormat(0);
+pub const MTL_PIXEL_FORMAT_A8_UNORM: MTLPixelFormat = MTLPixelFormat(1);
+pub const MTL_PIXEL_FORMAT_R8_UNORM: MTLPixelFormat = MTLPixelFormat(10);
+pub const MTL_PIXEL_FORMAT_R8_UNORM_SRGB: MTLPixelFormat = MTLPixelFormat(11);
+pub const MTL_PIXEL_FORMAT_R8_SNORM: MTLPixelFormat = MTLPixelFormat(12);
+pub const MTL_PIXEL_FORMAT_R8_UINT: MTLPixelFormat = MTLPixelFormat(13);
+pub const MTL_PIXEL_FORMAT_R8_SINT: MTLPixelFormat = MTLPixelFormat(14);
 // 16-bit
-pub const R16_UNORM: MTLPixelFormat = MTLPixelFormat(20);
-pub const R16_SNORM: MTLPixelFormat = MTLPixelFormat(22);
-pub const R16_UINT: MTLPixelFormat = MTLPixelFormat(23);
-pub const R16_SINT: MTLPixelFormat = MTLPixelFormat(24);
-pub const R16_FLOAT: MTLPixelFormat = MTLPixelFormat(25);
-pub const RG8_UNORM: MTLPixelFormat = MTLPixelFormat(30);
-pub const RG8_UNORM_SRGB: MTLPixelFormat = MTLPixelFormat(31);
-pub const RG8_SNORM: MTLPixelFormat = MTLPixelFormat(32);
-pub const RG8_UINT: MTLPixelFormat = MTLPixelFormat(33);
-pub const RG8_SINT: MTLPixelFormat = MTLPixelFormat(34);
+pub const MTL_PIXEL_FORMAT_R16_UNORM: MTLPixelFormat = MTLPixelFormat(20);
+pub const MTL_PIXEL_FORMAT_R16_SNORM: MTLPixelFormat = MTLPixelFormat(22);
+pub const MTL_PIXEL_FORMAT_R16_UINT: MTLPixelFormat = MTLPixelFormat(23);
+pub const MTL_PIXEL_FORMAT_R16_SINT: MTLPixelFormat = MTLPixelFormat(24);
+pub const MTL_PIXEL_FORMAT_R16_FLOAT: MTLPixelFormat = MTLPixelFormat(25);
+pub const MTL_PIXEL_FORMAT_RG8_UNORM: MTLPixelFormat = MTLPixelFormat(30);
+pub const MTL_PIXEL_FORMAT_RG8_UNORM_SRGB: MTLPixelFormat = MTLPixelFormat(31);
+pub const MTL_PIXEL_FORMAT_RG8_SNORM: MTLPixelFormat = MTLPixelFormat(32);
+pub const MTL_PIXEL_FORMAT_RG8_UINT: MTLPixelFormat = MTLPixelFormat(33);
+pub const MTL_PIXEL_FORMAT_RG8_SINT: MTLPixelFormat = MTLPixelFormat(34);
 // 32-bit
-pub const B5G6R5_UNORM: MTLPixelFormat = MTLPixelFormat(40);
-pub const A1BGR5_UNORM: MTLPixelFormat = MTLPixelFormat(41);
-pub const ABGR4_UNORM: MTLPixelFormat = MTLPixelFormat(42);
-pub const BGR5A1_UNORM: MTLPixelFormat = MTLPixelFormat(43);
-pub const R32_UINT: MTLPixelFormat = MTLPixelFormat(53);
-pub const R32_SINT: MTLPixelFormat = MTLPixelFormat(54);
-pub const R32_FLOAT: MTLPixelFormat = MTLPixelFormat(55);
-pub const RG16_UNORM: MTLPixelFormat = MTLPixelFormat(60);
-pub const RG16_SNORM: MTLPixelFormat = MTLPixelFormat(62);
-pub const RG16_UINT: MTLPixelFormat = MTLPixelFormat(63);
-pub const RG16_SINT: MTLPixelFormat = MTLPixelFormat(64);
-pub const RG16_FLOAT: MTLPixelFormat = MTLPixelFormat(65);
-// 32-bit RGBA
-pub const RGBA8_UNORM: MTLPixelFormat = MTLPixelFormat(70);
-pub const RGBA8_UNORM_SRGB: MTLPixelFormat = MTLPixelFormat(71);
-pub const RGBA8_SNORM: MTLPixelFormat = MTLPixelFormat(72);
-pub const RGBA8_UINT: MTLPixelFormat = MTLPixelFormat(73);
-pub const RGBA8_SINT: MTLPixelFormat = MTLPixelFormat(74);
-// 32-bit BGRA
-pub const BGRA8_UNORM: MTLPixelFormat = MTLPixelFormat(80);
-pub const BGRA8_UNORM_SRGB: MTLPixelFormat = MTLPixelFormat(81);
+pub const MTL_PIXEL_FORMAT_B5G6R5_UNORM: MTLPixelFormat = MTLPixelFormat(40);
+pub const MTL_PIXEL_FORMAT_A1BGR5_UNORM: MTLPixelFormat = MTLPixelFormat(41);
+pub const MTL_PIXEL_FORMAT_ABGR4_UNORM: MTLPixelFormat = MTLPixelFormat(42);
+pub const MTL_PIXEL_FORMAT_BGR5A1_UNORM: MTLPixelFormat = MTLPixelFormat(43);
+pub const MTL_PIXEL_FORMAT_R32_UINT: MTLPixelFormat = MTLPixelFormat(53);
+pub const MTL_PIXEL_FORMAT_R32_SINT: MTLPixelFormat = MTLPixelFormat(54);
+pub const MTL_PIXEL_FORMAT_R32_FLOAT: MTLPixelFormat = MTLPixelFormat(55);
+pub const MTL_PIXEL_FORMAT_RG16_UNORM: MTLPixelFormat = MTLPixelFormat(60);
+pub const MTL_PIXEL_FORMAT_RG16_SNORM: MTLPixelFormat = MTLPixelFormat(62);
+pub const MTL_PIXEL_FORMAT_RG16_UINT: MTLPixelFormat = MTLPixelFormat(63);
+pub const MTL_PIXEL_FORMAT_RG16_SINT: MTLPixelFormat = MTLPixelFormat(64);
+pub const MTL_PIXEL_FORMAT_RG16_FLOAT: MTLPixelFormat = MTLPixelFormat(65);
+// 32-bit
+pub const MTL_PIXEL_FORMAT_RGBA8_UNORM: MTLPixelFormat = MTLPixelFormat(70);
+pub const MTL_PIXEL_FORMAT_RGBA8_UNORM_SRGB: MTLPixelFormat = MTLPixelFormat(71);
+pub const MTL_PIXEL_FORMAT_RGBA8_SNORM: MTLPixelFormat = MTLPixelFormat(72);
+pub const MTL_PIXEL_FORMAT_RGBA8_UINT: MTLPixelFormat = MTLPixelFormat(73);
+pub const MTL_PIXEL_FORMAT_RGBA8_SINT: MTLPixelFormat = MTLPixelFormat(74);
+// 32-bit
+pub const MTL_PIXEL_FORMAT_BGRA8_UNORM: MTLPixelFormat = MTLPixelFormat(80);
+pub const MTL_PIXEL_FORMAT_BGRA8_UNORM_SRGB: MTLPixelFormat = MTLPixelFormat(81);
 // Packed 32-bit
-pub const RGB10A2_UNORM: MTLPixelFormat = MTLPixelFormat(90);
-pub const RGB10A2_UINT: MTLPixelFormat = MTLPixelFormat(91);
-pub const RG11B10_FLOAT: MTLPixelFormat = MTLPixelFormat(92);
-pub const RGB9E5_FLOAT: MTLPixelFormat = MTLPixelFormat(93);
-pub const BGR10A2_UNORM: MTLPixelFormat = MTLPixelFormat(94);
+pub const MTL_PIXEL_FORMAT_RGB10A2_UNORM: MTLPixelFormat = MTLPixelFormat(90);
+pub const MTL_PIXEL_FORMAT_RGB10A2_UINT: MTLPixelFormat = MTLPixelFormat(91);
+pub const MTL_PIXEL_FORMAT_RG11B10_FLOAT: MTLPixelFormat = MTLPixelFormat(92);
+pub const MTL_PIXEL_FORMAT_RGB9E5_FLOAT: MTLPixelFormat = MTLPixelFormat(93);
+pub const MTL_PIXEL_FORMAT_BGR10A2_UNORM: MTLPixelFormat = MTLPixelFormat(94);
 // 64-bit
-pub const RG32_UINT: MTLPixelFormat = MTLPixelFormat(103);
-pub const RG32_SINT: MTLPixelFormat = MTLPixelFormat(104);
-pub const RG32_FLOAT: MTLPixelFormat = MTLPixelFormat(105);
-pub const RGBA16_UNORM: MTLPixelFormat = MTLPixelFormat(110);
-pub const RGBA16_SNORM: MTLPixelFormat = MTLPixelFormat(112);
-pub const RGBA16_UINT: MTLPixelFormat = MTLPixelFormat(113);
-pub const RGBA16_SINT: MTLPixelFormat = MTLPixelFormat(114);
-pub const RGBA16_FLOAT: MTLPixelFormat = MTLPixelFormat(115);
+pub const MTL_PIXEL_FORMAT_RG32_UINT: MTLPixelFormat = MTLPixelFormat(103);
+pub const MTL_PIXEL_FORMAT_RG32_SINT: MTLPixelFormat = MTLPixelFormat(104);
+pub const MTL_PIXEL_FORMAT_RG32_FLOAT: MTLPixelFormat = MTLPixelFormat(105);
+pub const MTL_PIXEL_FORMAT_RGBA16_UNORM: MTLPixelFormat = MTLPixelFormat(110);
+pub const MTL_PIXEL_FORMAT_RGBA16_SNORM: MTLPixelFormat = MTLPixelFormat(112);
+pub const MTL_PIXEL_FORMAT_RGBA16_UINT: MTLPixelFormat = MTLPixelFormat(113);
+pub const MTL_PIXEL_FORMAT_RGBA16_SINT: MTLPixelFormat = MTLPixelFormat(114);
+pub const MTL_PIXEL_FORMAT_RGBA16_FLOAT: MTLPixelFormat = MTLPixelFormat(115);
 // 128-bit
-pub const RGBA32_UINT: MTLPixelFormat = MTLPixelFormat(123);
-pub const RGBA32_SINT: MTLPixelFormat = MTLPixelFormat(124);
-pub const RGBA32_FLOAT: MTLPixelFormat = MTLPixelFormat(125);
+pub const MTL_PIXEL_FORMAT_RGBA32_UINT: MTLPixelFormat = MTLPixelFormat(123);
+pub const MTL_PIXEL_FORMAT_RGBA32_SINT: MTLPixelFormat = MTLPixelFormat(124);
+pub const MTL_PIXEL_FORMAT_RGBA32_FLOAT: MTLPixelFormat = MTLPixelFormat(125);
 // Depth and Stencil
-pub const DEPTH16_UNORM: MTLPixelFormat = MTLPixelFormat(250);
-pub const DEPTH32_FLOAT: MTLPixelFormat = MTLPixelFormat(252);
-pub const STENCIL8: MTLPixelFormat = MTLPixelFormat(253);
-pub const DEPTH24_UNORM_STENCIL8: MTLPixelFormat = MTLPixelFormat(255);
-pub const DEPTH32_FLOAT_STENCIL8: MTLPixelFormat = MTLPixelFormat(260);
-pub const X32_STENCIL8: MTLPixelFormat = MTLPixelFormat(261);
-pub const X24_STENCIL8: MTLPixelFormat = MTLPixelFormat(262);
+pub const MTL_PIXEL_FORMAT_DEPTH16_UNORM: MTLPixelFormat = MTLPixelFormat(250);
+pub const MTL_PIXEL_FORMAT_DEPTH32_FLOAT: MTLPixelFormat = MTLPixelFormat(252);
+pub const MTL_PIXEL_FORMAT_STENCIL8: MTLPixelFormat = MTLPixelFormat(253);
+pub const MTL_PIXEL_FORMAT_DEPTH24_UNORM_STENCIL8: MTLPixelFormat = MTLPixelFormat(255);
+pub const MTL_PIXEL_FORMAT_DEPTH32_FLOAT_STENCIL8: MTLPixelFormat = MTLPixelFormat(260);
+pub const MTL_PIXEL_FORMAT_X32_STENCIL8: MTLPixelFormat = MTLPixelFormat(261);
+pub const MTL_PIXEL_FORMAT_X24_STENCIL8: MTLPixelFormat = MTLPixelFormat(262);
+
+#[repr(transparent)]
+pub struct MTLStoreAction(NSUInteger);
+pub const MTL_STORE_ACTION_DONT_CARE: MTLStoreAction = MTLStoreAction(0);
+pub const MTL_STORE_ACTION_STORE: MTLStoreAction = MTLStoreAction(1);
+pub const MTL_STORE_ACTION_MULTISAMPLE_RESOLVE: MTLStoreAction = MTLStoreAction(2);
+pub const MTL_STORE_ACTION_STORE_AND_MULTISAMPLE_RESOLVE: MTLStoreAction = MTLStoreAction(3);
+pub const MTL_STORE_ACTION_UNKNOWN: MTLStoreAction = MTLStoreAction(4);
+pub const MTL_STORE_ACTION_CUSTOM_SAMPLE_DEPTH_STORE: MTLStoreAction = MTLStoreAction(5);
+
+#[repr(transparent)]
+pub struct MTLLoadAction(NSUInteger);
+pub const MTL_LOAD_ACTION_DONT_CARE: MTLLoadAction = MTLLoadAction(0);
+pub const MTL_LOAD_ACTION_LOAD: MTLLoadAction = MTLLoadAction(1);
+pub const MTL_LOAD_ACTION_CLEAR: MTLLoadAction = MTLLoadAction(2);
 
 #[cfg(test)]
 mod test {
