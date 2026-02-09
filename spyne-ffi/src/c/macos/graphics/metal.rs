@@ -112,6 +112,14 @@ pub const MTL_LOAD_ACTION_DONT_CARE: MTLLoadAction = MTLLoadAction(0);
 pub const MTL_LOAD_ACTION_LOAD: MTLLoadAction = MTLLoadAction(1);
 pub const MTL_LOAD_ACTION_CLEAR: MTLLoadAction = MTLLoadAction(2);
 
+#[repr(transparent)]
+pub struct MTLPrimitiveType(NSUInteger);
+pub const MTL_PRIMITIVE_TYPE_POINT: MTLPrimitiveType = MTLPrimitiveType(0);
+pub const MTL_PRIMITIVE_TYPE_LINE: MTLPrimitiveType = MTLPrimitiveType(1);
+pub const MTL_PRIMITIVE_TYPE_LINE_STRIP: MTLPrimitiveType = MTLPrimitiveType(2);
+pub const MTL_PRIMITIVE_TYPE_TRIANGLE: MTLPrimitiveType = MTLPrimitiveType(3);
+pub const MTL_PRIMITIVE_TYPE_TRIANGLE_STRIP: MTLPrimitiveType = MTLPrimitiveType(4);
+
 #[cfg(test)]
 mod test {
     use std::{ffi::CString, mem::transmute};
