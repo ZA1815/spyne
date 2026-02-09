@@ -34,7 +34,7 @@ pub const NS_WINDOW_STYLE_MASK_FULL_SCREEN: NSWindowStyleMask = NSWindowStyleMas
 pub const NS_WINDOW_STYLE_MASK_FULL_SIZE_CONTENT_VIEW: NSWindowStyleMask = NSWindowStyleMask(1 << 15);
 
 #[repr(transparent)]
-pub struct NSBackingStoreType(usize);
+pub struct NSBackingStoreType(NSUInteger);
 impl BitOr for NSBackingStoreType {
     type Output = Self;
     
