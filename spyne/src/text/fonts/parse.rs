@@ -609,6 +609,116 @@ impl FontFile {
         
         Ok(glyphs)
     }
+    
+    pub fn parse_hhea(&self) -> Result<HheaTable, Error> {
+        let hhea_bytes = self.get_table(b"hhea")?;
+        
+        let version = u32::from_be_bytes(
+            hhea_bytes.get(0..4)
+                .ok_or(ErrorKind::UnexpectedEof)?
+                .try_into()
+                .unwrap()
+        );
+        if version != 0x00010000 {
+            return Err(Error::new(ErrorKind::InvalidData, "Version number for hhea table is incorrect"));
+        }
+        let ascender = i16::from_be_bytes(
+            hhea_bytes.get(4..6)
+                .ok_or(ErrorKind::UnexpectedEof)?
+                .try_into()
+                .unwrap()
+        );
+        let descender = i16::from_be_bytes(
+            hhea_bytes.get(6..8)
+                .ok_or(ErrorKind::UnexpectedEof)?
+                .try_into()
+                .unwrap()
+        );
+        let line_gap = i16::from_be_bytes(
+            hhea_bytes.get(8..10)
+                .ok_or(ErrorKind::UnexpectedEof)?
+                .try_into()
+                .unwrap()
+        );
+        let advance_width_max = u16::from_be_bytes(
+            hhea_bytes.get(10..12)
+                .ok_or(ErrorKind::UnexpectedEof)?
+                .try_into()
+                .unwrap()
+        );
+        let min_left_side_bearing = i16::from_be_bytes(
+            hhea_bytes.get(12..14)
+                .ok_or(ErrorKind::UnexpectedEof)?
+                .try_into()
+                .unwrap()
+        );
+        let min_right_side_bearing = i16::from_be_bytes(
+            hhea_bytes.get(14..16)
+                .ok_or(ErrorKind::UnexpectedEof)?
+                .try_into()
+                .unwrap()
+        );
+        let x_max_extent = i16::from_be_bytes(
+            hhea_bytes.get(16..18)
+                .ok_or(ErrorKind::UnexpectedEof)?
+                .try_into()
+                .unwrap()
+        );
+        let caret_slope_rise = i16::from_be_bytes(
+            hhea_bytes.get(18..20)
+                .ok_or(ErrorKind::UnexpectedEof)?
+                .try_into()
+                .unwrap()
+        );
+        let caret_slope_run = i16::from_be_bytes(
+            hhea_bytes.get(20..22)
+                .ok_or(ErrorKind::UnexpectedEof)?
+                .try_into()
+                .unwrap()
+        );
+        let caret_offset = i16::from_be_bytes(
+            hhea_bytes.get(22..24)
+                .ok_or(ErrorKind::UnexpectedEof)?
+                .try_into()
+                .unwrap()
+        );
+        let _reserved1 = 0;
+        let _reserved2 = 0;
+        let _reserved3 = 0;
+        let _reserved4 = 0;
+        let metric_data_format = i16::from_be_bytes(
+            hhea_bytes.get(32..34)
+                .ok_or(ErrorKind::UnexpectedEof)?
+                .try_into()
+                .unwrap()
+        );
+        let number_of_h_metrics = u16::from_be_bytes(
+            hhea_bytes.get(34..36)
+                .ok_or(ErrorKind::UnexpectedEof)?
+                .try_into()
+                .unwrap()
+        );
+        
+        Ok(HheaTable {
+            version,
+            ascender,
+            descender,
+            line_gap,
+            advance_width_max,
+            min_left_side_bearing,
+            min_right_side_bearing,
+            x_max_extent,
+            caret_slope_rise,
+            caret_slope_run,
+            caret_offset,
+            _reserved1,
+            _reserved2,
+            _reserved3,
+            _reserved4,
+            metric_data_format,
+            number_of_h_metrics
+        })
+    }
 }
 
 pub enum FontFileType {
@@ -775,4 +885,24 @@ struct Component {
     pub argument_1: i16,
     pub argument_2: i16,
     pub transformation: [i16; 4]
+}
+
+struct HheaTable {
+    pub version: u32,
+    pub ascender: i16,
+    pub descender: i16,
+    pub line_gap: i16,
+    pub advance_width_max: u16,
+    pub min_left_side_bearing: i16,
+    pub min_right_side_bearing: i16,
+    pub x_max_extent: i16,
+    pub caret_slope_rise: i16,
+    pub caret_slope_run: i16,
+    pub caret_offset: i16,
+    _reserved1: i16,
+    _reserved2: i16,
+    _reserved3: i16,
+    _reserved4: i16,
+    pub metric_data_format: i16,
+    pub number_of_h_metrics: u16
 }
