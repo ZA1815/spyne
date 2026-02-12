@@ -1,5 +1,27 @@
 use std::{fs::read, io::{Error, ErrorKind}, path::Path};
 
+// Simple Glyph Flags (glyf table)
+pub const ON_CURVE_POINT: u8 = 0x01;
+pub const X_SHORT_VECTOR: u8 = 0x02;
+pub const Y_SHORT_VECTOR: u8 = 0x04;
+pub const REPEAT_FLAG: u8 = 0x08;
+pub const X_IS_SAME_OR_POSITIVE_X_SHORT_VECTOR: u8 = 0x10;
+pub const Y_IS_SAME_OR_POSITIVE_Y_SHORT_VECTOR: u8 = 0x20;
+
+// Composite Glyph Flags (glyf table)
+pub const ARG_1_AND_2_ARE_WORDS: u16 = 0x0001;
+pub const ARGS_ARE_XY_VALUES: u16 = 0x0002;
+pub const ROUND_XY_TO_GRID: u16 = 0x0004;
+pub const WE_HAVE_A_SCALE: u16 = 0x0008;
+pub const MORE_COMPONENTS: u16 = 0x0020;
+pub const WE_HAVE_AN_X_AND_Y_SCALE: u16 = 0x0040;
+pub const WE_HAVE_A_TWO_BY_TWO: u16 = 0x0080;
+pub const WE_HAVE_INSTRUCTIONS: u16 = 0x0100;
+pub const USE_MY_METRICS: u16 = 0x0200;
+pub const OVERLAP_COMPOUND: u16 = 0x0400;
+pub const SCALED_COMPONENT_OFFSET: u16 = 0x0800;
+pub const UNSCALED_COMPONENT_OFFSET: u16 = 0x1000;
+
 struct FontFile {
     pub file_type: FontFileType,
     pub bytes: Vec<u8>,
@@ -330,12 +352,266 @@ impl FontFile {
         Ok(indices)
     }
     
-    pub fn parse_glyf(&self, loca_indices: Vec<u32>) {
+    pub fn parse_glyf(&self, loca_offsets: Vec<u32>) -> Result<Vec<Glyph>, Error> {
+        let glyf_bytes = self.get_table(b"glyf")?;
+        let mut loca_iter = loca_offsets.iter().peekable();
         
+        // Could optimize by initializing with capacity based on offsets
+        let mut glyphs: Vec<Glyph> = Vec::new();
+        
+        while let Some(offset) = loca_iter.next() {
+            if let Some(next_offset) = loca_iter.peek() {
+                if *next_offset - offset == 0 {
+                    continue;
+                }
+                
+                let current_glyph_bytes = glyf_bytes.get(*offset as usize..**next_offset as usize).ok_or(ErrorKind::UnexpectedEof)?;
+                let mut current_offset: usize = 0;
+                let number_of_contours = i16::from_be_bytes(current_glyph_bytes[0..2].try_into().unwrap());
+                let x_min = i16::from_be_bytes(current_glyph_bytes.get(2..4).ok_or(ErrorKind::UnexpectedEof)?.try_into().unwrap());
+                let y_min = i16::from_be_bytes(current_glyph_bytes.get(4..6).ok_or(ErrorKind::UnexpectedEof)?.try_into().unwrap());
+                let x_max = i16::from_be_bytes(current_glyph_bytes.get(6..8).ok_or(ErrorKind::UnexpectedEof)?.try_into().unwrap());
+                let y_max = i16::from_be_bytes(current_glyph_bytes.get(8..10).ok_or(ErrorKind::UnexpectedEof)?.try_into().unwrap());
+                current_offset += 10;
+                let header = GlyphHeader { number_of_contours, x_min, y_min, x_max, y_max };
+                
+                let mut are_instructions = false;
+                if number_of_contours > 0 {
+                    let end_pts_of_contours: Vec<u16> = current_glyph_bytes
+                        .get(current_offset..current_offset + number_of_contours as usize * 2)
+                        .ok_or(ErrorKind::UnexpectedEof)?
+                        .chunks_exact(2)
+                        .map(|ch| {
+                            u16::from_be_bytes(ch.try_into().unwrap())
+                        }).collect();
+                    current_offset += number_of_contours as usize * 2;
+                    let instruction_length = u16::from_be_bytes(current_glyph_bytes.get(current_offset..current_offset + 2).ok_or(ErrorKind::UnexpectedEof)?.try_into().unwrap());
+                    current_offset += 2;
+                    let instructions: Vec<u8> = current_glyph_bytes.get(current_offset..current_offset + instruction_length as usize).ok_or(ErrorKind::UnexpectedEof)?.to_vec();
+                    current_offset += instruction_length as usize;
+                    let total_points = end_pts_of_contours.last().unwrap() + 1;
+                    let mut flags: Vec<u8> = Vec::with_capacity(total_points as usize);
+                    while flags.len() < total_points as usize {
+                        let flag = current_glyph_bytes.get(current_offset).ok_or(ErrorKind::UnexpectedEof)?;
+                        if flag & REPEAT_FLAG != 0 {
+                            let repeat_count = current_glyph_bytes.get(current_offset + 1).ok_or(ErrorKind::UnexpectedEof)?;
+                            let flag_vec = vec![flag; *repeat_count as usize + 1];
+                            flags.extend(flag_vec);
+                            current_offset += 2;
+                        }
+                        else {
+                            flags.push(*flag);
+                            current_offset += 1;
+                        }
+                    }
+                    let mut x_coordinates: Vec<i16> = Vec::with_capacity(total_points as usize);
+                    let mut current_x: i16 = 0;
+                    for flag in flags.iter() {
+                        if flag & X_SHORT_VECTOR != 0 {
+                            let x = current_glyph_bytes.get(current_offset).ok_or(ErrorKind::UnexpectedEof)?;
+                            if flag & X_IS_SAME_OR_POSITIVE_X_SHORT_VECTOR != 0 {
+                                current_x += *x as i16;
+                            }
+                            else {
+                                current_x -= *x as i16;
+                            }
+                            current_offset += 1;
+                        }
+                        else {
+                            if flag & X_IS_SAME_OR_POSITIVE_X_SHORT_VECTOR == 0 {
+                                current_x += i16::from_be_bytes(
+                                    current_glyph_bytes
+                                        .get(current_offset..current_offset + 2)
+                                        .ok_or(ErrorKind::UnexpectedEof)?
+                                        .try_into()
+                                        .unwrap()
+                                );
+                                current_offset += 2;
+                            }
+                        }
+                        
+                        x_coordinates.push(current_x);
+                    }
+                    let mut y_coordinates: Vec<i16> = Vec::with_capacity(total_points as usize);
+                    let mut current_y: i16 = 0;
+                    for flag in flags.iter() {
+                        if flag & Y_SHORT_VECTOR != 0 {
+                            let y = current_glyph_bytes.get(current_offset).ok_or(ErrorKind::UnexpectedEof)?;
+                            if flag & Y_IS_SAME_OR_POSITIVE_Y_SHORT_VECTOR != 0 {
+                                current_y += *y as i16;
+                            }
+                            else {
+                                current_y -= *y as i16;
+                            }
+                            current_offset += 1;
+                        }
+                        else {
+                            if flag & Y_IS_SAME_OR_POSITIVE_Y_SHORT_VECTOR == 0 {
+                                current_y += i16::from_be_bytes(
+                                    current_glyph_bytes
+                                        .get(current_offset..current_offset + 2)
+                                        .ok_or(ErrorKind::UnexpectedEof)?
+                                        .try_into()
+                                        .unwrap()
+                                );
+                                current_offset += 2;
+                            }
+                        }
+                        
+                        y_coordinates.push(current_y);
+                    }
+                    
+                    glyphs.push(Glyph::Simple { header, end_pts_of_contours, instruction_length, instructions, flags, x_coordinates, y_coordinates });
+                }
+                else if number_of_contours == -1 {
+                    let mut components: Vec<Component> = Vec::new();
+                    loop {
+                        let flags = u16::from_be_bytes(
+                            current_glyph_bytes
+                                .get(current_offset..current_offset + 2)
+                                .ok_or(ErrorKind::UnexpectedEof)?
+                                .try_into()
+                                .unwrap()
+                        );
+                        let glyph_index = u16::from_be_bytes(
+                            current_glyph_bytes
+                                .get(current_offset + 2..current_offset + 4)
+                                .ok_or(ErrorKind::UnexpectedEof)?
+                                .try_into()
+                                .unwrap()
+                        );
+                        current_offset += 4;
+                        let argument_1: i16;
+                        let argument_2: i16;
+                        if flags & ARG_1_AND_2_ARE_WORDS != 0 {
+                            argument_1 = i16::from_be_bytes(
+                                current_glyph_bytes
+                                    .get(current_offset..current_offset + 2)
+                                    .ok_or(ErrorKind::UnexpectedEof)?
+                                    .try_into()
+                                    .unwrap()
+                            );
+                            argument_2 = i16::from_be_bytes(
+                                current_glyph_bytes
+                                    .get(current_offset + 2..current_offset + 4)
+                                    .ok_or(ErrorKind::UnexpectedEof)?
+                                    .try_into()
+                                    .unwrap()
+                            );
+                            current_offset += 4;
+                        }
+                        else {
+                            argument_1 = *current_glyph_bytes
+                                .get(current_offset)
+                                .ok_or(ErrorKind::UnexpectedEof)? as i8 as i16;
+                            argument_2 = *current_glyph_bytes
+                                .get(current_offset + 1)
+                                .ok_or(ErrorKind::UnexpectedEof)? as i8 as i16;
+                            current_offset += 2;
+                        }
+                        let transformation: [i16; 4];
+                        if flags & WE_HAVE_A_SCALE != 0 {
+                            transformation = [
+                                i16::from_be_bytes(
+                                current_glyph_bytes
+                                    .get(current_offset..current_offset + 2)
+                                    .ok_or(ErrorKind::UnexpectedEof)?
+                                    .try_into()
+                                    .unwrap()
+                            ), 0, 0, 0];
+                            current_offset += 2;
+                        }
+                        else if flags & WE_HAVE_AN_X_AND_Y_SCALE != 0 {
+                            transformation = [
+                                i16::from_be_bytes(
+                                    current_glyph_bytes
+                                        .get(current_offset..current_offset + 2)
+                                        .ok_or(ErrorKind::UnexpectedEof)?
+                                        .try_into()
+                                        .unwrap()
+                                ),
+                                i16::from_be_bytes(
+                                    current_glyph_bytes
+                                        .get(current_offset + 2..current_offset + 4)
+                                        .ok_or(ErrorKind::UnexpectedEof)?
+                                        .try_into()
+                                        .unwrap()
+                                ), 0, 0
+                            ];
+                            current_offset += 4;
+                        }
+                        else if flags & WE_HAVE_A_TWO_BY_TWO != 0 {
+                            transformation = [
+                                i16::from_be_bytes(
+                                    current_glyph_bytes
+                                        .get(current_offset..current_offset + 2)
+                                        .ok_or(ErrorKind::UnexpectedEof)?
+                                        .try_into()
+                                        .unwrap()
+                                ),
+                                i16::from_be_bytes(
+                                    current_glyph_bytes
+                                        .get(current_offset + 2..current_offset + 4)
+                                        .ok_or(ErrorKind::UnexpectedEof)?
+                                        .try_into()
+                                        .unwrap()
+                                ),
+                                i16::from_be_bytes(
+                                    current_glyph_bytes
+                                        .get(current_offset + 4..current_offset + 6)
+                                        .ok_or(ErrorKind::UnexpectedEof)?
+                                        .try_into()
+                                        .unwrap()
+                                ),
+                                i16::from_be_bytes(
+                                    current_glyph_bytes
+                                        .get(current_offset + 6..current_offset + 8)
+                                        .ok_or(ErrorKind::UnexpectedEof)?
+                                        .try_into()
+                                        .unwrap()
+                                )
+                            ];
+                            current_offset += 8;
+                        }
+                        else {
+                            transformation = [0, 0, 0, 0];
+                        }
+                        
+                        components.push(Component { flags, glyph_index, argument_1, argument_2, transformation });
+                        
+                        are_instructions = flags & WE_HAVE_INSTRUCTIONS != 0;
+                        
+                        if flags & MORE_COMPONENTS == 0 { break; }
+                    }
+                    let mut instruction_length: Option<u16> = None;
+                    let mut instructions: Option<Vec<u8>> = None;
+                    if are_instructions {
+                        instruction_length = Some(u16::from_be_bytes(
+                            current_glyph_bytes
+                                .get(current_offset..current_offset + 2)
+                                .ok_or(ErrorKind::UnexpectedEof)?
+                                .try_into()
+                                .unwrap()
+                        ));
+                        current_offset += 2;
+                        instructions = Some(
+                            current_glyph_bytes
+                                .get(current_offset..current_offset + instruction_length.unwrap() as usize)
+                                .ok_or(ErrorKind::UnexpectedEof)?
+                                .to_vec()
+                        )
+                    }
+                    
+                    glyphs.push(Glyph::Composite { header, components, instruction_length, instructions });
+                }
+            }
+        }
+        
+        Ok(glyphs)
     }
 }
 
-enum FontFileType {
+pub enum FontFileType {
     TrueType,
     OpenType
 }
@@ -467,6 +743,36 @@ struct VariationSelectorRecord {
     pub non_default_uvs_offset: u32
 }
 
-struct GlyfTable {
-    
+pub enum Glyph {
+    Simple {
+        header: GlyphHeader,
+        end_pts_of_contours: Vec<u16>,
+        instruction_length: u16,
+        instructions: Vec<u8>,
+        flags: Vec<u8>,
+        x_coordinates: Vec<i16>,
+        y_coordinates: Vec<i16>
+    },
+    Composite {
+        header: GlyphHeader,
+        components: Vec<Component>,
+        instruction_length: Option<u16>,
+        instructions: Option<Vec<u8>>
+    }
+}
+
+struct GlyphHeader {
+    pub number_of_contours: i16,
+    pub x_min: i16,
+    pub y_min: i16,
+    pub x_max: i16,
+    pub y_max: i16
+}
+
+struct Component {
+    pub flags: u16,
+    pub glyph_index: u16,
+    pub argument_1: i16,
+    pub argument_2: i16,
+    pub transformation: [i16; 4]
 }
