@@ -719,6 +719,33 @@ impl FontFile {
             number_of_h_metrics
         })
     }
+    
+    pub fn parse_hmtx(&self, num_glyphs: u16, number_of_h_metrics: u16) -> Result<HmtxTable, Error> {
+        let hmtx_bytes = self.get_table(b"hmtx")?;
+        
+        let h_metrics: Vec<LongHorMetric> = hmtx_bytes
+            .get(0..number_of_h_metrics as usize * 4)
+            .ok_or(ErrorKind::UnexpectedEof)?
+            .chunks_exact(4)
+            .map(|ch| {
+                let advance_width = u16::from_be_bytes(ch[0..2].try_into().unwrap());
+                let lsb = i16::from_be_bytes(ch[2..4].try_into().unwrap());
+                
+                LongHorMetric { advance_width, lsb }
+            }).collect();
+        
+        let leftovers = num_glyphs - number_of_h_metrics;
+        
+        let left_side_bearings: Vec<i16> = hmtx_bytes
+            .get(number_of_h_metrics as usize * 4..(number_of_h_metrics as usize * 4) + (leftovers as usize * 2))
+            .ok_or(ErrorKind::UnexpectedEof)?
+            .chunks_exact(2)
+            .map(|ch| {
+                i16::from_be_bytes(ch.try_into().unwrap())
+            }).collect();
+        
+        Ok(HmtxTable { h_metrics, left_side_bearings })
+    }
 }
 
 pub enum FontFileType {
@@ -905,4 +932,14 @@ struct HheaTable {
     _reserved4: i16,
     pub metric_data_format: i16,
     pub number_of_h_metrics: u16
+}
+
+struct HmtxTable {
+    pub h_metrics: Vec<LongHorMetric>,
+    pub left_side_bearings: Vec<i16>
+}
+
+struct LongHorMetric {
+    pub advance_width: u16,
+    pub lsb: i16
 }
