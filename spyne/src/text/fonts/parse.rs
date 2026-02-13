@@ -834,6 +834,311 @@ impl FontFile {
     pub fn parse_os2(&self) -> Result<OS2Table, Error> {
         let os2_bytes = self.get_table(b"OS/2")?;
         
+        let version = u16::from_be_bytes(
+            os2_bytes.get(0..2)
+                .ok_or(ErrorKind::UnexpectedEof)?
+                .try_into()
+                .unwrap()
+        );
+        let x_avg_char_width = i16::from_be_bytes(
+            os2_bytes.get(2..4)
+                .ok_or(ErrorKind::UnexpectedEof)?
+                .try_into()
+                .unwrap()
+        );
+        let us_weight_class = u16::from_be_bytes(
+            os2_bytes.get(4..6)
+                .ok_or(ErrorKind::UnexpectedEof)?
+                .try_into()
+                .unwrap()
+        );
+        let us_width_class = u16::from_be_bytes(
+            os2_bytes.get(6..8)
+                .ok_or(ErrorKind::UnexpectedEof)?
+                .try_into()
+                .unwrap()
+        );
+        let fs_type = u16::from_be_bytes(
+            os2_bytes.get(8..10)
+                .ok_or(ErrorKind::UnexpectedEof)?
+                .try_into()
+                .unwrap()
+        );
+        let y_subscript_x_size = i16::from_be_bytes(
+            os2_bytes.get(10..12)
+                .ok_or(ErrorKind::UnexpectedEof)?
+                .try_into()
+                .unwrap()
+        );
+        let y_subscript_y_size = i16::from_be_bytes(
+            os2_bytes.get(12..14)
+                .ok_or(ErrorKind::UnexpectedEof)?
+                .try_into()
+                .unwrap()
+        );
+        let y_subscript_x_offset = i16::from_be_bytes(
+            os2_bytes.get(14..16)
+                .ok_or(ErrorKind::UnexpectedEof)?
+                .try_into()
+                .unwrap()
+        );
+        let y_subscript_y_offset = i16::from_be_bytes(
+            os2_bytes.get(16..18)
+                .ok_or(ErrorKind::UnexpectedEof)?
+                .try_into()
+                .unwrap()
+        );
+        let y_superscript_x_size = i16::from_be_bytes(
+            os2_bytes.get(18..20)
+                .ok_or(ErrorKind::UnexpectedEof)?
+                .try_into()
+                .unwrap()
+        );
+        let y_superscript_y_size = i16::from_be_bytes(
+            os2_bytes.get(20..22)
+                .ok_or(ErrorKind::UnexpectedEof)?
+                .try_into()
+                .unwrap()
+        );
+        let y_superscript_x_offset = i16::from_be_bytes(
+            os2_bytes.get(22..24)
+                .ok_or(ErrorKind::UnexpectedEof)?
+                .try_into()
+                .unwrap()
+        );
+        let y_superscript_y_offset = i16::from_be_bytes(
+            os2_bytes.get(24..26)
+                .ok_or(ErrorKind::UnexpectedEof)?
+                .try_into()
+                .unwrap()
+        );
+        let y_strikeout_size = i16::from_be_bytes(
+            os2_bytes.get(26..28)
+                .ok_or(ErrorKind::UnexpectedEof)?
+                .try_into()
+                .unwrap()
+        );
+        let y_strikeout_position = i16::from_be_bytes(
+            os2_bytes.get(28..30)
+                .ok_or(ErrorKind::UnexpectedEof)?
+                .try_into()
+                .unwrap()
+        );
+        let s_family_class = i16::from_be_bytes(
+            os2_bytes.get(30..32)
+                .ok_or(ErrorKind::UnexpectedEof)?
+                .try_into()
+                .unwrap()
+        );
+        let panose: [u8; 10] = os2_bytes.get(32..42)
+            .ok_or(ErrorKind::UnexpectedEof)?
+            .try_into()
+            .unwrap();
+        let ul_unicode_range_1 = u32::from_be_bytes(
+            os2_bytes.get(42..46)
+                .ok_or(ErrorKind::UnexpectedEof)?
+                .try_into()
+                .unwrap()
+        );
+        let ul_unicode_range_2 = u32::from_be_bytes(
+            os2_bytes.get(46..50)
+                .ok_or(ErrorKind::UnexpectedEof)?
+                .try_into()
+                .unwrap()
+        );
+        let ul_unicode_range_3 = u32::from_be_bytes(
+            os2_bytes.get(50..54)
+                .ok_or(ErrorKind::UnexpectedEof)?
+                .try_into()
+                .unwrap()
+        );
+        let ul_unicode_range_4 = u32::from_be_bytes(
+            os2_bytes.get(54..58)
+                .ok_or(ErrorKind::UnexpectedEof)?
+                .try_into()
+                .unwrap()
+        );
+        let ach_vend_id: [u8; 4] = os2_bytes.get(58..62)
+            .ok_or(ErrorKind::UnexpectedEof)?
+            .try_into()
+            .unwrap();
+        let fs_selection = u16::from_be_bytes(
+            os2_bytes.get(62..64)
+                .ok_or(ErrorKind::UnexpectedEof)?
+                .try_into()
+                .unwrap()
+        );
+        let us_first_char_index = u16::from_be_bytes(
+            os2_bytes.get(64..66)
+                .ok_or(ErrorKind::UnexpectedEof)?
+                .try_into()
+                .unwrap()
+        );
+        let us_last_char_index = u16::from_be_bytes(
+            os2_bytes.get(66..68)
+                .ok_or(ErrorKind::UnexpectedEof)?
+                .try_into()
+                .unwrap()
+        );
+        let s_typo_ascender = i16::from_be_bytes(
+            os2_bytes.get(68..70)
+                .ok_or(ErrorKind::UnexpectedEof)?
+                .try_into()
+                .unwrap()
+        );
+        let s_typo_descender = i16::from_be_bytes(
+            os2_bytes.get(70..72)
+                .ok_or(ErrorKind::UnexpectedEof)?
+                .try_into()
+                .unwrap()
+        );
+        let s_typo_line_gap = i16::from_be_bytes(
+            os2_bytes.get(72..74)
+                .ok_or(ErrorKind::UnexpectedEof)?
+                .try_into()
+                .unwrap()
+        );
+        let us_win_ascent = u16::from_be_bytes(
+            os2_bytes.get(74..76)
+                .ok_or(ErrorKind::UnexpectedEof)?
+                .try_into()
+                .unwrap()
+        );
+        let us_win_descent = u16::from_be_bytes(
+            os2_bytes.get(76..78)
+                .ok_or(ErrorKind::UnexpectedEof)?
+                .try_into()
+                .unwrap()
+        );
+        let mut ul_code_page_range_1: Option<u32> = None;
+        let mut ul_code_page_range_2: Option<u32> = None;
+        if version >= 1 {
+            ul_code_page_range_1 = Some(
+                u32::from_be_bytes(
+                    os2_bytes.get(78..82)
+                        .ok_or(ErrorKind::UnexpectedEof)?
+                        .try_into()
+                        .unwrap()
+                )
+            );
+            ul_code_page_range_2 = Some(
+                u32::from_be_bytes(
+                    os2_bytes.get(82..86)
+                        .ok_or(ErrorKind::UnexpectedEof)?
+                        .try_into()
+                        .unwrap()
+                )
+            );
+        }
+        let mut sx_height: Option<i16> = None;
+        let mut s_cap_height: Option<i16> = None;
+        let mut us_default_char: Option<u16> = None;
+        let mut us_break_char: Option<u16> = None;
+        let mut us_max_context: Option<u16> = None;
+        if version >= 2 {
+            sx_height = Some(
+                i16::from_be_bytes(
+                    os2_bytes.get(86..88)
+                        .ok_or(ErrorKind::UnexpectedEof)?
+                        .try_into()
+                        .unwrap()
+                )
+            );
+            s_cap_height = Some(
+                i16::from_be_bytes(
+                    os2_bytes.get(88..90)
+                        .ok_or(ErrorKind::UnexpectedEof)?
+                        .try_into()
+                        .unwrap()
+                )
+            );
+            us_default_char = Some(
+                u16::from_be_bytes(
+                    os2_bytes.get(90..92)
+                        .ok_or(ErrorKind::UnexpectedEof)?
+                        .try_into()
+                        .unwrap()
+                )
+            );
+            us_break_char = Some(
+                u16::from_be_bytes(
+                    os2_bytes.get(92..94)
+                        .ok_or(ErrorKind::UnexpectedEof)?
+                        .try_into()
+                        .unwrap()
+                )
+            );
+            us_max_context = Some(
+                u16::from_be_bytes(
+                    os2_bytes.get(94..96)
+                        .ok_or(ErrorKind::UnexpectedEof)?
+                        .try_into()
+                        .unwrap()
+                )
+            );
+        }
+        let mut us_lower_optical_point_size: Option<u16> = None;
+        let mut us_upper_optical_point_size: Option<u16> = None;
+        if version >= 5 {
+            us_lower_optical_point_size = Some(
+                u16::from_be_bytes(
+                    os2_bytes.get(96..98)
+                        .ok_or(ErrorKind::UnexpectedEof)?
+                        .try_into()
+                        .unwrap()
+                )
+            );
+            us_upper_optical_point_size = Some(
+                u16::from_be_bytes(
+                    os2_bytes.get(98..100)
+                        .ok_or(ErrorKind::UnexpectedEof)?
+                        .try_into()
+                        .unwrap()
+                )
+            );
+        }
+        
+        Ok(OS2Table {
+            version,
+            x_avg_char_width,
+            us_weight_class,
+            us_width_class,
+            fs_type,
+            y_subscript_x_size,
+            y_subscript_y_size,
+            y_subscript_x_offset,
+            y_subscript_y_offset,
+            y_superscript_x_size,
+            y_superscript_y_size,
+            y_superscript_x_offset,
+            y_superscript_y_offset,
+            y_strikeout_size,
+            y_strikeout_position,
+            s_family_class,
+            panose,
+            ul_unicode_range_1,
+            ul_unicode_range_2,
+            ul_unicode_range_3,
+            ul_unicode_range_4,
+            ach_vend_id,
+            fs_selection,
+            us_first_char_index,
+            us_last_char_index,
+            s_typo_ascender,
+            s_typo_descender,
+            s_typo_line_gap,
+            us_win_ascent,
+            us_win_descent,
+            ul_code_page_range_1,
+            ul_code_page_range_2,
+            sx_height,
+            s_cap_height,
+            us_default_char,
+            us_break_char,
+            us_max_context,
+            us_lower_optical_point_size,
+            us_upper_optical_point_size
+        })
     }
 }
 
@@ -1121,12 +1426,12 @@ struct OS2Table {
     pub ul_code_page_range_1: Option<u32>,
     pub ul_code_page_range_2: Option<u32>,
     // Version 2 Additions
-    pub sx_height: i16,
-    pub s_cap_height: i16,
-    pub us_default_char: u16,
-    pub us_break_char: u16,
-    pub us_max_context: u16,
+    pub sx_height: Option<i16>,
+    pub s_cap_height: Option<i16>,
+    pub us_default_char: Option<u16>,
+    pub us_break_char: Option<u16>,
+    pub us_max_context: Option<u16>,
     // Version 5 Additions
-    pub us_lower_optical_point_size: u16,
-    pub us_upper_optical_point_size: u16
+    pub us_lower_optical_point_size: Option<u16>,
+    pub us_upper_optical_point_size: Option<u16>
 }
