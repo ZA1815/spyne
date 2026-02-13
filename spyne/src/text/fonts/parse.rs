@@ -1140,6 +1140,25 @@ impl FontFile {
             us_upper_optical_point_size
         })
     }
+    
+    pub fn parse_cvt(&self) -> Result<Vec<i16>, Error> {
+        let cvt_bytes = self.get_table(b"cvt ")?;
+        
+        Ok(
+            cvt_bytes.chunks_exact(2)
+                .map(|ch| {
+                    i16::from_be_bytes(ch[0..2].try_into.unwrap())
+                }).collect()
+        )
+    }
+    
+    pub fn parse_fpgm(&self) -> Result<Vec<u8>, Error> {
+        Ok(self.get_table(b"fpgm")?.to_vec())
+    }
+    
+    pub fn parse_prep(&self) -> Result<Vec<u8>, Error> {
+        Ok(self.get_table(b"prep")?.to_vec())
+    }
 }
 
 // Add support for more once I create HTTP/HTTPS part of spyne
