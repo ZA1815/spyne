@@ -791,8 +791,11 @@ impl FontFile {
                 let name_id = u16::from_be_bytes(ch[6..8].try_into().unwrap());
                 let length = u16::from_be_bytes(ch[8..10].try_into().unwrap());
                 let string_offset = u16::from_be_bytes(ch[10..12].try_into().unwrap());
+                let string_bytes = name_bytes.get(storage_offset as usize + string_offset as usize..storage_offset as usize + string_offset as usize + length as usize)
+                    .ok_or(ErrorKind::UnexpectedEof)?;
+                let string = decode_name_bytes(string_bytes, platform_id, encoding_id)?;
                 
-                NameRecord { platform_id, encoding_id, language_id, name_id, length, string_offset }
+                NameRecord { platform_id, encoding_id, language_id, name_id, length, string_offset, string }
             }).collect();
         offset += count as usize * 12;
         let mut lang_tag_count: Option<u16> = None;
@@ -812,13 +815,50 @@ impl FontFile {
                     .map(|ch| {
                         let length = u16::from_be_bytes(ch[0..2].try_into().unwrap());
                         let lang_tag_offset = u16::from_be_bytes(ch[2..4].try_into().unwrap());
+                        let string_bytes = name_bytes.get(storage_offset as usize + lang_tag_offset as usize.. storage_offset as usize + lang_tag_offset as usize + length as usize)
+                            .ok_or(ErrorKind::UnexpectedEof)?
+                            .chunks_exact(2)
+                            .map(|ch| {
+                                u16::from_be_bytes(ch[0..2].try_into().unwrap())
+                            }).collect();
+                        let string = String::from_utf16(string_bytes)?;
                         
-                        LangTagRecord { length, lang_tag_offset }
+                        LangTagRecord { length, lang_tag_offset, string }
                     }).collect()
             );
         }
         
         Ok(NameTable { version, count, storage_offset, records, lang_tag_count, lang_tag_records })
+    }
+    
+    pub fn parse_os2(&self) -> Result<OS2Table, Error> {
+        let os2_bytes = self.get_table(b"OS/2")?;
+        
+    }
+}
+
+// Add support for more once I create HTTP/HTTPS part of spyne
+fn decode_name_bytes(bytes: &[u8], platform_id: u16, encoding_id: u16) -> Result<String, Error> {
+    match platform_id {
+        0 => {
+            let name_bytes = bytes.chunks_exact(2)
+                .map(|ch| u16::from_be_bytes(ch[0..2].try_into().unwrap())).collect();
+            
+            Ok(String::from_utf16(name_bytes)?)
+        }
+        1 => Err(Error::new(ErrorKind::Unsupported, "Platform 1 decoding currently unsupported")),
+        3 => {
+            match encoding_id {
+                0 | 1 | 10 => {
+                    let name_bytes = bytes.chunks_exact(2)
+                        .map(|ch| u16::from_be_bytes(ch[0..2].try_into().unwrap())).collect();
+                    
+                    Ok(String::from_utf16(name_bytes)?)
+                }
+                _ => Err(Error::new(ErrorKind::Unsupported, "Platform 3, Encodings 2 - 9 decoding currently unsupported"))
+            }
+        }
+        _ => Err(Error::new(ErrorKind::Unsupported, "Platform 2 and 4 decoding currently unsupported"))
     }
 }
 
@@ -1037,9 +1077,56 @@ struct NameRecord {
     pub name_id: u16,
     pub length: u16,
     pub string_offset: u16,
+    pub string: String
 }
 
 struct LangTagRecord {
     pub length: u16,
-    pub lang_tag_offset: u16
+    pub lang_tag_offset: u16,
+    pub string: String
+}
+
+struct OS2Table {
+    pub version: u16,
+    pub x_avg_char_width: i16,
+    pub us_weight_class: u16,
+    pub us_width_class: u16,
+    pub fs_type: u16,
+    pub y_subscript_x_size: i16,
+    pub y_subscript_y_size: i16,
+    pub y_subscript_x_offset: i16,
+    pub y_subscript_y_offset: i16,
+    pub y_superscript_x_size: i16,
+    pub y_superscript_y_size: i16,
+    pub y_superscript_x_offset: i16,
+    pub y_superscript_y_offset: i16,
+    pub y_strikeout_size: i16,
+    pub y_strikeout_position: i16,
+    pub s_family_class: i16,
+    pub panose: [u8; 10],
+    pub ul_unicode_range_1: u32,
+    pub ul_unicode_range_2: u32,
+    pub ul_unicode_range_3: u32,
+    pub ul_unicode_range_4: u32,
+    pub ach_vend_id: [u8; 4],
+    pub fs_selection: u16,
+    pub us_first_char_index: u16,
+    pub us_last_char_index: u16,
+    pub s_typo_ascender: i16,
+    pub s_typo_descender: i16,
+    pub s_typo_line_gap: i16,
+    pub us_win_ascent: u16,
+    pub us_win_descent: u16,
+    // Version 1 Additions
+    pub ul_code_page_range_1: Option<u32>,
+    pub ul_code_page_range_2: Option<u32>,
+    // Version 2 Additions
+    pub sx_height: i16,
+    pub s_cap_height: i16,
+    pub us_default_char: u16,
+    pub us_break_char: u16,
+    pub us_max_context: u16,
+    // Version 5 Additions
+    pub us_lower_optical_point_size: u16,
+    pub us_upper_optical_point_size: u16
 }
