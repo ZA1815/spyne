@@ -754,6 +754,72 @@ impl FontFile {
         
         Ok(HmtxTable { entries, shared_advance_width })
     }
+    
+    pub fn parse_name(&self) -> Result<NameTable, Error> {
+        let name_bytes = self.get_table(b"name")?;
+        let mut offset = 0;
+        
+        let version = u16::from_be_bytes(
+            name_bytes.get(0..2)
+                .ok_or(ErrorKind::UnexpectedEof)?
+                .try_into()
+                .unwrap()
+        );
+        if version != 0 && version != 1 {
+            return Err(Error::new(ErrorKind::InvalidData, "Version number is not 0 or 1"));
+        }
+        let count = u16::from_be_bytes(
+            name_bytes.get(2..4)
+                .ok_or(ErrorKind::UnexpectedEof)?
+                .try_into()
+                .unwrap()
+        );
+        let storage_offset = u16::from_be_bytes(
+            name_bytes.get(4..6)
+                .ok_or(ErrorKind::UnexpectedEof)?
+                .try_into()
+                .unwrap()
+        );
+        offset += 6;
+        let records: Vec<NameRecord> = name_bytes.get(offset..offset + count as usize * 12)
+            .ok_or(ErrorKind::UnexpectedEof)?
+            .chunks_exact(12)
+            .map(|ch| {
+                let platform_id = u16::from_be_bytes(ch[0..2].try_into().unwrap());
+                let encoding_id = u16::from_be_bytes(ch[2..4].try_into().unwrap());
+                let language_id = u16::from_be_bytes(ch[4..6].try_into().unwrap());
+                let name_id = u16::from_be_bytes(ch[6..8].try_into().unwrap());
+                let length = u16::from_be_bytes(ch[8..10].try_into().unwrap());
+                let string_offset = u16::from_be_bytes(ch[10..12].try_into().unwrap());
+                
+                NameRecord { platform_id, encoding_id, language_id, name_id, length, string_offset }
+            }).collect();
+        offset += count as usize * 12;
+        let mut lang_tag_count: Option<u16> = None;
+        let mut lang_tag_records: Option<Vec<LangTagRecord>> = None;
+        if version == 1 {
+            lang_tag_count = Some(u16::from_be_bytes(
+                name_bytes.get(offset..offset + 2)
+                    .ok_or(ErrorKind::UnexpectedEof)?
+                    .try_into()
+                    .unwrap()
+            ));
+            offset += 2;
+            lang_tag_records = Some(
+                name_bytes.get(offset..offset + lang_tag_count.unwrap() as usize * 4)
+                    .ok_or(ErrorKind::UnexpectedEof)?
+                    .chunks_exact(4)
+                    .map(|ch| {
+                        let length = u16::from_be_bytes(ch[0..2].try_into().unwrap());
+                        let lang_tag_offset = u16::from_be_bytes(ch[2..4].try_into().unwrap());
+                        
+                        LangTagRecord { length, lang_tag_offset }
+                    }).collect()
+            );
+        }
+        
+        Ok(NameTable { version, count, storage_offset, records, lang_tag_count, lang_tag_records })
+    }
 }
 
 pub enum FontFileType {
@@ -953,4 +1019,27 @@ pub enum HmtxEntry {
         lsb: i16
     },
     LeftoverBearing(i16)
+}
+
+struct NameTable {
+    pub version: u16,
+    pub count: u16,
+    pub storage_offset: u16,
+    pub records: Vec<NameRecord>,
+    pub lang_tag_count: Option<u16>,
+    pub lang_tag_records: Option<Vec<LangTagRecord>>
+}
+
+struct NameRecord {
+    pub platform_id: u16,
+    pub encoding_id: u16,
+    pub language_id: u16,
+    pub name_id: u16,
+    pub length: u16,
+    pub string_offset: u16,
+}
+
+struct LangTagRecord {
+    pub length: u16,
+    pub lang_tag_offset: u16
 }
