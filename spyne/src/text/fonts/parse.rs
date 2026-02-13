@@ -720,10 +720,10 @@ impl FontFile {
         })
     }
     
-    pub fn parse_hmtx(&self, num_glyphs: u16, number_of_h_metrics: u16) -> Result<Vec<HmtxEntry>, Error> {
+    pub fn parse_hmtx(&self, num_glyphs: u16, number_of_h_metrics: u16) -> Result<HmtxTable, Error> {
         let hmtx_bytes = self.get_table(b"hmtx")?;
         
-        let mut hmtx_vec: Vec<HmtxEntry> = hmtx_bytes
+        let mut entries: Vec<HmtxEntry> = hmtx_bytes
             .get(0..number_of_h_metrics as usize * 4)
             .ok_or(ErrorKind::UnexpectedEof)?
             .chunks_exact(4)
@@ -734,9 +734,15 @@ impl FontFile {
                 HmtxEntry::FullMetric { advance_width, lsb }
             }).collect();
         
+        let shared_advance_var = entries.last().unwrap();
+        let shared_advance_width = match shared_advance_var {
+            HmtxEntry::FullMetric { advance_width, lsb } => *advance_width,
+            _ => unreachable!()
+        };
+        
         let leftovers = num_glyphs - number_of_h_metrics;
         
-        hmtx_vec.extend(
+        entries.extend(
             hmtx_bytes
                 .get(number_of_h_metrics as usize * 4..(number_of_h_metrics as usize * 4) + (leftovers as usize * 2))
                 .ok_or(ErrorKind::UnexpectedEof)?
@@ -746,7 +752,7 @@ impl FontFile {
                 })
         );
         
-        Ok(hmtx_vec)
+        Ok(HmtxTable { entries, shared_advance_width })
     }
 }
 
@@ -936,7 +942,12 @@ struct HheaTable {
     pub number_of_h_metrics: u16
 }
 
-enum HmtxEntry {
+struct HmtxTable {
+    entries: Vec<HmtxEntry>,
+    shared_advance_width: u16
+}
+
+pub enum HmtxEntry {
     FullMetric {
         advance_width: u16,
         lsb: i16
