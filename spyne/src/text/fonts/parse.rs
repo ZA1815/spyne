@@ -1243,6 +1243,51 @@ impl FontFile {
         })
     }
     
+    pub fn parse_vhea(&self) -> Result<VheaTable, Error> {
+        let vhea_bytes = self.get_table(b"vhea")?;
+        
+        let version = get_u32(vhea_bytes, 0, 4)?;
+        if version != 0x00010000 && version != 0x00011000 {
+            return Err(Error::new(ErrorKind::InvalidData, format!("Invalid version number: {}", version)))
+        }
+        let vert_typo_ascender = get_i16(vhea_bytes, 4, 6)?;
+        let vert_typo_descender = get_i16(vhea_bytes, 6, 8)?;
+        let vert_typo_line_gap = get_i16(vhea_bytes, 8, 10)?;
+        let advance_height_max = get_u16(vhea_bytes, 10, 12)?;
+        let min_top_side_bearing = get_i16(vhea_bytes, 12, 14)?;
+        let min_bottom_side_bearing = get_i16(vhea_bytes, 14, 16)?;
+        let y_max_extent = get_i16(vhea_bytes, 16, 18)?;
+        let caret_slope_rise = get_i16(vhea_bytes, 18, 20)?;
+        let caret_slope_run = get_i16(vhea_bytes, 20, 22)?;
+        let caret_offset = get_i16(vhea_bytes, 22, 24)?;
+        let _reserved1 = get_i16(vhea_bytes, 24, 26)?;
+        let _reserved2 = get_i16(vhea_bytes, 26, 28)?;
+        let _reserved3 = get_i16(vhea_bytes, 28, 30)?;
+        let _reserved4 = get_i16(vhea_bytes, 30, 32)?;
+        let metric_data_format = get_i16(vhea_bytes, 32, 34)?;
+        let num_of_long_ver_metrics = get_u16(vhea_bytes, 34, 36)?;
+        
+        Ok(VheaTable {
+            version,
+            vert_typo_ascender,
+            vert_typo_descender,
+            vert_typo_line_gap,
+            advance_height_max,
+            min_top_side_bearing,
+            min_bottom_side_bearing,
+            y_max_extent,
+            caret_slope_rise,
+            caret_slope_run,
+            caret_offset,
+            _reserved1,
+            _reserved2,
+            _reserved3,
+            _reserved4,
+            metric_data_format,
+            num_of_long_ver_metrics
+        })
+    }
+    
     pub fn parse_cvt(&self) -> Result<Vec<i16>, Error> {
         let cvt_bytes = self.get_table(b"cvt ")?;
         
@@ -1261,6 +1306,39 @@ impl FontFile {
     pub fn parse_prep(&self) -> Result<Vec<u8>, Error> {
         Ok(self.get_table(b"prep")?.to_vec())
     }
+}
+
+fn get_u16(bytes: &[u8], start: usize, end: usize) -> Result<u16, Error> {
+    Ok(
+        u16::from_be_bytes(
+        bytes.get(start..end)
+            .ok_or(ErrorKind::UnexpectedEof)?
+            .try_into()
+            .unwrap()
+        )
+    )
+}
+
+fn get_u32(bytes: &[u8], start: usize, end: usize) -> Result<u32, Error> {
+    Ok(
+        u32::from_be_bytes(
+            bytes.get(start..end)
+                .ok_or(ErrorKind::UnexpectedEof)?
+                .try_into()
+                .unwrap()
+        )
+    )
+}
+
+fn get_i16(bytes: &[u8], start: usize, end: usize) -> Result<i16, Error> {
+    Ok(
+        i16::from_be_bytes(
+            bytes.get(start..end)
+                .ok_or(ErrorKind::UnexpectedEof)?
+                .try_into()
+                .unwrap()
+        )
+    )
 }
 
 // Add support for more once I create HTTP/HTTPS part of spyne
@@ -1583,4 +1661,24 @@ struct PostTable {
     pub num_glyphs: Option<u16>,
     pub glyph_name_index: Option<Vec<u16>>,
     pub names: Option<Vec<String>>
+}
+
+struct VheaTable {
+    pub version: u32,
+    pub vert_typo_ascender: i16,
+    pub vert_typo_descender: i16,
+    pub vert_typo_line_gap: i16,
+    pub advance_height_max: u16,
+    pub min_top_side_bearing: i16,
+    pub min_bottom_side_bearing: i16,
+    pub y_max_extent: i16,
+    pub caret_slope_rise: i16,
+    pub caret_slope_run: i16,
+    pub caret_offset: i16,
+    _reserved1: i16,
+    _reserved2: i16,
+    _reserved3: i16,
+    _reserved4: i16,
+    pub metric_data_format: i16,
+    pub num_of_long_ver_metrics: u16
 }
