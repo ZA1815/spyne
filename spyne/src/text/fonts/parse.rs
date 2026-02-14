@@ -1,287 +1,6 @@
 use std::{fs::read, io::{Error, ErrorKind}, path::Path};
 
-// Simple Glyph Flags (glyf table)
-pub const ON_CURVE_POINT: u8 = 0x01;
-pub const X_SHORT_VECTOR: u8 = 0x02;
-pub const Y_SHORT_VECTOR: u8 = 0x04;
-pub const REPEAT_FLAG: u8 = 0x08;
-pub const X_IS_SAME_OR_POSITIVE_X_SHORT_VECTOR: u8 = 0x10;
-pub const Y_IS_SAME_OR_POSITIVE_Y_SHORT_VECTOR: u8 = 0x20;
-
-// Composite Glyph Flags (glyf table)
-pub const ARG_1_AND_2_ARE_WORDS: u16 = 0x0001;
-pub const ARGS_ARE_XY_VALUES: u16 = 0x0002;
-pub const ROUND_XY_TO_GRID: u16 = 0x0004;
-pub const WE_HAVE_A_SCALE: u16 = 0x0008;
-pub const MORE_COMPONENTS: u16 = 0x0020;
-pub const WE_HAVE_AN_X_AND_Y_SCALE: u16 = 0x0040;
-pub const WE_HAVE_A_TWO_BY_TWO: u16 = 0x0080;
-pub const WE_HAVE_INSTRUCTIONS: u16 = 0x0100;
-pub const USE_MY_METRICS: u16 = 0x0200;
-pub const OVERLAP_COMPOUND: u16 = 0x0400;
-pub const SCALED_COMPONENT_OFFSET: u16 = 0x0800;
-pub const UNSCALED_COMPONENT_OFFSET: u16 = 0x1000;
-
-static MAC_STANDARD_NAMES: [&str; 258] = [
-    ".notdef",
-    ".null",
-    "nonmarkingreturn",
-    "space",
-    "exclam",
-    "quotedbl",
-    "numbersign",
-    "dollar",
-    "percent",
-    "ampersand",
-    "quotesingle",
-    "parenleft",
-    "parenright",
-    "asterisk",
-    "plus",
-    "comma",
-    "hyphen",
-    "period",
-    "slash",
-    "zero",
-    "one",
-    "two",
-    "three",
-    "four",
-    "five",
-    "six",
-    "seven",
-    "eight",
-    "nine",
-    "colon",
-    "semicolon",
-    "less",
-    "equal",
-    "greater",
-    "question",
-    "at",
-    "A",
-    "B",
-    "C",
-    "D",
-    "E",
-    "F",
-    "G",
-    "H",
-    "I",
-    "J",
-    "K",
-    "L",
-    "M",
-    "N",
-    "O",
-    "P",
-    "Q",
-    "R",
-    "S",
-    "T",
-    "U",
-    "V",
-    "W",
-    "X",
-    "Y",
-    "Z",
-    "bracketleft",
-    "backslash",
-    "bracketright",
-    "asciicircum",
-    "underscore",
-    "grave",
-    "a",
-    "b",
-    "c",
-    "d",
-    "e",
-    "f",
-    "g",
-    "h",
-    "i",
-    "j",
-    "k",
-    "l",
-    "m",
-    "n",
-    "o",
-    "p",
-    "q",
-    "r",
-    "s",
-    "t",
-    "u",
-    "v",
-    "w",
-    "x",
-    "y",
-    "z",
-    "braceleft",
-    "bar",
-    "braceright",
-    "asciitilde",
-    "Adieresis",
-    "Aring",
-    "Ccedilla",
-    "Eacute",
-    "Ntilde",
-    "Odieresis",
-    "Udieresis",
-    "aacute",
-    "agrave",
-    "acircumflex",
-    "adieresis",
-    "atilde",
-    "aring",
-    "ccedilla",
-    "eacute",
-    "egrave",
-    "ecircumflex",
-    "edieresis",
-    "iacute",
-    "igrave",
-    "icircumflex",
-    "idieresis",
-    "ntilde",
-    "oacute",
-    "ograve",
-    "ocircumflex",
-    "odieresis",
-    "otilde",
-    "uacute",
-    "ugrave",
-    "ucircumflex",
-    "udieresis",
-    "dagger",
-    "degree",
-    "cent",
-    "sterling",
-    "section",
-    "bullet",
-    "paragraph",
-    "germandbls",
-    "registered",
-    "copyright",
-    "trademark",
-    "acute",
-    "dieresis",
-    "notequal",
-    "AE",
-    "Oslash",
-    "infinity",
-    "plusminus",
-    "lessequal",
-    "greaterequal",
-    "yen",
-    "mu",
-    "partialdiff",
-    "summation",
-    "product",
-    "pi",
-    "integral",
-    "ordfeminine",
-    "ordmasculine",
-    "Omega",
-    "ae",
-    "oslash",
-    "questiondown",
-    "exclamdown",
-    "logicalnot",
-    "radical",
-    "florin",
-    "approxequal",
-    "Delta",
-    "guillemotleft",
-    "guillemotright",
-    "ellipsis",
-    "nonbreakingspace",
-    "Agrave",
-    "Atilde",
-    "Otilde",
-    "OE",
-    "oe",
-    "endash",
-    "emdash",
-    "quotedblleft",
-    "quotedblright",
-    "quoteleft",
-    "quoteright",
-    "divide",
-    "lozenge",
-    "ydieresis",
-    "Ydieresis",
-    "fraction",
-    "currency",
-    "guilsinglleft",
-    "guilsinglright",
-    "fi",
-    "fl",
-    "daggerdbl",
-    "periodcentered",
-    "quotesinglbase",
-    "quotedblbase",
-    "perthousand",
-    "Acircumflex",
-    "Ecircumflex",
-    "Aacute",
-    "Edieresis",
-    "Egrave",
-    "Iacute",
-    "Icircumflex",
-    "Idieresis",
-    "Igrave",
-    "Oacute",
-    "Ocircumflex",
-    "apple",
-    "Ograve",
-    "Uacute",
-    "Ucircumflex",
-    "Ugrave",
-    "dotlessi",
-    "circumflex",
-    "tilde",
-    "macron",
-    "breve",
-    "dotaccent",
-    "ring",
-    "cedilla",
-    "hungarumlaut",
-    "ogonek",
-    "caron",
-    "Lslash",
-    "lslash",
-    "Scaron",
-    "scaron",
-    "Zcaron",
-    "zcaron",
-    "brokenbar",
-    "Eth",
-    "eth",
-    "Yacute",
-    "yacute",
-    "Thorn",
-    "thorn",
-    "minus",
-    "multiply",
-    "onesuperior",
-    "twosuperior",
-    "threesuperior",
-    "onehalf",
-    "onequarter",
-    "threequarters",
-    "franc",
-    "Gbreve",
-    "gbreve",
-    "Idotaccent",
-    "Scedilla",
-    "scedilla",
-    "Cacute",
-    "cacute",
-    "Ccaron",
-    "ccaron",
-    "dcroat"
-];
+use crate::text::fonts::constants::{ARG_1_AND_2_ARE_WORDS, MAC_ROMAN_LOOKUP, MAC_STANDARD_NAMES, MORE_COMPONENTS, REPEAT_FLAG, WE_HAVE_A_SCALE, WE_HAVE_A_TWO_BY_TWO, WE_HAVE_AN_X_AND_Y_SCALE, WE_HAVE_INSTRUCTIONS, X_IS_SAME_OR_POSITIVE_X_SHORT_VECTOR, X_SHORT_VECTOR, Y_IS_SAME_OR_POSITIVE_Y_SHORT_VECTOR, Y_SHORT_VECTOR};
 
 struct FontFile {
     pub file_type: FontFileType,
@@ -1405,9 +1124,123 @@ impl FontFile {
     pub fn parse_post(&self) -> Result<PostTable, Error> {
         let post_bytes = self.get_table(b"post")?;
         
-        let version = 
+        let version = u32::from_be_bytes(
+            post_bytes.get(0..4)
+                .ok_or(ErrorKind::UnexpectedEof)?
+                .try_into()
+                .unwrap()
+        );
+        let italic_angle = i32::from_be_bytes(
+            post_bytes.get(4..8)
+                .ok_or(ErrorKind::UnexpectedEof)?
+                .try_into()
+                .unwrap()
+        );
+        let underline_position = i16::from_be_bytes(
+            post_bytes.get(8..10)
+                .ok_or(ErrorKind::UnexpectedEof)?
+                .try_into()
+                .unwrap()
+        );
+        let underline_thickness = i16::from_be_bytes(
+            post_bytes.get(10..12)
+                .ok_or(ErrorKind::UnexpectedEof)?
+                .try_into()
+                .unwrap()
+        );
+        let is_fixed_pitch = u32::from_be_bytes(
+            post_bytes.get(12..16)
+                .ok_or(ErrorKind::UnexpectedEof)?
+                .try_into()
+                .unwrap()
+        );
+        let min_mem_type_42 = u32::from_be_bytes(
+            post_bytes.get(16..20)
+                .ok_or(ErrorKind::UnexpectedEof)?
+                .try_into()
+                .unwrap()
+        );
+        let max_mem_type_42 = u32::from_be_bytes(
+            post_bytes.get(20..24)
+                .ok_or(ErrorKind::UnexpectedEof)?
+                .try_into()
+                .unwrap()
+        );
+        let min_mem_type_1 = u32::from_be_bytes(
+            post_bytes.get(24..28)
+                .ok_or(ErrorKind::UnexpectedEof)?
+                .try_into()
+                .unwrap()
+        );
+        let max_mem_type_1 = u32::from_be_bytes(
+            post_bytes.get(28..32)
+                .ok_or(ErrorKind::UnexpectedEof)?
+                .try_into()
+                .unwrap()
+        );
+        let mut num_glyphs: Option<u16> = None;
+        let mut glyph_name_index: Option<Vec<u16>> = None;
+        let mut names: Option<Vec<String>> = None;
+        if version == 0x00010000 {
+            names = Some(MAC_STANDARD_NAMES.iter().map(|s| s.to_string()).collect());
+        }
+        else if version == 0x00020000 {
+            let mut offset = 34;
+            num_glyphs = Some(
+                u16::from_be_bytes(
+                    post_bytes.get(32..34)
+                        .ok_or(ErrorKind::UnexpectedEof)?
+                        .try_into()
+                        .unwrap()
+                )
+            );
+            glyph_name_index = Some(
+                post_bytes.get(offset..offset + num_glyphs.unwrap() as usize * 2)
+                    .ok_or(ErrorKind::UnexpectedEof)?
+                    .chunks_exact(2)
+                    .map(|ch| u16::from_be_bytes(ch[0..2].try_into().unwrap())).collect()
+            );
+            let max_idx = glyph_name_index.as_ref().unwrap().iter().max().unwrap();
+            let mut extra_names: Vec<String> = Vec::with_capacity(*max_idx as usize - 257);
+            if *max_idx >= 258 {
+                offset += num_glyphs.unwrap() as usize * 2;
+                for _ in 0..(max_idx - 257) {
+                    let length = post_bytes.get(offset).ok_or(ErrorKind::UnexpectedEof)?;
+                    let string_bytes = post_bytes.get(offset + 1..offset + *length as usize).ok_or(ErrorKind::UnexpectedEof)?;
+                    extra_names.push(decode_name_bytes(string_bytes, 1, 0)?);
+                }
+            }
+            names = Some(Vec::with_capacity(num_glyphs.unwrap() as usize));
+            for idx in glyph_name_index.as_ref().unwrap() {
+                if *idx <= 257 {
+                    names.as_mut().unwrap().push(MAC_STANDARD_NAMES[*idx as usize].to_string());
+                }
+                else {
+                    names.as_mut().unwrap().push(extra_names[*idx as usize].to_string());
+                }
+            }
+        }
+        else if version == 0x00025000 {
+            return Err(Error::new(ErrorKind::InvalidData, "Version 2.5 is deprecated"))
+        }
+        else if version != 0x00030000 {
+            return Err(Error::new(ErrorKind::InvalidData, format!("Version {} is not valid", version)))
+        }
         
-        Ok(())
+        Ok(PostTable {
+            version,
+            italic_angle,
+            underline_position,
+            underline_thickness,
+            is_fixed_pitch,
+            min_mem_type_42,
+            max_mem_type_42,
+            min_mem_type_1,
+            max_mem_type_1,
+            num_glyphs,
+            glyph_name_index,
+            names
+        })
     }
     
     pub fn parse_cvt(&self) -> Result<Vec<i16>, Error> {
@@ -1440,7 +1273,18 @@ fn decode_name_bytes(bytes: &[u8], platform_id: u16, encoding_id: u16) -> Result
             
             Ok(String::from_utf16(&name_bytes).map_err(|e| Error::new(ErrorKind::InvalidData, e))?)
         }
-        1 => Err(Error::new(ErrorKind::Unsupported, "Platform 1 decoding currently unsupported")),
+        1 => {
+            match encoding_id {
+                0 => {
+                    Ok(
+                        bytes.iter()
+                            .map(|idx| MAC_ROMAN_LOOKUP[*idx as usize])
+                            .collect::<String>()
+                    )
+                }
+                _ => Err(Error::new(ErrorKind::Unsupported, "Only encoding 0 (Mac Roman) currently supported for platform 1"))
+            }
+        }
         3 => {
             match encoding_id {
                 0 | 1 | 10 => {
@@ -1726,7 +1570,7 @@ struct OS2Table {
     pub us_upper_optical_point_size: Option<u16>
 }
 
-struct PostTable<'a> {
+struct PostTable {
     pub version: u32,
     pub italic_angle: i32,
     pub underline_position: i16,
@@ -1737,6 +1581,6 @@ struct PostTable<'a> {
     pub min_mem_type_1: u32,
     pub max_mem_type_1: u32,
     pub num_glyphs: Option<u16>,
-    pub mac_standard_names: [&'a str; 258],
-    pub glyph_name_index: Option<Vec<String>>
+    pub glyph_name_index: Option<Vec<u16>>,
+    pub names: Option<Vec<String>>
 }
