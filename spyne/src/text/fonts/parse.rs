@@ -795,8 +795,8 @@ impl FontFile {
                     .ok_or(ErrorKind::UnexpectedEof)?;
                 let string = decode_name_bytes(string_bytes, platform_id, encoding_id)?;
                 
-                NameRecord { platform_id, encoding_id, language_id, name_id, length, string_offset, string }
-            }).collect();
+                Ok(NameRecord { platform_id, encoding_id, language_id, name_id, length, string_offset, string })
+            }).collect::<Result<Vec<_>, Error>>()?;
         offset += count as usize * 12;
         let mut lang_tag_count: Option<u16> = None;
         let mut lang_tag_records: Option<Vec<LangTagRecord>> = None;
@@ -815,16 +815,16 @@ impl FontFile {
                     .map(|ch| {
                         let length = u16::from_be_bytes(ch[0..2].try_into().unwrap());
                         let lang_tag_offset = u16::from_be_bytes(ch[2..4].try_into().unwrap());
-                        let string_bytes = name_bytes.get(storage_offset as usize + lang_tag_offset as usize.. storage_offset as usize + lang_tag_offset as usize + length as usize)
+                        let string_bytes: Vec<u16> = name_bytes.get(storage_offset as usize + lang_tag_offset as usize.. storage_offset as usize + lang_tag_offset as usize + length as usize)
                             .ok_or(ErrorKind::UnexpectedEof)?
                             .chunks_exact(2)
                             .map(|ch| {
                                 u16::from_be_bytes(ch[0..2].try_into().unwrap())
                             }).collect();
-                        let string = String::from_utf16(string_bytes)?;
+                        let string = String::from_utf16(&string_bytes).map_err(|e| Error::new(ErrorKind::InvalidData, e))?;
                         
-                        LangTagRecord { length, lang_tag_offset, string }
-                    }).collect()
+                        Ok(LangTagRecord { length, lang_tag_offset, string })
+                    }).collect::<Result<Vec<_>, Error>>()?
             );
         }
         
@@ -1147,7 +1147,7 @@ impl FontFile {
         Ok(
             cvt_bytes.chunks_exact(2)
                 .map(|ch| {
-                    i16::from_be_bytes(ch[0..2].try_into.unwrap())
+                    i16::from_be_bytes(ch[0..2].try_into().unwrap())
                 }).collect()
         )
     }
@@ -1165,19 +1165,21 @@ impl FontFile {
 fn decode_name_bytes(bytes: &[u8], platform_id: u16, encoding_id: u16) -> Result<String, Error> {
     match platform_id {
         0 => {
-            let name_bytes = bytes.chunks_exact(2)
-                .map(|ch| u16::from_be_bytes(ch[0..2].try_into().unwrap())).collect();
+            let name_bytes: Vec<u16> = bytes.chunks_exact(2)
+                .map(|ch| u16::from_be_bytes(ch[0..2].try_into().unwrap()))
+                .collect();
             
-            Ok(String::from_utf16(name_bytes)?)
+            Ok(String::from_utf16(&name_bytes).map_err(|e| Error::new(ErrorKind::InvalidData, e))?)
         }
         1 => Err(Error::new(ErrorKind::Unsupported, "Platform 1 decoding currently unsupported")),
         3 => {
             match encoding_id {
                 0 | 1 | 10 => {
-                    let name_bytes = bytes.chunks_exact(2)
-                        .map(|ch| u16::from_be_bytes(ch[0..2].try_into().unwrap())).collect();
+                    let name_bytes: Vec<u16> = bytes.chunks_exact(2)
+                        .map(|ch| u16::from_be_bytes(ch[0..2].try_into().unwrap()))
+                        .collect();
                     
-                    Ok(String::from_utf16(name_bytes)?)
+                    Ok(String::from_utf16(&name_bytes).map_err(|e| Error::new(ErrorKind::InvalidData, e))?)
                 }
                 _ => Err(Error::new(ErrorKind::Unsupported, "Platform 3, Encodings 2 - 9 decoding currently unsupported"))
             }
