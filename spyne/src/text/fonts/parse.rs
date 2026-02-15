@@ -919,35 +919,75 @@ impl FontFile {
             0 => {
                 let version = get_u16(bytes, 0, 2)?;
                 let n_tables = get_u16(bytes, 2, 4)?;
+                let mut subtables: Vec<WindowsSubtable> = Vec::with_capacity(n_tables as usize);
+                let mut offset: usize = 4;
+                let mut subtable_start: usize;
                 for _ in 0..n_tables {
-                    let version = get_u16(bytes, 4, 6)?;
-                    let length = get_u16(bytes, 6, 8)?;
-                    let coverage = get_u16(bytes, 8, 10)?;
-                    match coverage >> 8 {
-                        0 => parse_kern_format0(bytes[10..]),
-                        2 => parse_kern_format2(bytes[10..]),
-                        _ => return Err(Error::new(ErrorKind::Unsupported, format!("Format {} currently unsupported", coverage >> 8)))
-                    }
+                    subtable_start = offset;
+                    let version = get_u16(bytes, offset, offset + 2)?;
+                    let length = get_u16(bytes, offset + 2, offset + 4)?;
+                    let coverage = get_u16(bytes, offset + 4, offset + 6)?;
+                    offset += 6;
+                    let subtable = match coverage >> 8 {
+                        0 => parse_kern_format0(&bytes[offset..]),
+                        2 => parse_kern_format2(&bytes[offset..], subtable_start, length as usize),
+                        _ => {
+                            offset += length as usize - 6;
+                            continue;
+                        }
+                    }?;
+                    
+                    subtables.push(WindowsSubtable {
+                        version,
+                        length,
+                        coverage,
+                        subtable
+                    });
                 }
+                
+                Ok(KernTable::Windows {
+                    version,
+                    n_tables,
+                    subtables
+                })
             }
             1 => {
                 let version = get_u32(bytes, 0, 4)?;
                 let n_tables = get_u32(bytes, 4, 8)?;
+                let mut offset: usize = 8;
+                let mut subtable_start: usize;
+                let mut subtables: Vec<MacSubtable> = Vec::with_capacity(n_tables as usize);
                 for _ in 0..n_tables {
-                    let length = get_u32(bytes, 8, 12)?;
-                    let coverage = get_u16(bytes, 12, 14)?;
-                    let tuple_index = get_u16(bytes, 14, 16)?;
-                    match coverage & 0xFF {
-                        0 => parse_kern_format0(bytes[16..]),
-                        2 => parse_kern_format2(bytes[16..]),
-                        _ => return Err(Error::new(ErrorKind::Unsupported, format!("Format {} currently unsupported", coverage & 0xFF)))
-                    }
+                    subtable_start = offset;
+                    let length = get_u32(bytes, offset, offset + 4)?;
+                    let coverage = get_u16(bytes, offset + 4, offset + 6)?;
+                    let tuple_index = get_u16(bytes, offset + 6, offset + 8)?;
+                    offset += 8;
+                    let subtable = match coverage & 0xFF {
+                        0 => parse_kern_format0(&bytes[offset..]),
+                        2 => parse_kern_format2(&bytes[offset..], subtable_start, length as usize),
+                        _ => {
+                            offset += length as usize - 8;
+                            continue;
+                        }
+                    }?;
+                    
+                    subtables.push(MacSubtable {
+                        length,
+                        coverage,
+                        tuple_index,
+                        subtable
+                    });
                 }
+                
+                Ok(KernTable::Mac {
+                    version,
+                    n_tables,
+                    subtables
+                })
             }
-            _ => return Err(Error::new(ErrorKind::InvalidData, format!("Invalid version number: {}", version_test)))
+            _ => Err(Error::new(ErrorKind::InvalidData, format!("Invalid version number: {}", version_test)))
         }
-        
-        Ok(())
     }
     
     pub fn parse_gasp(&self) -> Result<GaspTable, Error> {
@@ -992,11 +1032,93 @@ impl FontFile {
 }
 
 fn parse_kern_format0(bytes: &[u8]) -> Result<KernSubtable, Error> {
+    let n_pairs = get_u16(bytes, 0, 2)?;
+    let search_range = get_u16(bytes, 2, 4)?;
+    let entry_selector = get_u16(bytes, 4, 6)?;
+    let range_shift = get_u16(bytes, 6, 8)?;
+    let pairs: Vec<KernPair> = bytes.get(8..8 + n_pairs as usize * 6)
+        .ok_or(ErrorKind::UnexpectedEof)?
+        .chunks_exact(6)
+        .map(|ch| {
+            let left = get_u16(ch, 0, 2)?;
+            let right = get_u16(ch, 2, 4)?;
+            let value = get_i16(ch, 4, 6)?;
+            
+            Ok(KernPair { left, right, value })
+        }).collect::<Result<Vec<_>, Error>>()?;
     
+    Ok(KernSubtable::Format0 {
+        n_pairs,
+        search_range,
+        entry_selector,
+        range_shift,
+        pairs
+    })
 }
 
-fn parse_kern_format2(bytes: &[u8]) -> Result<KernSubtable, Error> {
+fn parse_kern_format2(bytes: &[u8], subtable_start: usize, length: usize) -> Result<KernSubtable, Error> {
+    let mut offset = 0;
+    let row_width = get_u16(bytes, offset, offset + 2)?;
+    let left_offset = get_u16(bytes, offset + 2, offset + 4)?;
+    let right_offset = get_u16(bytes, offset + 4, offset + 6)?;
+    let array_offset = get_u16(bytes, offset + 6, offset + 8)?;
+    offset = subtable_start + left_offset as usize;
+    let left_class_format = get_u16(bytes, offset, offset + 2)?;
+    let left_class_table = parse_kern_class(bytes, left_class_format, offset)?;
+    offset = subtable_start + right_offset as usize;
+    let right_class_format = get_u16(bytes, offset, offset + 2)?;
+    let right_class_table = parse_kern_class(bytes, right_class_format, offset)?;
+    offset = subtable_start + array_offset as usize;
+    let kerning_array: Vec<i16> = bytes.get(offset..offset + length)
+        .ok_or(ErrorKind::UnexpectedEof)?
+        .chunks_exact(2)
+        .map(|ch| Ok(get_i16(ch, 0, 2)?))
+        .collect::<Result<Vec<_>, Error>>()?;
     
+    Ok(KernSubtable::Format2 {
+        row_width,
+        left_offset,
+        right_offset,
+        array_offset,
+        left_class_table,
+        right_class_table,
+        kerning_array
+    })
+}
+
+fn parse_kern_class(bytes: &[u8], class_format: u16, offset: usize) -> Result<KernClassTable, Error> {
+    let mut offset = offset;
+    match class_format {
+        1 => {
+            let start_glyph = get_u16(bytes, offset + 2, offset + 4)?;
+            let glyph_count = get_u16(bytes, offset + 4, offset + 6)?;
+            offset += 6;
+            let class_ids: Vec<u16> = bytes.get(offset..offset + glyph_count as usize * 2)
+                .ok_or(ErrorKind::UnexpectedEof)?
+                .chunks_exact(2)
+                .map(|ch| Ok(get_u16(ch, 0, 2)?))
+                .collect::<Result<Vec<_>, Error>>()?;
+            
+            Ok(KernClassTable::Format1 { start_glyph, glyph_count, class_ids })
+        }
+        2 => {
+            let range_count = get_u16(bytes, offset, offset + 2)?;
+            offset += 2;
+            let ranges: Vec<Range> = bytes.get(offset..offset + range_count as usize * 6)
+                .ok_or(ErrorKind::UnexpectedEof)?
+                .chunks_exact(6)
+                .map(|ch| {
+                    let start_glyph = get_u16(bytes, 0, 2)?;
+                    let end_glyph = get_u16(bytes, 2, 4)?;
+                    let class = get_u16(bytes, 4, 6)?;
+                    
+                    Ok(Range { start_glyph, end_glyph, class })
+                }).collect::<Result<Vec<_>, Error>>()?;
+            
+            Ok(KernClassTable::Format2 { range_count, ranges })
+        }
+        _ => Err(Error::new(ErrorKind::InvalidData, format!("Class table format invalid: {}", class_format)))
+    }
 }
 
 fn get_u16(bytes: &[u8], start: usize, end: usize) -> Result<u16, Error> {
@@ -1424,27 +1546,27 @@ pub enum KernTable {
     Windows {
         version: u16,
         n_tables: u16,
-        subtable_headers: Vec<WindowsSubtable>,
-        subtables: Vec<KernSubtable>
+        subtables: Vec<WindowsSubtable>,
     },
     Mac {
         version: u32,
         n_tables: u32,
-        subtable_headers: Vec<MacSubtable>,
-        subtables: Vec<KernSubtable>
+        subtables: Vec<MacSubtable>,
     }
 }
 
 struct WindowsSubtable {
     version: u16,
     length: u16,
-    coverage: u16
+    coverage: u16,
+    subtable: KernSubtable
 }
 
 struct MacSubtable {
     length: u32,
     coverage: u16,
-    tuple_index: u16
+    tuple_index: u16,
+    subtable: KernSubtable
 }
 
 pub enum KernSubtable {
@@ -1460,7 +1582,9 @@ pub enum KernSubtable {
         left_offset: u16,
         right_offset: u16,
         array_offset: u16,
-        classes: Vec<KernClass>
+        left_class_table: KernClassTable,
+        right_class_table: KernClassTable,
+        kerning_array: Vec<i16>
     }
 }
 
@@ -1470,7 +1594,7 @@ struct KernPair {
     pub value: i16
 }
 
-pub enum KernClass {
+pub enum KernClassTable {
     Format1 {
         start_glyph: u16,
         glyph_count: u16,
@@ -1478,11 +1602,11 @@ pub enum KernClass {
     },
     Format2 {
         range_count: u16,
-        ranges: Vec<Ranges>
+        ranges: Vec<Range>
     }
 }
 
-struct Ranges {
+struct Range {
     pub start_glyph: u16,
     pub end_glyph: u16,
     pub class: u16
