@@ -20,6 +20,12 @@ pub const OVERLAP_COMPOUND: u16 = 0x0400;
 pub const SCALED_COMPONENT_OFFSET: u16 = 0x0800;
 pub const UNSCALED_COMPONENT_OFFSET: u16 = 0x1000;
 
+// Range behavior (gasp table)
+pub const GASP_GRIDFIT: u16 = 0x0001;
+pub const GASP_DOGRAY: u16 = 0x0002;
+pub const GASP_SYMMETRIC_GRIDFIT: u16 = 0x0004;
+pub const GASP_SYMMETRIC_SMOOTHING: u16 = 0x0008;
+
 pub static MAC_STANDARD_NAMES: [&str; 258] = [
     ".notdef",
     ".null",
