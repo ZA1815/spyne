@@ -998,14 +998,14 @@ impl FontFile {
             return Err(Error::new(ErrorKind::InvalidData, format!("Version number is not 0 or 1: {}", version)))
         }
         let num_ranges = get_u16(bytes, 2, 4)?;
-        let range_records: Vec<RangeRecord> = bytes.get(4..4 + num_ranges as usize * 4)
+        let range_records: Vec<GaspRangeRecord> = bytes.get(4..4 + num_ranges as usize * 4)
             .ok_or(ErrorKind::UnexpectedEof)?
             .chunks_exact(4)
             .map(|ch| {
                 let range_max_ppem = get_u16(ch, 0, 2)?;
                 let range_gasp_behavior = get_u16(ch, 2, 4)?;
                 
-                Ok(RangeRecord { range_max_ppem, range_gasp_behavior })
+                Ok(GaspRangeRecord { range_max_ppem, range_gasp_behavior })
             }).collect::<Result<Vec<_>, Error>>()?;
         
         Ok(GaspTable { version, num_ranges, range_records })
@@ -1028,6 +1028,12 @@ impl FontFile {
     
     pub fn parse_prep(&self) -> Result<Vec<u8>, Error> {
         Ok(self.get_table(b"prep")?.to_vec())
+    }
+    
+    pub fn parse_gpos(&self) -> Result<GposTable, Error> {
+    }
+    
+    pub fn parse_gsub(&self) -> Result<GsubTable, Error> {
     }
 }
 
@@ -1108,9 +1114,9 @@ fn parse_kern_class(bytes: &[u8], class_format: u16, offset: usize) -> Result<Ke
                 .ok_or(ErrorKind::UnexpectedEof)?
                 .chunks_exact(6)
                 .map(|ch| {
-                    let start_glyph = get_u16(bytes, 0, 2)?;
-                    let end_glyph = get_u16(bytes, 2, 4)?;
-                    let class = get_u16(bytes, 4, 6)?;
+                    let start_glyph = get_u16(ch, 0, 2)?;
+                    let end_glyph = get_u16(ch, 2, 4)?;
+                    let class = get_u16(ch, 4, 6)?;
                     
                     Ok(Range { start_glyph, end_glyph, class })
                 }).collect::<Result<Vec<_>, Error>>()?;
@@ -1615,10 +1621,761 @@ struct Range {
 struct GaspTable {
     pub version: u16,
     pub num_ranges: u16,
-    pub range_records: Vec<RangeRecord>
+    pub range_records: Vec<GaspRangeRecord>
 }
 
-struct RangeRecord {
+struct GaspRangeRecord {
     pub range_max_ppem: u16,
     pub range_gasp_behavior: u16
+}
+
+struct GposTable {
+    pub header: TableHeader,
+    pub script_list: ScriptList,
+    pub feature_list: FeatureList,
+    pub lookup_list: LookupList,
+    pub feature_variations: Option<FeatureVariations>
+}
+
+struct GsubTable {
+    pub header: TableHeader,
+    pub script_list: ScriptList,
+    pub feature_list: FeatureList,
+    pub lookup_list: LookupList,
+    pub feature_variations: Option<FeatureVariations>
+}
+
+struct TableHeader {
+    pub major_version: u16,
+    pub minor_version: u16,
+    pub script_list_offset: u16,
+    pub feature_list_offset: u16,
+    pub lookup_list_offset: u16,
+    pub feature_variations_offset: Option<u32>
+}
+
+struct ScriptList {
+    pub script_count: u16,
+    pub script_records: Vec<ScriptRecord>,
+}
+
+struct ScriptRecord {
+    pub script_tag: [u8; 4],
+    pub script_offset: u16,
+    pub script: Script
+}
+
+struct Script {
+    pub default_lang_sys_offset: Option<u16>,
+    pub default_lang_sys: Option<LangSys>,
+    pub lang_sys_count: u16,
+    pub lang_sys_records: Vec<LangSysRecord>,
+}
+
+struct LangSysRecord {
+    pub lang_sys_tag: [u8; 4],
+    pub lang_sys_offset: u16,
+    pub lang_sys: LangSys
+}
+
+struct LangSys {
+    _lookup_order_offset: u16,
+    pub required_feature_index: u16,
+    pub feature_index_count: u16,
+    pub feature_indices: Vec<u16>
+}
+
+struct FeatureList {
+    pub feature_count: u16,
+    pub feature_records: Vec<FeatureRecord>,
+}
+
+struct FeatureRecord {
+    pub feature_tag: [u8; 4],
+    pub feature_offset: u16,
+    pub feature: Feature
+}
+
+struct Feature {
+    pub feature_params_offset: Option<u16>,
+    pub feature_params: Option<FeatureParams>,
+    pub lookup_index_count: u16,
+    pub lookup_list_indices: Vec<u16>
+}
+
+struct LookupList {
+    pub lookup_count: u16,
+    pub lookup_offsets: Vec<u16>,
+    pub lookups: Vec<Lookup>
+}
+
+struct Lookup {
+    pub lookup_type: u16,
+    pub lookup_flag: u16,
+    pub subtable_count: u16,
+    pub subtable_offsets: Vec<u16>,
+    pub mark_filtering_set: Option<u16>
+}
+
+struct FeatureVariations {
+    pub major_version: u16,
+    pub minor_version: u16,
+    pub feature_variation_record_count: u32,
+    pub feature_variation_records: Vec<FeatureVariationRecord>
+}
+
+struct FeatureVariationRecord {
+    pub condition_set_offset: u32,
+    pub condition_set: ConditionSet,
+    pub feature_table_substitution_offset: u32,
+    pub feature_table_substitution: FeatureTableSubstitution
+}
+
+struct ConditionSet {
+    pub condition_count: u16,
+    pub condition_offsets: Vec<u32>,
+    pub conditions: Vec<Condition>
+}
+
+pub enum Condition {
+    Format1 {
+        axis_index: u16,
+        filter_range_min_value: i16,
+        filter_range_max_value: i16
+    }
+}
+
+struct FeatureTableSubstitution {
+    pub major_version: u16,
+    pub minor_version: u16,
+    pub substitution_count: u16,
+    pub substitution_records: Vec<FeatureTableSubstitutionRecord>
+}
+
+struct FeatureTableSubstitutionRecord {
+    pub feature_index: u16,
+    pub alternate_feature_table_offset: u32,
+    pub alternate_feature_table: Feature
+}
+
+pub enum Coverage {
+    Format1 {
+        glyph_count: u16,
+        glyph_array: Vec<u16>
+    },
+    Format2 {
+        range_count: u16,
+        range_records: Vec<CoverageRangeRecord>
+    }
+}
+
+struct CoverageRangeRecord {
+    pub start_glyph_id: u16,
+    pub end_glyph_id: u16,
+    pub start_coverage_index: u16
+}
+
+pub enum ClassDef {
+    Format1 {
+        start_glyph_id: u16,
+        glyph_count: u16,
+        class_value_array: Vec<u16>
+    },
+    Format2 {
+        class_range_count: u16,
+        class_range_records: Vec<ClassRangeRecord>
+    }
+}
+
+struct ClassRangeRecord {
+    pub start_glyph_id: u16,
+    pub end_glyph_id: u16,
+    pub class: u16
+}
+
+struct Device {
+    pub start_size: u16,
+    pub end_size: u16,
+    pub delta_format: u16,
+    pub delta_values: Vec<u16>
+}
+
+struct VariationIndexTable {
+    pub delta_set_outer_index: u16,
+    pub delta_set_inner_index: u16,
+    pub delta_format: u16
+}
+
+struct ValueRecord {
+    pub x_placement: Option<i16>,
+    pub y_placement: Option<i16>,
+    pub x_advance: Option<i16>,
+    pub y_advance: Option<i16>,
+    pub x_pla_device_offset: Option<u16>,
+    pub x_pla_device: Option<Device>,
+    pub y_pla_device_offset: Option<u16>,
+    pub y_play_device: Option<Device>,
+    pub x_adv_device_offset: Option<u16>,
+    pub x_adv_device: Option<Device>,
+    pub y_adv_device_offset: Option<u16>,
+    pub y_adv_device: Option<Device>
+}
+
+pub enum Anchor {
+    Format1 {
+        x_coordinate: i16,
+        y_coordinate: i16
+    },
+    Format2 {
+        x_coordinate: i16,
+        y_coordinate: i16,
+        anchor_point: u16
+    },
+    Format3 {
+        x_coordinate: i16,
+        y_coordinate: i16,
+        x_device_offset: u16,
+        x_device: Device,
+        y_device_offset: u16,
+        y_device: Device
+    }
+}
+
+struct MarkArray {
+    pub mark_count: u16,
+    pub mark_records: Vec<MarkRecord>
+}
+
+struct MarkRecord {
+    pub mark_class: u16,
+    pub mark_anchor_offset: u16,
+    pub mark_anchor: Anchor
+}
+
+pub enum GposSubtable {
+    Type1(GposType1Format),
+    Type2(GposType2Format),
+    Type3(GposType3Format),
+    Type4(GposType4Format),
+    Type5(GposType5Format),
+    Type6(GposType6Format),
+    Type7(GposType7Format),
+    Type8(GposType8Format),
+    Type9(GposType9Format)
+}
+
+pub enum GposType1Format {
+    Format1 {
+        coverage_offset: u16,
+        coverage: Coverage,
+        value_format: u16,
+        value_record: ValueRecord
+    },
+    Format2 {
+        coverage_offset: u16,
+        coverage: Coverage,
+        value_format: u16,
+        value_count: u16,
+        value_records: Vec<ValueRecord>
+    }
+}
+
+pub enum GposType2Format {
+    Format1 {
+        coverage_offset: u16,
+        coverage: Coverage,
+        value_format1: u16,
+        value_format2: u16,
+        pair_set_count: u16,
+        pair_set_offsets: Vec<u16>,
+        pair_sets: Vec<PairSetTable>
+    },
+    Format2 {
+        coverage_offset: u16,
+        coverage: Coverage,
+        value_format1: u16,
+        value_format2: u16,
+        class_def1_offset: u16,
+        class_def1: ClassDef,
+        class_def2_offset: u16,
+        class_def2: ClassDef,
+        class1_count: u16,
+        class2_count: u16,
+        class1_records: Vec<Class1Record>
+    }
+}
+
+struct PairSetTable {
+    pub pair_value_count: u16,
+    pub pair_value_records: Vec<PairValueRecord>
+}
+
+struct PairValueRecord {
+    pub second_glyph: u16,
+    pub value_record1: ValueRecord,
+    pub value_record2: ValueRecord
+}
+
+struct Class1Record {
+    pub class2_records: Vec<Class2Record>
+}
+
+struct Class2Record {
+    pub value_record1: ValueRecord,
+    pub value_record2: ValueRecord
+}
+
+pub enum GposType3Format {
+    Format1 {
+        coverage_offset: u16,
+        coverage: Coverage,
+        entry_exit_count: u16,
+        entry_exit_records: Vec<EntryExitRecord>
+    }
+}
+
+struct EntryExitRecord {
+    pub entry_anchor_offset: Option<u16>,
+    pub entry_anchor: Option<Anchor>,
+    pub exit_anchor_offset: Option<u16>,
+    pub exit_anchor: Option<Anchor>
+}
+
+pub enum GposType4Format {
+    Format1 {
+        mark_coverage_offset: u16,
+        mark_coverage: Coverage,
+        base_coverage_offset: u16,
+        base_coverage: Coverage,
+        mark_class_count: u16,
+        mark_array_offset: u16,
+        mark_array: MarkArray,
+        base_array_offset: u16,
+        base_array: BaseArrayTable
+    }
+}
+
+struct BaseArrayTable {
+    pub base_count: u16,
+    pub base_records: Vec<BaseRecord>
+}
+
+struct BaseRecord {
+    pub base_anchor_offsets: Vec<u16>,
+    pub base_anchors: Vec<Anchor>
+}
+
+pub enum GposType5Format {
+    Format1 {
+        mark_coverage_offset: u16,
+        mark_coverage: Coverage,
+        ligature_coverage_offset: u16,
+        ligature_coverage: Coverage,
+        mark_class_count: u16,
+        mark_array_offset: u16,
+        mark_array: MarkArray,
+        ligature_array_offset: u16,
+        ligature_array: LigatureArray
+    }
+}
+
+struct LigatureArray {
+    pub ligature_count: u16,
+    pub ligature_attach_offsets: Vec<u16>,
+    pub ligature_attaches: Vec<LigatureAttach>
+}
+
+struct LigatureAttach {
+    pub component_count: u16,
+    pub component_records: Vec<ComponentRecord>
+}
+
+struct ComponentRecord {
+    pub ligature_anchor_offsets: Vec<u16>,
+    pub ligature_anchors: Vec<Anchor>
+}
+
+pub enum GposType6Format {
+    Format1 {
+        mark1_coverage_offset: u16,
+        mark1_coverage: Coverage,
+        mark2_coverage_offset: u16,
+        mark2_coverage: Coverage,
+        mark_class_count: u16,
+        mark1_array_offset: u16,
+        mark1_array: MarkArray,
+        mark2_array_offset: u16,
+        mark2_array: Mark2ArrayTable
+    }
+}
+
+struct Mark2ArrayTable {
+    pub mark2_count: u16,
+    pub mark2_records: Vec<Mark2Record>
+}
+
+struct Mark2Record {
+    pub mark2_anchor_offsets: Vec<u16>,
+    pub mark2_anchors: Vec<Anchor>
+}
+
+pub enum GposType7Format {
+    Format1 {
+        coverage_offset: u16,
+        coverage: Coverage,
+        sub_rule_set_count: u16,
+        sub_rule_set_offsets: Vec<u16>,
+        sub_rule_sets: Vec<GposSubRuleSet>
+    },
+    Format2 {
+        coverage_offset: u16,
+        coverage: Coverage,
+        class_def_offset: u16,
+        class_def: ClassDef,
+        sub_class_set_count: u16,
+        sub_class_set_offsets: Vec<u16>,
+        sub_class_sets: Vec<GposSubClassSet>
+    },
+    Format3 {
+        glyph_count: u16,
+        sub_count: u16,
+        coverage_offsets: Vec<u16>,
+        coverages: Vec<Coverage>,
+        pos_lookup_records: Vec<PosLookupRecord>
+    }
+}
+
+struct GposSubRuleSet {
+    pub sub_rule_count: u16,
+    pub sub_rule_offsets: Vec<u16>,
+    pub sub_rules: Vec<GposSubRule>
+}
+
+struct GposSubRule {
+    pub glyph_count: u16,
+    pub sub_count: u16,
+    pub input_glyph_ids: Vec<u16>,
+    pub pos_lookup_records: Vec<PosLookupRecord>
+}
+
+struct PosLookupRecord {
+    pub glyph_sequence_index: u16,
+    pub lookup_list_index: u16
+}
+
+struct GposSubClassSet {
+    pub sub_class_rule_count: u16,
+    pub sub_class_rule_offsets: Vec<u16>,
+    pub sub_class_rules: Vec<GposSubClassRule>
+}
+
+struct GposSubClassRule {
+    pub glyph_count: u16,
+    pub sub_count: u16,
+    pub class_ids: Vec<u16>,
+    pub pos_lookup_records: Vec<PosLookupRecord>
+}
+
+pub enum GposType8Format {
+    Format1 {
+        coverage_offset: u16,
+        coverage: Coverage,
+        chain_sub_rule_set_count: u16,
+        chain_sub_rule_set_offsets: Vec<u16>,
+        chain_sub_rule_sets: Vec<ChainSubRuleSet>
+    },
+    Format2 {
+        coverage_offset: u16,
+        coverage: Coverage,
+        backtrack_class_def_offset: u16,
+        backtrack_class_def: ClassDef,
+        input_class_def_offset: u16,
+        input_class_def: ClassDef,
+        lookahead_class_def_offset: u16,
+        lookahead_class_def: ClassDef,
+        chain_sub_class_set_count: u16,
+        chain_sub_class_set_offsets: Vec<u16>,
+        chain_sub_class_sets: Vec<ChainSubClassSet>
+    },
+    Format3 {
+        backtrack_glyph_count: u16,
+        backtrack_coverage_offsets: Vec<u16>,
+        backtrack_coverages: Vec<Coverage>,
+        input_glyph_count: u16,
+        input_coverage_offsets: Vec<u16>,
+        input_coverages: Vec<Coverage>,
+        lookahead_glyph_count: u16,
+        lookahead_coverage_offsets: Vec<u16>,
+        lookahead_coverages: Vec<Coverage>,
+        sub_count: u16,
+        pos_lookup_records: Vec<PosLookupRecord>
+    }
+}
+
+struct ChainSubRuleSet {
+    pub chain_sub_rule_count: u16,
+    pub chain_sub_rule_offsets: Vec<u16>,
+    pub chain_sub_rules: Vec<GposChainSubRule>
+}
+
+struct GposChainSubRule {
+    pub backtrack_glyph_count: u16,
+    pub backtrack_glyph_ids: Vec<u16>,
+    pub input_glyph_count: u16,
+    pub input_glyph_ids: Vec<u16>,
+    pub lookahead_glyph_count: u16,
+    pub lookahead_glyph_ids: Vec<u16>,
+    pub sub_count: u16,
+    pub pos_lookup_records: Vec<PosLookupRecord>
+}
+
+struct ChainSubClassSet {
+    pub chain_sub_class_rule_count: u16,
+    pub chain_sub_class_rule_offsets: Vec<u16>,
+    pub chain_sub_class_rules: Vec<GposChainSubClassRule>
+}
+
+struct GposChainSubClassRule {
+    pub backtrack_glyph_count: u16,
+    pub backtrack_class_ids: Vec<u16>,
+    pub input_glyph_count: u16,
+    pub input_class_ids: Vec<u16>,
+    pub lookahead_glyph_count: u16,
+    pub lookahead_class_ids: Vec<u16>,
+    pub sub_count: u16,
+    pub pos_lookup_records: Vec<PosLookupRecord>
+}
+
+pub enum GposType9Format {
+    Format1 {
+        extension_lookup_type: u16,
+        extension_offset: u32,
+        extension: Box<GposSubtable>
+    }
+}
+
+pub enum GsubSubtable {
+    Type1(GsubType1Format),
+    Type2(GsubType2Format),
+    Type3(GsubType3Format),
+    Type4(GsubType4Format),
+    Type5(GsubType5Format),
+    Type6(GsubType6Format),
+    Type7(GsubType7Format),
+    Type8(GsubType8Format)
+}
+
+pub enum GsubType1Format {
+    Format1 {
+        coverage_offset: u16,
+        coverage: Coverage,
+        delta_glyph_id: i16
+    },
+    Format2 {
+        coverage_offset: u16,
+        coverage: Coverage,
+        glyph_count: u16,
+        substitute_glyph_ids: Vec<u16>
+    }
+}
+
+pub enum GsubType2Format {
+    Format1 {
+        coverage_offset: u16,
+        coverage: Coverage,
+        sequence_count: u16,
+        sequence_offsets: Vec<u16>,
+        sequences: Vec<Sequence>
+    }
+}
+
+struct Sequence {
+    pub glyph_count: u16,
+    pub substitute_glyph_ids: Vec<u16>
+}
+
+pub enum GsubType3Format {
+    Format1 {
+        coverage_offset: u16,
+        coverage: Coverage,
+        alternate_set_count: u16,
+        alternate_set_offsets: Vec<u16>,
+        alternate_sets: Vec<AlternateSet>
+    }
+}
+
+struct AlternateSet {
+    pub glyph_count: u16,
+    pub alternate_glyph_ids: Vec<u16>
+}
+
+pub enum GsubType4Format {
+    Format1 {
+        coverage_offset: u16,
+        coverage: Coverage,
+        ligature_set_count: u16,
+        ligature_set_offsets: Vec<u16>,
+        ligature_sets: Vec<LigatureSet>
+    }
+}
+
+struct LigatureSet {
+    pub ligature_count: u16,
+    pub ligature_offsets: Vec<u16>
+}
+
+struct Ligature {
+    pub ligature_glyph: u16,
+    pub component_count: u16,
+    pub component_glyph_ids: Vec<u16>
+}
+
+pub enum GsubType5Format {
+    Format1 {
+        coverage_offset: u16,
+        coverage: Coverage,
+        sub_rule_set_count: u16,
+        sub_rule_set_offsets: Vec<u16>,
+        sub_rule_sets: Vec<GsubSubRuleSet>
+    },
+    Format2 {
+        coverage_offset: u16,
+        coverage: Coverage,
+        class_def_offset: u16,
+        class_def: ClassDef,
+        sub_class_set_count: u16,
+        sub_class_set_offsets: Vec<u16>,
+        sub_class_sets: Vec<GsubSubClassSet>
+    },
+    Format3 {
+        glyph_count: u16,
+        sub_count: u16,
+        coverage_offsets: Vec<u16>,
+        coverages: Vec<Coverage>,
+        subst_lookup_records: Vec<SubstLookupRecord>
+    }
+}
+
+struct GsubSubRuleSet {
+    pub sub_rule_count: u16,
+    pub sub_rule_offsets: Vec<u16>,
+    pub sub_rules: Vec<GsubSubRule>
+}
+
+struct GsubSubRule {
+    pub glyph_count: u16,
+    pub sub_count: u16,
+    pub input_glyph_ids: Vec<u16>,
+    pub subst_lookup_records: Vec<SubstLookupRecord>
+}
+
+struct SubstLookupRecord {
+    pub glyph_sequence_index: u16,
+    pub lookup_list_index: u16
+}
+
+struct GsubSubClassSet {
+    pub sub_class_rule_count: u16,
+    pub sub_class_rule_offsets: Vec<u16>,
+    pub sub_class_rules: Vec<GsubSubClassRule>
+}
+
+struct GsubSubClassRule {
+    pub glyph_count: u16,
+    pub sub_count: u16,
+    pub class_ids: Vec<u16>,
+    pub subst_lookup_records: Vec<SubstLookupRecord>
+}
+
+pub enum GsubType6Format {
+    Format1 {
+        coverage_offset: u16,
+        coverage: Coverage,
+        chain_sub_rule_set_count: u16,
+        chain_sub_rule_set_offsets: Vec<u16>,
+        chain_sub_rule_sets: Vec<GsubChainSubRuleSet>
+    },
+    Format2 {
+        coverage_offset: u16,
+        coverage: Coverage,
+        backtrack_class_def_offset: u16,
+        backtrack_class_def: ClassDef,
+        input_class_def_offset: u16,
+        input_class_def: ClassDef,
+        lookahead_class_def_offset: u16,
+        lookahead_class_def: ClassDef,
+        chain_sub_class_set_count: u16,
+        chain_sub_class_set_offsets: Vec<u16>,
+        chain_sub_class_sets: Vec<GsubChainSubClassSet>
+    },
+    Format3 {
+        backtrack_glyph_count: u16,
+        backtrack_coverage_offsets: Vec<u16>,
+        backtrack_coverages: Vec<Coverage>,
+        input_glyph_count: u16,
+        input_coverage_offsets: Vec<u16>,
+        input_coverages: Vec<Coverage>,
+        lookahead_glyph_count: u16,
+        lookahead_coverage_offsets: Vec<u16>,
+        lookahead_coverages: Vec<Coverage>,
+        sub_count: u16,
+        subst_lookup_records: Vec<SubstLookupRecord>
+    }
+}
+
+struct GsubChainSubRuleSet {
+    pub chain_sub_rule_count: u16,
+    pub chain_sub_rule_offsets: Vec<u16>,
+    pub chain_sub_rules: Vec<GsubChainSubRule>
+}
+
+struct GsubChainSubRule {
+    pub backtrack_glyph_count: u16,
+    pub backtrack_glyph_ids: Vec<u16>,
+    pub input_glyph_count: u16,
+    pub input_glyph_ids: Vec<u16>,
+    pub lookahead_glyph_count: u16,
+    pub lookahead_glyph_ids: Vec<u16>,
+    pub sub_count: u16,
+    pub subst_lookup_records: Vec<SubstLookupRecord>
+}
+
+struct GsubChainSubClassSet {
+    pub chain_sub_class_rule_count: u16,
+    pub chain_sub_class_rule_offsets: Vec<u16>,
+    pub chain_sub_class_rules: Vec<GsubChainSubClassRule>
+}
+
+struct GsubChainSubClassRule {
+    pub backtrack_glyph_count: u16,
+    pub backtrack_class_ids: Vec<u16>,
+    pub input_glyph_count: u16,
+    pub input_class_ids: Vec<u16>,
+    pub lookahead_glyph_count: u16,
+    pub lookahead_class_ids: Vec<u16>,
+    pub sub_count: u16,
+    pub subst_lookup_records: Vec<SubstLookupRecord>
+}
+
+pub enum GsubType7Format {
+    Format1 {
+        extension_lookup_type: u16,
+        extension_offset: u32,
+        extension: Box<GsubSubtable>
+    }
+}
+
+pub enum GsubType8Format {
+    Format1 {
+        coverage_offset: u16,
+        coverage: Coverage,
+        backtrack_glyph_count: u16,
+        backtrack_coverage_offsets: Vec<u16>,
+        backtrack_coverages: Vec<Coverage>,
+        lookahead_glyph_count: u16,
+        lookahead_coverage_offsets: Vec<u16>,
+        lookahead_coverages: Vec<Coverage>,
+        glyph_count: u16,
+        substitute_glyph_ids: Vec<u16>
+    }
 }

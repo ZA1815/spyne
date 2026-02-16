@@ -26,6 +26,14 @@ pub const GASP_DOGRAY: u16 = 0x0002;
 pub const GASP_SYMMETRIC_GRIDFIT: u16 = 0x0004;
 pub const GASP_SYMMETRIC_SMOOTHING: u16 = 0x0008;
 
+// Lookup Flags (GPOS and GSUB tables)
+pub const RIGHT_TO_LEFT: u16 = 0x0001;
+pub const IGNORE_BASE_GLYPHS: u16 = 0x0002;
+pub const IGNORE_LIGATURES: u16 = 0x0004;
+pub const IGNORE_MARKS: u16 = 0x0008;
+pub const USE_MARK_FILTERING_SET: u16 = 0x0010;
+pub const MARK_ATTACHMENT_TYPE_MASK: u16 = 0xFF00;
+
 pub static MAC_STANDARD_NAMES: [&str; 258] = [
     ".notdef",
     ".null",
