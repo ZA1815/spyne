@@ -1031,9 +1031,95 @@ impl FontFile {
     }
     
     pub fn parse_gpos(&self) -> Result<GposTable, Error> {
+        let bytes = self.get_table(b"GPOS")?;
+        let mut offset: usize = 0;
+        
+        let major_version = get_u16(bytes, 0, 2)?;
+        let minor_version = get_u16(bytes, 2, 4)?;
+        let script_list_offset = get_u16(bytes, 4, 6)?;
+        let feature_list_offset = get_u16(bytes, 6, 8)?;
+        let lookup_list_offset = get_u16(bytes, 8, 10)?;
+        offset += 10;
+        let feature_variations_offset: Option<u32>;
+        if minor_version >= 1 {
+            feature_variations_offset = Some(get_u32(bytes, offset, offset + 4)?);
+            offset += 4;
+        }
+        else {
+            feature_variations_offset = None;
+        }
+        let header = TableHeader {
+            major_version,
+            minor_version,
+            script_list_offset,
+            feature_list_offset,
+            lookup_list_offset,
+            feature_variations_offset
+        };
+        let script_list = parse_script_list(bytes, script_list_offset)?;
+        let feature_list = parse_feature_list(bytes, feature_list_offset)?;
+        let lookup_list = parse_lookup_list(bytes, lookup_list_offset)?;
+        let feature_variations: Option<FeatureVariations>;
+        if feature_variations_offset != None {
+            feature_variations = parse_feature_variations(bytes, feature_variations_offset.unwrap())?;
+        }
+        else {
+            feature_variations = None;
+        }
+        
+        Ok(GposTable {
+            header,
+            script_list,
+            feature_list,
+            lookup_list,
+            feature_variations
+        })
     }
     
     pub fn parse_gsub(&self) -> Result<GsubTable, Error> {
+        let bytes = self.get_table(b"GSUB")?;
+        let mut offset: usize = 0;
+        
+        let major_version = get_u16(bytes, 0, 2)?;
+        let minor_version = get_u16(bytes, 2, 4)?;
+        let script_list_offset = get_u16(bytes, 4, 6)?;
+        let feature_list_offset = get_u16(bytes, 6, 8)?;
+        let lookup_list_offset = get_u16(bytes, 8, 10)?;
+        offset += 10;
+        let feature_variations_offset: Option<u32>;
+        if minor_version >= 1 {
+            feature_variations_offset = Some(get_u32(bytes, offset, offset + 4)?);
+            offset += 4;
+        }
+        else {
+            feature_variations_offset = None;
+        }
+        let header = TableHeader {
+            major_version,
+            minor_version,
+            script_list_offset,
+            feature_list_offset,
+            lookup_list_offset,
+            feature_variations_offset
+        };
+        let script_list = parse_script_list(bytes, script_list_offset)?;
+        let feature_list = parse_feature_list(bytes, feature_list_offset)?;
+        let lookup_list = parse_lookup_list(bytes, lookup_list_offset)?;
+        let feature_variations: Option<FeatureVariations>;
+        if feature_variations_offset != None {
+            feature_variations = parse_feature_variations(bytes, feature_variations_offset.unwrap())?;
+        }
+        else {
+            feature_variations = None;
+        }
+        
+        Ok(GsubTable {
+            header,
+            script_list,
+            feature_list,
+            lookup_list,
+            feature_variations
+        })
     }
 }
 
@@ -1125,6 +1211,118 @@ fn parse_kern_class(bytes: &[u8], class_format: u16, offset: usize) -> Result<Ke
         }
         _ => Err(Error::new(ErrorKind::InvalidData, format!("Class table format invalid: {}", class_format)))
     }
+}
+
+fn parse_script_list(bytes: &[u8], script_list_offset: u16) -> Result<ScriptList, Error> {
+    let mut offset = script_list_offset as usize;
+    
+    let script_count = get_u16(bytes, offset, offset + 2)?;
+    offset += 2;
+    let script_records: Vec<ScriptRecord> = bytes.get(offset..offset + script_count as usize * 6)
+        .ok_or(ErrorKind::UnexpectedEof)?
+        .chunks_exact(6)
+        .map(|ch| {
+            let script_tag: [u8; 4] = ch[0..4].try_into().unwrap();
+            let script_offset = get_u16(ch, 4, 6)?;
+            
+            Ok(ScriptRecord { script_tag, script_offset })
+        }).collect::<Result<Vec<_>, Error>>()?;
+    let scripts: Vec<Script> = script_records.iter()
+        .map(|sr| {
+            let mut offset = (script_list_offset + sr.script_offset) as usize;
+            let test_offset = get_u16(bytes, offset, offset + 2)?;
+            offset += 2;
+            let default_lang_sys_offset = if test_offset != 0 {
+                Some(test_offset)
+            }
+            else {
+                None
+            };
+            let default_lang_sys = if default_lang_sys_offset != None {
+                let mut offset = (script_list_offset + sr.script_offset + default_lang_sys_offset.unwrap()) as usize;
+                let _lookup_order_offset = get_u16(bytes, offset, offset + 2)?;
+                let required_feature_index = get_u16(bytes, offset + 2, offset + 4)?;
+                let feature_index_count = get_u16(bytes, offset + 4, offset + 6)?;
+                offset += 6;
+                let feature_indices = bytes.get(offset..offset + feature_index_count as usize * 2)
+                    .ok_or(ErrorKind::UnexpectedEof)?
+                    .chunks_exact(2)
+                    .map(|ch| {
+                        Ok(get_u16(ch, 0, 2)?)
+                    }).collect::<Result<Vec<_>, Error>>()?;
+                
+                Some(LangSys {
+                    _lookup_order_offset,
+                    required_feature_index,
+                    feature_index_count,
+                    feature_indices
+                })
+            }
+            else {
+                None
+            };
+            let lang_sys_count = get_u16(bytes, offset, offset + 2)?;
+            offset += 2;
+            let lang_sys_records: Vec<LangSysRecord> = bytes.get(offset..offset + lang_sys_count as usize * 6)
+                .ok_or(ErrorKind::UnexpectedEof)?
+                .chunks_exact(6)
+                .map(|ch| {
+                    let lang_sys_tag: [u8; 4] = ch.get(0..4)
+                        .ok_or(ErrorKind::UnexpectedEof)?
+                        .try_into()
+                        .unwrap();
+                    let lang_sys_offset = get_u16(ch, 4, 6)?;
+                    
+                    Ok(LangSysRecord { lang_sys_tag, lang_sys_offset })
+                }).collect::<Result<Vec<_>, Error>>()?;
+            let lang_syses: Vec<LangSys> = lang_sys_records.iter()
+                .map(|lsr| {
+                    let mut offset = (script_list_offset + sr.script_offset + lsr.lang_sys_offset) as usize;
+                    let _lookup_order_offset = get_u16(bytes, offset, offset + 2)?;
+                    let required_feature_index = get_u16(bytes, offset + 2, offset + 4)?;
+                    let feature_index_count = get_u16(bytes, offset + 4, offset + 6)?;
+                    offset += 6;
+                    let feature_indices = bytes.get(offset..offset + feature_index_count as usize * 2)
+                        .ok_or(ErrorKind::UnexpectedEof)?
+                        .chunks_exact(2)
+                        .map(|ch| {
+                            Ok(get_u16(ch, 0, 2)?)
+                        }).collect::<Result<Vec<_>, Error>>()?;
+                    
+                    Ok(LangSys {
+                        _lookup_order_offset,
+                        required_feature_index,
+                        feature_index_count,
+                        feature_indices
+                    })
+                }).collect::<Result<Vec<_>, Error>>()?;
+            
+            Ok(Script {
+                default_lang_sys_offset,
+                default_lang_sys,
+                lang_sys_count,
+                lang_sys_records,
+                lang_syses
+            })
+        }).collect::<Result<Vec<_>, Error>>()?;
+    
+    Ok(ScriptList {
+        script_count,
+        script_records,
+        scripts
+    })
+}
+
+fn parse_feature_list(bytes: &[u8], feature_list_offset: u16) -> Result<FeatureList, Error> {
+    
+}
+
+fn parse_lookup_list(bytes: &[u8], lookup_list_offset: u16) -> Result<LookupList, Error> {
+    
+}
+
+fn parse_feature_variations(bytes: &[u8], feature_variations_offset: u16) -> Result<FeatureVariations, Error> {
+    
 }
 
 fn get_u16(bytes: &[u8], start: usize, end: usize) -> Result<u16, Error> {
@@ -1657,12 +1855,12 @@ struct TableHeader {
 struct ScriptList {
     pub script_count: u16,
     pub script_records: Vec<ScriptRecord>,
+    pub scripts: Vec<Script>
 }
 
 struct ScriptRecord {
     pub script_tag: [u8; 4],
-    pub script_offset: u16,
-    pub script: Script
+    pub script_offset: u16
 }
 
 struct Script {
@@ -1670,12 +1868,12 @@ struct Script {
     pub default_lang_sys: Option<LangSys>,
     pub lang_sys_count: u16,
     pub lang_sys_records: Vec<LangSysRecord>,
+    pub lang_syses: Vec<LangSys>
 }
 
 struct LangSysRecord {
     pub lang_sys_tag: [u8; 4],
     pub lang_sys_offset: u16,
-    pub lang_sys: LangSys
 }
 
 struct LangSys {
@@ -1703,17 +1901,42 @@ struct Feature {
     pub lookup_list_indices: Vec<u16>
 }
 
+pub enum FeatureParams {
+    Size {
+        design_size: u16,
+        subfamily_id: u16,
+        subfamily_name_id: u16,
+        range_start: u16,
+        range_end: u16
+    },
+    StylisticSet {
+        version: u16,
+        ui_name_id: u16
+    },
+    CharacterVariant {
+        format: u16,
+        feat_ui_label_name_id: u16,
+        feat_tooltip_text_name_id: u16,
+        sample_text_name_id: u16,
+        num_named_parameters: u16,
+        first_param_ui_label_name_id: u16,
+        char_count: u16,
+        character: [u8; 3]
+    }
+}
+
 struct LookupList {
     pub lookup_count: u16,
     pub lookup_offsets: Vec<u16>,
     pub lookups: Vec<Lookup>
 }
 
-struct Lookup {
+struct Lookup<T> {
     pub lookup_type: u16,
     pub lookup_flag: u16,
     pub subtable_count: u16,
     pub subtable_offsets: Vec<u16>,
+    pub subtables: Vec<T>,
     pub mark_filtering_set: Option<u16>
 }
 
