@@ -1061,7 +1061,7 @@ impl FontFile {
         let lookup_list = parse_lookup_list(bytes, lookup_list_offset)?;
         let feature_variations: Option<FeatureVariations>;
         if feature_variations_offset != None {
-            feature_variations = parse_feature_variations(bytes, feature_variations_offset.unwrap())?;
+            feature_variations = Some(parse_feature_variations(bytes, feature_variations_offset.unwrap())?);
         }
         else {
             feature_variations = None;
@@ -1107,7 +1107,7 @@ impl FontFile {
         let lookup_list = parse_lookup_list(bytes, lookup_list_offset)?;
         let feature_variations: Option<FeatureVariations>;
         if feature_variations_offset != None {
-            feature_variations = parse_feature_variations(bytes, feature_variations_offset.unwrap())?;
+            feature_variations = Some(parse_feature_variations(bytes, feature_variations_offset.unwrap())?);
         }
         else {
             feature_variations = None;
@@ -1314,21 +1314,88 @@ fn parse_script_list(bytes: &[u8], script_list_offset: u16) -> Result<ScriptList
 }
 
 fn parse_feature_list(bytes: &[u8], feature_list_offset: u16) -> Result<FeatureList, Error> {
+    let mut offset = feature_list_offset as usize;
     
+    let feature_count = get_u16(bytes, offset, offset + 2)?;
+    offset += 2;
+    let feature_records: Vec<FeatureRecord> = bytes.get(offset..offset + feature_count as usize * 6)
+        .ok_or(ErrorKind::UnexpectedEof)?
+        .chunks_exact(6)
+        .map(|ch| {
+            let feature_tag: [u8; 4] = ch[0..4].try_into().unwrap();
+            let feature_offset = get_u16(ch, 4, 6)?;
+            
+            Ok(FeatureRecord { feature_tag, feature_offset })
+        }).collect::<Result<Vec<_>, Error>>()?;
+    let features: Vec<Feature> = feature_records.iter()
+        .map(|fr| {
+            let mut offset = (feature_list_offset + fr.feature_offset) as usize;
+            let test_offset = get_u16(bytes, offset, offset + 2)?;
+            let feature_params_offset: Option<u16> = if test_offset != 0 {
+                Some(test_offset)
+            }
+            else {
+                None
+            };
+            let feature_params: Option<FeatureParams> = if feature_params_offset != None {
+                let mut offset = (feature_list_offset + fr.feature_offset + feature_params_offset.unwrap()) as usize;
+                match *fr.feature_tag {
+                    b"size" => {
+                        Some(FeatureParams::Size {
+                            design_size,
+                            subfamily_id,
+                            subfamily_name_id,
+                            range_start,
+                            range_end
+                        })
+                    },
+                    tag if tag.starts_with(b"ss") => {
+                        Some(FeatureParams::StylisticSet {
+                            version,
+                            ui_name_id
+                        })
+                    },
+                    tag if tag.starts_with(b"cv") => {
+                        Some(FeatureParams::CharacterVariant {
+                            format,
+                            feat_ui_label_name_id,
+                            feat_tooltip_text_name_id,
+                            sample_text_name_id,
+                            num_named_parameters,
+                            first_param_ui_label_name_id,
+                            char_count,
+                            character
+                        })
+                    }
+                }
+            }
+            else {
+                None
+            };
+            
+            Ok(Feature {
+                feature_params_offset,
+                feature_params,
+                lookup_index_count,
+                lookup_list_indices
+            })
+        }).collect();
+    
+    Ok(FeatureList { feature_count, feature_records, features })
 }
 
 fn parse_lookup_list(bytes: &[u8], lookup_list_offset: u16) -> Result<LookupList, Error> {
-    
+    Ok(())
 }
 
-fn parse_feature_variations(bytes: &[u8], feature_variations_offset: u16) -> Result<FeatureVariations, Error> {
-    
+fn parse_feature_variations(bytes: &[u8], feature_variations_offset: u32) -> Result<FeatureVariations, Error> {
+    Ok(())
 }
 
-fn get_u16(bytes: &[u8], start: usize, end: usize) -> Result<u16, Error> {
+fn get_u16(bytes: &[u8], start: usize) -> Result<u16, Error> {
     Ok(
         u16::from_be_bytes(
-        bytes.get(start..end)
+        bytes.get(start..start + 2)
             .ok_or(ErrorKind::UnexpectedEof)?
             .try_into()
             .unwrap()
@@ -1336,10 +1403,10 @@ fn get_u16(bytes: &[u8], start: usize, end: usize) -> Result<u16, Error> {
     )
 }
 
-fn get_u32(bytes: &[u8], start: usize, end: usize) -> Result<u32, Error> {
+fn get_u32(bytes: &[u8], start: usize) -> Result<u32, Error> {
     Ok(
         u32::from_be_bytes(
-            bytes.get(start..end)
+            bytes.get(start..start + 4)
                 .ok_or(ErrorKind::UnexpectedEof)?
                 .try_into()
                 .unwrap()
@@ -1347,10 +1414,10 @@ fn get_u32(bytes: &[u8], start: usize, end: usize) -> Result<u32, Error> {
     )
 }
 
-fn get_u64(bytes: &[u8], start: usize, end: usize) -> Result<u64, Error> {
+fn get_u64(bytes: &[u8], start: usize) -> Result<u64, Error> {
     Ok(
         u64::from_be_bytes(
-            bytes.get(start..end)
+            bytes.get(start..start + 8)
                 .ok_or(ErrorKind::UnexpectedEof)?
                 .try_into()
                 .unwrap()
@@ -1358,10 +1425,10 @@ fn get_u64(bytes: &[u8], start: usize, end: usize) -> Result<u64, Error> {
     )
 }
 
-fn get_i16(bytes: &[u8], start: usize, end: usize) -> Result<i16, Error> {
+fn get_i16(bytes: &[u8], start: usize) -> Result<i16, Error> {
     Ok(
         i16::from_be_bytes(
-            bytes.get(start..end)
+            bytes.get(start..start + 2)
                 .ok_or(ErrorKind::UnexpectedEof)?
                 .try_into()
                 .unwrap()
@@ -1369,10 +1436,10 @@ fn get_i16(bytes: &[u8], start: usize, end: usize) -> Result<i16, Error> {
     )
 }
 
-fn get_i32(bytes: &[u8], start: usize, end: usize) -> Result<i32, Error> {
+fn get_i32(bytes: &[u8], start: usize) -> Result<i32, Error> {
     Ok(
         i32::from_be_bytes(
-            bytes.get(start..end)
+            bytes.get(start..start + 4)
                 .ok_or(ErrorKind::UnexpectedEof)?
                 .try_into()
                 .unwrap()
@@ -1380,10 +1447,10 @@ fn get_i32(bytes: &[u8], start: usize, end: usize) -> Result<i32, Error> {
     )
 }
 
-fn get_i64(bytes: &[u8], start: usize, end: usize) -> Result<i64, Error> {
+fn get_i64(bytes: &[u8], start: usize) -> Result<i64, Error> {
     Ok(
         i64::from_be_bytes(
-            bytes.get(start..end)
+            bytes.get(start..start + 8)
                 .ok_or(ErrorKind::UnexpectedEof)?
                 .try_into()
                 .unwrap()
@@ -1886,12 +1953,12 @@ struct LangSys {
 struct FeatureList {
     pub feature_count: u16,
     pub feature_records: Vec<FeatureRecord>,
+    pub features: Vec<Feature>
 }
 
 struct FeatureRecord {
     pub feature_tag: [u8; 4],
     pub feature_offset: u16,
-    pub feature: Feature
 }
 
 struct Feature {
