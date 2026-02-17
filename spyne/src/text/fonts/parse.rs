@@ -1,6 +1,6 @@
 use std::{fs::read, io::{Error, ErrorKind}, path::Path};
 
-use crate::text::fonts::constants::{ARG_1_AND_2_ARE_WORDS, MAC_ROMAN_LOOKUP, MAC_STANDARD_NAMES, MORE_COMPONENTS, REPEAT_FLAG, WE_HAVE_A_SCALE, WE_HAVE_A_TWO_BY_TWO, WE_HAVE_AN_X_AND_Y_SCALE, WE_HAVE_INSTRUCTIONS, X_IS_SAME_OR_POSITIVE_X_SHORT_VECTOR, X_SHORT_VECTOR, Y_IS_SAME_OR_POSITIVE_Y_SHORT_VECTOR, Y_SHORT_VECTOR};
+use crate::text::fonts::constants::{ARG_1_AND_2_ARE_WORDS, MAC_ROMAN_LOOKUP, MAC_STANDARD_NAMES, MORE_COMPONENTS, REPEAT_FLAG, USE_MARK_FILTERING_SET, WE_HAVE_A_SCALE, WE_HAVE_A_TWO_BY_TWO, WE_HAVE_AN_X_AND_Y_SCALE, WE_HAVE_INSTRUCTIONS, X_ADVANCE, X_ADVANCE_DEVICE, X_IS_SAME_OR_POSITIVE_X_SHORT_VECTOR, X_PLACEMENT, X_PLACEMENT_DEVICE, X_SHORT_VECTOR, Y_ADVANCE, Y_ADVANCE_DEVICE, Y_IS_SAME_OR_POSITIVE_Y_SHORT_VECTOR, Y_PLACEMENT, Y_PLACEMENT_DEVICE, Y_SHORT_VECTOR};
 
 struct FontFile {
     pub file_type: FontFileType,
@@ -81,17 +81,17 @@ impl FontFile {
             return Err(Error::new(ErrorKind::InvalidData, "Head table doesn't contain correct magic number"));
         }
         
-        let units_per_em = get_u16(bytes, 18, 20)?;
-        let created = get_i64(bytes, 20, 28)?;
-        let modified = get_i64(bytes, 28, 36)?;
-        let x_min = get_i16(bytes, 36, 38)?; 
-        let y_min = get_i16(bytes, 38, 40)?;
-        let x_max = get_i16(bytes, 40, 42)?;
-        let y_max = get_i16(bytes, 42, 44)?;
-        let mac_style = get_u16(bytes, 44, 46)?;
-        let lowest_rec_ppem = get_u16(bytes, 46, 48)?;
-        let font_direction_hint = get_i16(bytes, 48, 50)?;
-        let index_to_loc_format = get_i16(bytes, 50, 52)?;
+        let units_per_em = get_u16(bytes, 18)?;
+        let created = get_i64(bytes, 20)?;
+        let modified = get_i64(bytes, 28)?;
+        let x_min = get_i16(bytes, 36)?; 
+        let y_min = get_i16(bytes, 38)?;
+        let x_max = get_i16(bytes, 40)?;
+        let y_max = get_i16(bytes, 42)?;
+        let mac_style = get_u16(bytes, 44)?;
+        let lowest_rec_ppem = get_u16(bytes, 46)?;
+        let font_direction_hint = get_i16(bytes, 48)?;
+        let index_to_loc_format = get_i16(bytes, 50)?;
         
         Ok(HeadTable {
             units_per_em,
@@ -111,10 +111,10 @@ impl FontFile {
     pub fn parse_maxp(&self) -> Result<MaxpTable, Error> {
         let bytes = self.get_table(b"maxp")?;
         
-        let version = get_u32(bytes, 0, 4)?;
+        let version = get_u32(bytes, 0)?;
         match version {
             0x5000 => {
-                let num_glyphs = get_u16(bytes, 4, 6)?;
+                let num_glyphs = get_u16(bytes, 4)?;
                 
                 Ok(MaxpTable {
                     version,
@@ -135,20 +135,20 @@ impl FontFile {
                 })
             }
             0x10000 => {
-                let num_glyphs = get_u16(bytes, 4, 6)?;
-                let max_points = get_u16(bytes, 6, 8)?;
-                let max_contours = get_u16(bytes, 8, 10)?;
-                let max_composite_points = get_u16(bytes, 10, 12)?;
-                let max_composite_contours = get_u16(bytes, 12, 14)?;
-                let max_zones = get_u16(bytes, 14, 16)?;
-                let max_twilight_points = get_u16(bytes, 16, 18)?;
-                let max_storage = get_u16(bytes, 16, 18)?;
-                let max_function_defs = get_u16(bytes, 18, 20)?;
-                let max_instruction_defs = get_u16(bytes, 20, 22)?;
-                let max_stack_elements = get_u16(bytes, 22, 24)?;
-                let max_size_of_instructions = get_u16(bytes, 24, 26)?;
-                let max_component_elements = get_u16(bytes, 26, 28)?;
-                let max_component_depth = get_u16(bytes, 30, 32)?;
+                let num_glyphs = get_u16(bytes, 4)?;
+                let max_points = get_u16(bytes, 6)?;
+                let max_contours = get_u16(bytes, 8)?;
+                let max_composite_points = get_u16(bytes, 10)?;
+                let max_composite_contours = get_u16(bytes, 12)?;
+                let max_zones = get_u16(bytes, 14)?;
+                let max_twilight_points = get_u16(bytes, 16)?;
+                let max_storage = get_u16(bytes, 16)?;
+                let max_function_defs = get_u16(bytes, 18)?;
+                let max_instruction_defs = get_u16(bytes, 20)?;
+                let max_stack_elements = get_u16(bytes, 22)?;
+                let max_size_of_instructions = get_u16(bytes, 24)?;
+                let max_component_elements = get_u16(bytes, 26)?;
+                let max_component_depth = get_u16(bytes, 30)?;
                 
                 Ok(MaxpTable {
                     version,
@@ -175,17 +175,17 @@ impl FontFile {
     pub fn parse_cmap(&self) -> Result<CmapTable, Error> {
         let bytes = self.get_table(b"cmap")?;
         
-        let version = get_u16(bytes, 0, 2)?;
+        let version = get_u16(bytes, 0)?;
         if version != 0 {
             return Err(Error::new(ErrorKind::InvalidData, "Version number isn't zero"));
         }
-        let num_tables = get_u16(bytes, 2, 4)?;
+        let num_tables = get_u16(bytes, 2)?;
         let mut encoding_records: Vec<EncodingRecord> = Vec::new();
         let mut count = 4;
         for _ in 0..num_tables {
-            let platform_id = get_u16(bytes, count, count + 2)?;
-            let encoding_id = get_u16(bytes, count + 2, count + 4)?;
-            let offset = get_u32(bytes, count + 4, count + 8)?;
+            let platform_id = get_u16(bytes, count)?;
+            let encoding_id = get_u16(bytes, count + 2)?;
+            let offset = get_u32(bytes, count + 4)?;
             encoding_records.push(EncodingRecord { platform_id, encoding_id, offset });
             count += 8;
         }
@@ -193,19 +193,19 @@ impl FontFile {
         let mut subtables: Vec<CmapSubtable> = Vec::new();
         for rec in encoding_records.iter() {
             let mut offset = rec.offset as usize;
-            let format = get_u16(bytes, offset, offset + 2)?;
+            let format = get_u16(bytes, offset)?;
             offset += 2;
             match format {
                 0 => {
-                    let length = get_u16(bytes, offset, offset + 2)?;
-                    let language = get_u16(bytes, offset + 2, offset + 4)?;
+                    let length = get_u16(bytes, offset)?;
+                    let language = get_u16(bytes, offset + 2)?;
                     let glyph_id_array: [u8; 256] = bytes.get(offset + 4..offset + 260).ok_or(ErrorKind::UnexpectedEof)?.try_into().unwrap();
                     
                     subtables.push(CmapSubtable::Format0 { length, language, glyph_id_array });
                 }
                 2 => {
-                    let length = get_u16(bytes, offset, offset + 2)?;
-                    let language = get_u16(bytes, offset + 2, offset + 4)?;
+                    let length = get_u16(bytes, offset)?;
+                    let language = get_u16(bytes, offset + 2)?;
                     let sub_header_keys: [u16; 256] = bytes.get(offset + 4..offset + 516).ok_or(ErrorKind::UnexpectedEof)?.chunks_exact(2).map(|ch| {
                         u16::from_be_bytes(ch.try_into().unwrap())
                     }).collect::<Vec<u16>>().try_into().unwrap();
@@ -227,18 +227,18 @@ impl FontFile {
                     subtables.push(CmapSubtable::Format2 { length, language, sub_header_keys, sub_headers, glyph_id_array });
                 }
                 4 => {
-                    let length = get_u16(bytes, offset, offset + 2)?;
-                    let language = get_u16(bytes, offset + 2, offset + 4)?;
-                    let seg_count_x2 = get_u16(bytes, offset + 4, offset + 6)?;
-                    let search_range = get_u16(bytes, offset + 6, offset + 8)?;
-                    let entry_selector = get_u16(bytes, offset + 8, offset + 10)?;
-                    let range_shift = get_u16(bytes, offset + 10, offset + 12)?;
+                    let length = get_u16(bytes, offset)?;
+                    let language = get_u16(bytes, offset + 2)?;
+                    let seg_count_x2 = get_u16(bytes, offset + 4)?;
+                    let search_range = get_u16(bytes, offset + 6)?;
+                    let entry_selector = get_u16(bytes, offset + 8)?;
+                    let range_shift = get_u16(bytes, offset + 10)?;
                     offset += 12;
                     let end_code: Vec<u16> = bytes.get(offset..offset + seg_count_x2 as usize).ok_or(ErrorKind::UnexpectedEof)?.chunks_exact(2).map(|ch| {
                         u16::from_be_bytes(ch.try_into().unwrap())
                     }).collect();
                     offset += seg_count_x2 as usize;
-                    let _reserved_pad = get_u16(bytes, offset, offset + 2)?;
+                    let _reserved_pad = get_u16(bytes, offset)?;
                     offset += 2;
                     let start_code: Vec<u16> = bytes.get(offset..offset + seg_count_x2 as usize).ok_or(ErrorKind::UnexpectedEof)?.chunks_exact(2).map(|ch| {
                         u16::from_be_bytes(ch.try_into().unwrap())
@@ -259,10 +259,10 @@ impl FontFile {
                     subtables.push(CmapSubtable::Format4 { length, language, seg_count_x2, search_range, entry_selector, range_shift, end_code, _reserved_pad, start_code, id_delta, id_range_offset, glyph_id_array });
                 }
                 6 => {
-                    let length = get_u16(bytes, offset, offset + 2)?;
-                    let language = get_u16(bytes, offset + 2, offset + 4)?;
-                    let first_code = get_u16(bytes, offset + 4, offset + 6)?;
-                    let entry_count = get_u16(bytes, offset + 6, offset + 8)?;
+                    let length = get_u16(bytes, offset)?;
+                    let language = get_u16(bytes, offset + 2)?;
+                    let first_code = get_u16(bytes, offset + 4)?;
+                    let entry_count = get_u16(bytes, offset + 6)?;
                     offset += 8;
                     let glyph_id_array: Vec<u16> = bytes.get(offset..offset + entry_count as usize * 2).ok_or(ErrorKind::UnexpectedEof)?.chunks_exact(2).map(|ch| {
                         u16::from_be_bytes(ch.try_into().unwrap())
@@ -271,10 +271,10 @@ impl FontFile {
                     subtables.push(CmapSubtable::Format6 { length, language, first_code, entry_count, glyph_id_array });
                 }
                 12 => {
-                    let _reserved = get_u16(bytes, offset, offset + 2)?;
-                    let length = get_u32(bytes, offset + 2, offset + 6)?;
-                    let language = get_u32(bytes, offset + 6, offset + 10)?;
-                    let num_groups = get_u32(bytes, offset + 10, offset + 14)?;
+                    let _reserved = get_u16(bytes, offset)?;
+                    let length = get_u32(bytes, offset + 2)?;
+                    let language = get_u32(bytes, offset + 6)?;
+                    let num_groups = get_u32(bytes, offset + 10)?;
                     let groups: Vec<Group> = bytes.get(offset + 14..).ok_or(ErrorKind::UnexpectedEof)?.chunks_exact(num_groups as usize).map(|ch| {
                         let start_char_code = u32::from_be_bytes(ch[0..4].try_into().unwrap());
                         let end_char_code = u32::from_be_bytes(ch[4..8].try_into().unwrap());
@@ -286,10 +286,10 @@ impl FontFile {
                     subtables.push(CmapSubtable::Format12 { _reserved, length, language, num_groups, groups });
                 }
                 13 => {
-                    let _reserved = get_u16(bytes, offset, offset + 2)?;
-                    let length = get_u32(bytes, offset + 2, offset + 6)?;
-                    let language = get_u32(bytes, offset + 6, offset + 10)?;
-                    let num_groups = get_u32(bytes, offset + 10, offset + 14)?;
+                    let _reserved = get_u16(bytes, offset)?;
+                    let length = get_u32(bytes, offset + 2)?;
+                    let language = get_u32(bytes, offset + 6)?;
+                    let num_groups = get_u32(bytes, offset + 10)?;
                     let groups: Vec<Group> = bytes.get(offset + 14..).ok_or(ErrorKind::UnexpectedEof)?.chunks_exact(num_groups as usize).map(|ch| {
                         let start_char_code = u32::from_be_bytes(ch[0..4].try_into().unwrap());
                         let end_char_code = u32::from_be_bytes(ch[4..8].try_into().unwrap());
@@ -301,8 +301,8 @@ impl FontFile {
                     subtables.push(CmapSubtable::Format13 { _reserved, length, language, num_groups, groups });
                 }
                 14 => {
-                    let length = get_u32(bytes, offset, offset + 4)?;
-                    let num_var_selector_records = get_u32(bytes, offset + 4, offset + 8)?;
+                    let length = get_u32(bytes, offset)?;
+                    let num_var_selector_records = get_u32(bytes, offset + 4)?;
                     let var_selector: Vec<VariationSelectorRecord> = bytes.get(offset + 8..).ok_or(ErrorKind::UnexpectedEof)?.chunks_exact(num_var_selector_records as usize).map(|ch| {
                         let var_selector: [u8; 3] = ch[0..3].try_into().unwrap();
                         let default_uvs_offset = u32::from_be_bytes(ch[3..7].try_into().unwrap());
@@ -328,13 +328,13 @@ impl FontFile {
         match index_to_loc_format {
             0 => {
                 for i in (0..(num_glyphs as usize + 1) * 2).step_by(2) {
-                    let offset = get_u16(bytes, i, i + 2)?;
+                    let offset = get_u16(bytes, i)?;
                     indices.push((offset * 2) as u32);
                 }
             },
             1 => {
                 for i in (0..(num_glyphs as usize + 1) * 4).step_by(4) {
-                    let offset = get_u32(bytes, i, i + 4)?;
+                    let offset = get_u32(bytes, i)?;
                     indices.push(offset);
                 }
             },
@@ -359,11 +359,11 @@ impl FontFile {
                 
                 let current_glyph_bytes = bytes.get(*offset as usize..**next_offset as usize).ok_or(ErrorKind::UnexpectedEof)?;
                 let mut current_offset: usize = 0;
-                let number_of_contours = get_i16(current_glyph_bytes, 0, 2)?;
-                let x_min = get_i16(current_glyph_bytes, 2, 4)?;
-                let y_min = get_i16(current_glyph_bytes, 4, 6)?;
-                let x_max = get_i16(current_glyph_bytes, 6, 8)?;
-                let y_max = get_i16(current_glyph_bytes, 8, 10)?;
+                let number_of_contours = get_i16(current_glyph_bytes, 0)?;
+                let x_min = get_i16(current_glyph_bytes, 2)?;
+                let y_min = get_i16(current_glyph_bytes, 4)?;
+                let x_max = get_i16(current_glyph_bytes, 6)?;
+                let y_max = get_i16(current_glyph_bytes, 8)?;
                 current_offset += 10;
                 let header = GlyphHeader { number_of_contours, x_min, y_min, x_max, y_max };
                 
@@ -377,7 +377,7 @@ impl FontFile {
                             u16::from_be_bytes(ch.try_into().unwrap())
                         }).collect();
                     current_offset += number_of_contours as usize * 2;
-                    let instruction_length = get_u16(bytes, current_offset, current_offset + 2)?;
+                    let instruction_length = get_u16(bytes, current_offset)?;
                     current_offset += 2;
                     let instructions: Vec<u8> = current_glyph_bytes.get(current_offset..current_offset + instruction_length as usize).ok_or(ErrorKind::UnexpectedEof)?.to_vec();
                     current_offset += instruction_length as usize;
@@ -411,7 +411,7 @@ impl FontFile {
                         }
                         else {
                             if flag & X_IS_SAME_OR_POSITIVE_X_SHORT_VECTOR == 0 {
-                                current_x += get_i16(current_glyph_bytes, current_offset, current_offset + 2)?;
+                                current_x += get_i16(current_glyph_bytes, current_offset)?;
                                 current_offset += 2;
                             }
                         }
@@ -433,7 +433,7 @@ impl FontFile {
                         }
                         else {
                             if flag & Y_IS_SAME_OR_POSITIVE_Y_SHORT_VECTOR == 0 {
-                                current_y += get_i16(current_glyph_bytes, current_offset, current_offset + 2)?;
+                                current_y += get_i16(current_glyph_bytes, current_offset)?;
                                 current_offset += 2;
                             }
                         }
@@ -446,14 +446,14 @@ impl FontFile {
                 else if number_of_contours == -1 {
                     let mut components: Vec<Component> = Vec::new();
                     loop {
-                        let flags = get_u16(current_glyph_bytes, current_offset, current_offset + 2)?;
-                        let glyph_index = get_u16(current_glyph_bytes, current_offset + 2, current_offset + 4)?;
+                        let flags = get_u16(current_glyph_bytes, current_offset)?;
+                        let glyph_index = get_u16(current_glyph_bytes, current_offset + 2)?;
                         current_offset += 4;
                         let argument_1: i16;
                         let argument_2: i16;
                         if flags & ARG_1_AND_2_ARE_WORDS != 0 {
-                            argument_1 = get_i16(current_glyph_bytes, current_offset, current_offset + 2)?;
-                            argument_2 = get_i16(current_glyph_bytes, current_offset + 2, current_offset + 4)?;
+                            argument_1 = get_i16(current_glyph_bytes, current_offset)?;
+                            argument_2 = get_i16(current_glyph_bytes, current_offset + 2)?;
                             current_offset += 4;
                         }
                         else {
@@ -467,23 +467,23 @@ impl FontFile {
                         }
                         let transformation: [i16; 4];
                         if flags & WE_HAVE_A_SCALE != 0 {
-                            transformation = [get_i16(current_glyph_bytes, current_offset, current_offset + 2)?, 0, 0, 0];
+                            transformation = [get_i16(current_glyph_bytes, current_offset)?, 0, 0, 0];
                             current_offset += 2;
                         }
                         else if flags & WE_HAVE_AN_X_AND_Y_SCALE != 0 {
                             transformation = [
-                                get_i16(current_glyph_bytes, current_offset, current_offset + 2)?,
-                                get_i16(current_glyph_bytes, current_offset + 2, current_offset + 4)?,
+                                get_i16(current_glyph_bytes, current_offset)?,
+                                get_i16(current_glyph_bytes, current_offset + 2)?,
                                 0, 0
                             ];
                             current_offset += 4;
                         }
                         else if flags & WE_HAVE_A_TWO_BY_TWO != 0 {
                             transformation = [
-                                get_i16(current_glyph_bytes, current_offset, current_offset + 2)?,
-                                get_i16(current_glyph_bytes, current_offset + 2, current_offset + 4)?,
-                                get_i16(current_glyph_bytes, current_offset + 4, current_offset + 6)?,
-                                get_i16(current_glyph_bytes, current_offset + 6, current_offset + 8)?
+                                get_i16(current_glyph_bytes, current_offset)?,
+                                get_i16(current_glyph_bytes, current_offset + 2)?,
+                                get_i16(current_glyph_bytes, current_offset + 4)?,
+                                get_i16(current_glyph_bytes, current_offset + 6)?
                             ];
                             current_offset += 8;
                         }
@@ -500,7 +500,7 @@ impl FontFile {
                     let mut instruction_length: Option<u16> = None;
                     let mut instructions: Option<Vec<u8>> = None;
                     if are_instructions {
-                        instruction_length = Some(get_u16(current_glyph_bytes, current_offset, current_offset + 2)?);
+                        instruction_length = Some(get_u16(current_glyph_bytes, current_offset)?);
                         current_offset += 2;
                         instructions = Some(
                             current_glyph_bytes
@@ -521,26 +521,26 @@ impl FontFile {
     pub fn parse_hhea(&self) -> Result<HheaTable, Error> {
         let bytes = self.get_table(b"hhea")?;
         
-        let version = get_u32(bytes, 0, 4)?;
+        let version = get_u32(bytes, 0)?;
         if version != 0x00010000 {
             return Err(Error::new(ErrorKind::InvalidData, "Version number for hhea table is incorrect"));
         }
-        let ascender = get_i16(bytes, 4, 6)?;
-        let descender = get_i16(bytes, 6, 8)?;
-        let line_gap = get_i16(bytes, 8, 10)?;
-        let advance_width_max = get_u16(bytes, 10, 12)?;
-        let min_left_side_bearing = get_i16(bytes, 12, 14)?;
-        let min_right_side_bearing = get_i16(bytes, 14, 16)?;
-        let x_max_extent = get_i16(bytes, 16, 18)?;
-        let caret_slope_rise = get_i16(bytes, 18, 20)?;
-        let caret_slope_run = get_i16(bytes, 20, 22)?;
-        let caret_offset = get_i16(bytes, 22, 24)?;
+        let ascender = get_i16(bytes, 4)?;
+        let descender = get_i16(bytes, 6)?;
+        let line_gap = get_i16(bytes, 8)?;
+        let advance_width_max = get_u16(bytes, 10)?;
+        let min_left_side_bearing = get_i16(bytes, 12)?;
+        let min_right_side_bearing = get_i16(bytes, 14)?;
+        let x_max_extent = get_i16(bytes, 16)?;
+        let caret_slope_rise = get_i16(bytes, 18)?;
+        let caret_slope_run = get_i16(bytes, 20)?;
+        let caret_offset = get_i16(bytes, 22)?;
         let _reserved1 = 0;
         let _reserved2 = 0;
         let _reserved3 = 0;
         let _reserved4 = 0;
-        let metric_data_format = get_i16(bytes, 32, 34)?;
-        let number_of_h_metrics = get_u16(bytes, 34, 36)?;
+        let metric_data_format = get_i16(bytes, 32)?;
+        let number_of_h_metrics = get_u16(bytes, 34)?;
         
         Ok(HheaTable {
             version,
@@ -602,12 +602,12 @@ impl FontFile {
         let bytes = self.get_table(b"name")?;
         let mut offset = 0;
         
-        let version = get_u16(bytes, 0, 2)?;
+        let version = get_u16(bytes, 0)?;
         if version != 0 && version != 1 {
             return Err(Error::new(ErrorKind::InvalidData, "Version number is not 0 or 1"));
         }
-        let count = get_u16(bytes, 2, 4)?;
-        let storage_offset = get_u16(bytes, 4, 6)?;
+        let count = get_u16(bytes, 2)?;
+        let storage_offset = get_u16(bytes, 4)?;
         offset += 6;
         let records: Vec<NameRecord> = bytes.get(offset..offset + count as usize * 12)
             .ok_or(ErrorKind::UnexpectedEof)?
@@ -629,7 +629,7 @@ impl FontFile {
         let mut lang_tag_count: Option<u16> = None;
         let mut lang_tag_records: Option<Vec<LangTagRecord>> = None;
         if version == 1 {
-            lang_tag_count = Some(get_u16(bytes, offset, offset + 2)?);
+            lang_tag_count = Some(get_u16(bytes, offset)?);
             offset += 2;
             lang_tag_records = Some(
                 bytes.get(offset..offset + lang_tag_count.unwrap() as usize * 4)
@@ -657,47 +657,47 @@ impl FontFile {
     pub fn parse_os2(&self) -> Result<OS2Table, Error> {
         let bytes = self.get_table(b"OS/2")?;
         
-        let version = get_u16(bytes, 0, 2)?;
-        let x_avg_char_width = get_i16(bytes, 2, 4)?;
-        let us_weight_class = get_u16(bytes, 4, 6)?;
-        let us_width_class = get_u16(bytes, 6, 8)?;
-        let fs_type = get_u16(bytes, 8, 10)?;
-        let y_subscript_x_size = get_i16(bytes, 10, 12)?;
-        let y_subscript_y_size = get_i16(bytes, 12, 14)?;
-        let y_subscript_x_offset = get_i16(bytes, 14, 16)?;
-        let y_subscript_y_offset = get_i16(bytes, 16, 18)?;
-        let y_superscript_x_size = get_i16(bytes, 18, 20)?;
-        let y_superscript_y_size = get_i16(bytes, 20, 22)?;
-        let y_superscript_x_offset = get_i16(bytes, 22, 24)?;
-        let y_superscript_y_offset = get_i16(bytes, 24, 26)?;
-        let y_strikeout_size = get_i16(bytes, 26, 28)?;
-        let y_strikeout_position = get_i16(bytes, 28, 30)?;
-        let s_family_class = get_i16(bytes, 30, 32)?;
+        let version = get_u16(bytes, 0)?;
+        let x_avg_char_width = get_i16(bytes, 2)?;
+        let us_weight_class = get_u16(bytes, 4)?;
+        let us_width_class = get_u16(bytes, 6)?;
+        let fs_type = get_u16(bytes, 8)?;
+        let y_subscript_x_size = get_i16(bytes, 10)?;
+        let y_subscript_y_size = get_i16(bytes, 12)?;
+        let y_subscript_x_offset = get_i16(bytes, 14)?;
+        let y_subscript_y_offset = get_i16(bytes, 16)?;
+        let y_superscript_x_size = get_i16(bytes, 18)?;
+        let y_superscript_y_size = get_i16(bytes, 20)?;
+        let y_superscript_x_offset = get_i16(bytes, 22)?;
+        let y_superscript_y_offset = get_i16(bytes, 24)?;
+        let y_strikeout_size = get_i16(bytes, 26)?;
+        let y_strikeout_position = get_i16(bytes, 28)?;
+        let s_family_class = get_i16(bytes, 30)?;
         let panose: [u8; 10] = bytes.get(32..42)
             .ok_or(ErrorKind::UnexpectedEof)?
             .try_into()
             .unwrap();
-        let ul_unicode_range_1 = get_u32(bytes, 42, 46)?;
-        let ul_unicode_range_2 = get_u32(bytes, 46, 50)?;
-        let ul_unicode_range_3 = get_u32(bytes, 50, 54)?;
-        let ul_unicode_range_4 = get_u32(bytes, 54, 58)?;
+        let ul_unicode_range_1 = get_u32(bytes, 42)?;
+        let ul_unicode_range_2 = get_u32(bytes, 46)?;
+        let ul_unicode_range_3 = get_u32(bytes, 50)?;
+        let ul_unicode_range_4 = get_u32(bytes, 54)?;
         let ach_vend_id: [u8; 4] = bytes.get(58..62)
             .ok_or(ErrorKind::UnexpectedEof)?
             .try_into()
             .unwrap();
-        let fs_selection = get_u16(bytes, 62, 64)?;
-        let us_first_char_index = get_u16(bytes, 64, 66)?;
-        let us_last_char_index = get_u16(bytes, 66, 68)?;
-        let s_typo_ascender = get_i16(bytes, 68, 70)?;
-        let s_typo_descender = get_i16(bytes, 70, 72)?;
-        let s_typo_line_gap = get_i16(bytes, 72, 74)?;
-        let us_win_ascent = get_u16(bytes, 74, 76)?;
-        let us_win_descent = get_u16(bytes, 76, 78)?;
+        let fs_selection = get_u16(bytes, 62)?;
+        let us_first_char_index = get_u16(bytes, 64)?;
+        let us_last_char_index = get_u16(bytes, 66)?;
+        let s_typo_ascender = get_i16(bytes, 68)?;
+        let s_typo_descender = get_i16(bytes, 70)?;
+        let s_typo_line_gap = get_i16(bytes, 72)?;
+        let us_win_ascent = get_u16(bytes, 74)?;
+        let us_win_descent = get_u16(bytes, 76)?;
         let mut ul_code_page_range_1: Option<u32> = None;
         let mut ul_code_page_range_2: Option<u32> = None;
         if version >= 1 {
-            ul_code_page_range_1 = Some(get_u32(bytes, 78, 82)?);
-            ul_code_page_range_2 = Some(get_u32(bytes, 82, 86)?);
+            ul_code_page_range_1 = Some(get_u32(bytes, 78)?);
+            ul_code_page_range_2 = Some(get_u32(bytes, 82)?);
         }
         let mut sx_height: Option<i16> = None;
         let mut s_cap_height: Option<i16> = None;
@@ -705,17 +705,17 @@ impl FontFile {
         let mut us_break_char: Option<u16> = None;
         let mut us_max_context: Option<u16> = None;
         if version >= 2 {
-            sx_height = Some(get_i16(bytes, 86, 88)?);
-            s_cap_height = Some(get_i16(bytes, 88, 90)?);
-            us_default_char = Some(get_u16(bytes, 90, 92)?);
-            us_break_char = Some(get_u16(bytes, 92, 94)?);
-            us_max_context = Some(get_u16(bytes, 94, 96)?);
+            sx_height = Some(get_i16(bytes, 86)?);
+            s_cap_height = Some(get_i16(bytes, 88)?);
+            us_default_char = Some(get_u16(bytes, 90)?);
+            us_break_char = Some(get_u16(bytes, 92)?);
+            us_max_context = Some(get_u16(bytes, 94)?);
         }
         let mut us_lower_optical_point_size: Option<u16> = None;
         let mut us_upper_optical_point_size: Option<u16> = None;
         if version >= 5 {
-            us_lower_optical_point_size = Some(get_u16(bytes, 96, 98)?);
-            us_upper_optical_point_size = Some(get_u16(bytes, 98, 100)?);
+            us_lower_optical_point_size = Some(get_u16(bytes, 96)?);
+            us_upper_optical_point_size = Some(get_u16(bytes, 98)?);
         }
         
         Ok(OS2Table {
@@ -764,15 +764,15 @@ impl FontFile {
     pub fn parse_post(&self) -> Result<PostTable, Error> {
         let bytes = self.get_table(b"post")?;
         
-        let version = get_u32(bytes, 0, 4)?;
-        let italic_angle = get_i32(bytes, 4, 8)?;
-        let underline_position = get_i16(bytes, 8, 10)?;
-        let underline_thickness = get_i16(bytes, 10, 12)?;
-        let is_fixed_pitch = get_u32(bytes, 12, 16)?;
-        let min_mem_type_42 = get_u32(bytes, 16, 20)?;
-        let max_mem_type_42 = get_u32(bytes, 20, 24)?;
-        let min_mem_type_1 = get_u32(bytes, 24, 28)?;
-        let max_mem_type_1 = get_u32(bytes, 28, 32)?;
+        let version = get_u32(bytes, 0)?;
+        let italic_angle = get_i32(bytes, 4)?;
+        let underline_position = get_i16(bytes, 8)?;
+        let underline_thickness = get_i16(bytes, 10)?;
+        let is_fixed_pitch = get_u32(bytes, 12)?;
+        let min_mem_type_42 = get_u32(bytes, 16)?;
+        let max_mem_type_42 = get_u32(bytes, 20)?;
+        let min_mem_type_1 = get_u32(bytes, 24)?;
+        let max_mem_type_1 = get_u32(bytes, 28)?;
         let mut num_glyphs: Option<u16> = None;
         let mut glyph_name_index: Option<Vec<u16>> = None;
         let mut names: Option<Vec<String>> = None;
@@ -781,7 +781,7 @@ impl FontFile {
         }
         else if version == 0x00020000 {
             let mut offset = 34;
-            num_glyphs = Some(get_u16(bytes, 32, 34)?);
+            num_glyphs = Some(get_u16(bytes, 32)?);
             glyph_name_index = Some(
                 bytes.get(offset..offset + num_glyphs.unwrap() as usize * 2)
                     .ok_or(ErrorKind::UnexpectedEof)?
@@ -834,26 +834,26 @@ impl FontFile {
     pub fn parse_vhea(&self) -> Result<VheaTable, Error> {
         let vhea_bytes = self.get_table(b"vhea")?;
         
-        let version = get_u32(vhea_bytes, 0, 4)?;
+        let version = get_u32(vhea_bytes, 0)?;
         if version != 0x00010000 && version != 0x00011000 {
             return Err(Error::new(ErrorKind::InvalidData, format!("Invalid version number: {}", version)))
         }
-        let vert_typo_ascender = get_i16(vhea_bytes, 4, 6)?;
-        let vert_typo_descender = get_i16(vhea_bytes, 6, 8)?;
-        let vert_typo_line_gap = get_i16(vhea_bytes, 8, 10)?;
-        let advance_height_max = get_u16(vhea_bytes, 10, 12)?;
-        let min_top_side_bearing = get_i16(vhea_bytes, 12, 14)?;
-        let min_bottom_side_bearing = get_i16(vhea_bytes, 14, 16)?;
-        let y_max_extent = get_i16(vhea_bytes, 16, 18)?;
-        let caret_slope_rise = get_i16(vhea_bytes, 18, 20)?;
-        let caret_slope_run = get_i16(vhea_bytes, 20, 22)?;
-        let caret_offset = get_i16(vhea_bytes, 22, 24)?;
-        let _reserved1 = get_i16(vhea_bytes, 24, 26)?;
-        let _reserved2 = get_i16(vhea_bytes, 26, 28)?;
-        let _reserved3 = get_i16(vhea_bytes, 28, 30)?;
-        let _reserved4 = get_i16(vhea_bytes, 30, 32)?;
-        let metric_data_format = get_i16(vhea_bytes, 32, 34)?;
-        let num_of_long_ver_metrics = get_u16(vhea_bytes, 34, 36)?;
+        let vert_typo_ascender = get_i16(vhea_bytes, 4)?;
+        let vert_typo_descender = get_i16(vhea_bytes, 6)?;
+        let vert_typo_line_gap = get_i16(vhea_bytes, 8)?;
+        let advance_height_max = get_u16(vhea_bytes, 10)?;
+        let min_top_side_bearing = get_i16(vhea_bytes, 12)?;
+        let min_bottom_side_bearing = get_i16(vhea_bytes, 14)?;
+        let y_max_extent = get_i16(vhea_bytes, 16)?;
+        let caret_slope_rise = get_i16(vhea_bytes, 18)?;
+        let caret_slope_run = get_i16(vhea_bytes, 20)?;
+        let caret_offset = get_i16(vhea_bytes, 22)?;
+        let _reserved1 = get_i16(vhea_bytes, 24)?;
+        let _reserved2 = get_i16(vhea_bytes, 26)?;
+        let _reserved3 = get_i16(vhea_bytes, 28)?;
+        let _reserved4 = get_i16(vhea_bytes, 30)?;
+        let metric_data_format = get_i16(vhea_bytes, 32)?;
+        let num_of_long_ver_metrics = get_u16(vhea_bytes, 34)?;
         
         Ok(VheaTable {
             version,
@@ -914,19 +914,19 @@ impl FontFile {
     pub fn parse_kern(&self) -> Result<KernTable, Error> {
         let bytes = self.get_table(b"kern")?;
         
-        let version_test = get_u16(bytes, 0, 2)?;
+        let version_test = get_u16(bytes, 0)?;
         match version_test {
             0 => {
-                let version = get_u16(bytes, 0, 2)?;
-                let n_tables = get_u16(bytes, 2, 4)?;
+                let version = get_u16(bytes, 0)?;
+                let n_tables = get_u16(bytes, 2)?;
                 let mut subtables: Vec<WindowsSubtable> = Vec::with_capacity(n_tables as usize);
                 let mut offset: usize = 4;
                 let mut subtable_start: usize;
                 for _ in 0..n_tables {
                     subtable_start = offset;
-                    let version = get_u16(bytes, offset, offset + 2)?;
-                    let length = get_u16(bytes, offset + 2, offset + 4)?;
-                    let coverage = get_u16(bytes, offset + 4, offset + 6)?;
+                    let version = get_u16(bytes, offset)?;
+                    let length = get_u16(bytes, offset + 2)?;
+                    let coverage = get_u16(bytes, offset + 4)?;
                     offset += 6;
                     let subtable = match coverage >> 8 {
                         0 => parse_kern_format0(&bytes[offset..]),
@@ -952,16 +952,16 @@ impl FontFile {
                 })
             }
             1 => {
-                let version = get_u32(bytes, 0, 4)?;
-                let n_tables = get_u32(bytes, 4, 8)?;
+                let version = get_u32(bytes, 0)?;
+                let n_tables = get_u32(bytes, 4)?;
                 let mut offset: usize = 8;
                 let mut subtable_start: usize;
                 let mut subtables: Vec<MacSubtable> = Vec::with_capacity(n_tables as usize);
                 for _ in 0..n_tables {
                     subtable_start = offset;
-                    let length = get_u32(bytes, offset, offset + 4)?;
-                    let coverage = get_u16(bytes, offset + 4, offset + 6)?;
-                    let tuple_index = get_u16(bytes, offset + 6, offset + 8)?;
+                    let length = get_u32(bytes, offset)?;
+                    let coverage = get_u16(bytes, offset + 4)?;
+                    let tuple_index = get_u16(bytes, offset + 6)?;
                     offset += 8;
                     let subtable = match coverage & 0xFF {
                         0 => parse_kern_format0(&bytes[offset..]),
@@ -993,17 +993,17 @@ impl FontFile {
     pub fn parse_gasp(&self) -> Result<GaspTable, Error> {
         let bytes = self.get_table(b"gasp")?;
         
-        let version = get_u16(bytes, 0, 2)?;
+        let version = get_u16(bytes, 0)?;
         if version != 0 && version != 1 {
             return Err(Error::new(ErrorKind::InvalidData, format!("Version number is not 0 or 1: {}", version)))
         }
-        let num_ranges = get_u16(bytes, 2, 4)?;
+        let num_ranges = get_u16(bytes, 2)?;
         let range_records: Vec<GaspRangeRecord> = bytes.get(4..4 + num_ranges as usize * 4)
             .ok_or(ErrorKind::UnexpectedEof)?
             .chunks_exact(4)
             .map(|ch| {
-                let range_max_ppem = get_u16(ch, 0, 2)?;
-                let range_gasp_behavior = get_u16(ch, 2, 4)?;
+                let range_max_ppem = get_u16(ch, 0)?;
+                let range_gasp_behavior = get_u16(ch, 2)?;
                 
                 Ok(GaspRangeRecord { range_max_ppem, range_gasp_behavior })
             }).collect::<Result<Vec<_>, Error>>()?;
@@ -1030,20 +1030,19 @@ impl FontFile {
         Ok(self.get_table(b"prep")?.to_vec())
     }
     
-    pub fn parse_gpos(&self) -> Result<GposTable, Error> {
+    pub fn parse_gpos(&self) -> Result<GposTable<GposSubtable>, Error> {
         let bytes = self.get_table(b"GPOS")?;
         let mut offset: usize = 0;
         
-        let major_version = get_u16(bytes, 0, 2)?;
-        let minor_version = get_u16(bytes, 2, 4)?;
-        let script_list_offset = get_u16(bytes, 4, 6)?;
-        let feature_list_offset = get_u16(bytes, 6, 8)?;
-        let lookup_list_offset = get_u16(bytes, 8, 10)?;
+        let major_version = get_u16(bytes, 0)?;
+        let minor_version = get_u16(bytes, 2)?;
+        let script_list_offset = get_u16(bytes, 4)?;
+        let feature_list_offset = get_u16(bytes, 6)?;
+        let lookup_list_offset = get_u16(bytes, 8)?;
         offset += 10;
         let feature_variations_offset: Option<u32>;
         if minor_version >= 1 {
-            feature_variations_offset = Some(get_u32(bytes, offset, offset + 4)?);
-            offset += 4;
+            feature_variations_offset = Some(get_u32(bytes, offset)?);
         }
         else {
             feature_variations_offset = None;
@@ -1061,7 +1060,7 @@ impl FontFile {
         let lookup_list = parse_lookup_list(bytes, lookup_list_offset)?;
         let feature_variations: Option<FeatureVariations>;
         if feature_variations_offset != None {
-            feature_variations = Some(parse_feature_variations(bytes, feature_variations_offset.unwrap())?);
+            feature_variations = Some(parse_feature_variations(bytes, feature_variations_offset.unwrap(), feature_list.clone())?);
         }
         else {
             feature_variations = None;
@@ -1076,20 +1075,19 @@ impl FontFile {
         })
     }
     
-    pub fn parse_gsub(&self) -> Result<GsubTable, Error> {
+    pub fn parse_gsub(&self) -> Result<GsubTable<GsubSubtable>, Error> {
         let bytes = self.get_table(b"GSUB")?;
         let mut offset: usize = 0;
         
-        let major_version = get_u16(bytes, 0, 2)?;
-        let minor_version = get_u16(bytes, 2, 4)?;
-        let script_list_offset = get_u16(bytes, 4, 6)?;
-        let feature_list_offset = get_u16(bytes, 6, 8)?;
-        let lookup_list_offset = get_u16(bytes, 8, 10)?;
+        let major_version = get_u16(bytes, 0)?;
+        let minor_version = get_u16(bytes, 2)?;
+        let script_list_offset = get_u16(bytes, 4)?;
+        let feature_list_offset = get_u16(bytes, 6)?;
+        let lookup_list_offset = get_u16(bytes, 8)?;
         offset += 10;
         let feature_variations_offset: Option<u32>;
         if minor_version >= 1 {
-            feature_variations_offset = Some(get_u32(bytes, offset, offset + 4)?);
-            offset += 4;
+            feature_variations_offset = Some(get_u32(bytes, offset)?);
         }
         else {
             feature_variations_offset = None;
@@ -1107,7 +1105,7 @@ impl FontFile {
         let lookup_list = parse_lookup_list(bytes, lookup_list_offset)?;
         let feature_variations: Option<FeatureVariations>;
         if feature_variations_offset != None {
-            feature_variations = Some(parse_feature_variations(bytes, feature_variations_offset.unwrap())?);
+            feature_variations = Some(parse_feature_variations(bytes, feature_variations_offset.unwrap(), feature_list.clone())?);
         }
         else {
             feature_variations = None;
@@ -1124,17 +1122,17 @@ impl FontFile {
 }
 
 fn parse_kern_format0(bytes: &[u8]) -> Result<KernSubtable, Error> {
-    let n_pairs = get_u16(bytes, 0, 2)?;
-    let search_range = get_u16(bytes, 2, 4)?;
-    let entry_selector = get_u16(bytes, 4, 6)?;
-    let range_shift = get_u16(bytes, 6, 8)?;
+    let n_pairs = get_u16(bytes, 0)?;
+    let search_range = get_u16(bytes, 2)?;
+    let entry_selector = get_u16(bytes, 4)?;
+    let range_shift = get_u16(bytes, 6)?;
     let pairs: Vec<KernPair> = bytes.get(8..8 + n_pairs as usize * 6)
         .ok_or(ErrorKind::UnexpectedEof)?
         .chunks_exact(6)
         .map(|ch| {
-            let left = get_u16(ch, 0, 2)?;
-            let right = get_u16(ch, 2, 4)?;
-            let value = get_i16(ch, 4, 6)?;
+            let left = get_u16(ch, 0)?;
+            let right = get_u16(ch, 2)?;
+            let value = get_i16(ch, 4)?;
             
             Ok(KernPair { left, right, value })
         }).collect::<Result<Vec<_>, Error>>()?;
@@ -1150,21 +1148,21 @@ fn parse_kern_format0(bytes: &[u8]) -> Result<KernSubtable, Error> {
 
 fn parse_kern_format2(bytes: &[u8], subtable_start: usize, length: usize) -> Result<KernSubtable, Error> {
     let mut offset = 0;
-    let row_width = get_u16(bytes, offset, offset + 2)?;
-    let left_offset = get_u16(bytes, offset + 2, offset + 4)?;
-    let right_offset = get_u16(bytes, offset + 4, offset + 6)?;
-    let array_offset = get_u16(bytes, offset + 6, offset + 8)?;
+    let row_width = get_u16(bytes, offset)?;
+    let left_offset = get_u16(bytes, offset + 2)?;
+    let right_offset = get_u16(bytes, offset + 4)?;
+    let array_offset = get_u16(bytes, offset + 6)?;
     offset = subtable_start + left_offset as usize;
-    let left_class_format = get_u16(bytes, offset, offset + 2)?;
+    let left_class_format = get_u16(bytes, offset)?;
     let left_class_table = parse_kern_class(bytes, left_class_format, offset)?;
     offset = subtable_start + right_offset as usize;
-    let right_class_format = get_u16(bytes, offset, offset + 2)?;
+    let right_class_format = get_u16(bytes, offset)?;
     let right_class_table = parse_kern_class(bytes, right_class_format, offset)?;
     offset = subtable_start + array_offset as usize;
     let kerning_array: Vec<i16> = bytes.get(offset..offset + length)
         .ok_or(ErrorKind::UnexpectedEof)?
         .chunks_exact(2)
-        .map(|ch| Ok(get_i16(ch, 0, 2)?))
+        .map(|ch| Ok(get_i16(ch, 0)?))
         .collect::<Result<Vec<_>, Error>>()?;
     
     Ok(KernSubtable::Format2 {
@@ -1182,27 +1180,27 @@ fn parse_kern_class(bytes: &[u8], class_format: u16, offset: usize) -> Result<Ke
     let mut offset = offset;
     match class_format {
         1 => {
-            let start_glyph = get_u16(bytes, offset + 2, offset + 4)?;
-            let glyph_count = get_u16(bytes, offset + 4, offset + 6)?;
+            let start_glyph = get_u16(bytes, offset + 2)?;
+            let glyph_count = get_u16(bytes, offset + 4)?;
             offset += 6;
             let class_ids: Vec<u16> = bytes.get(offset..offset + glyph_count as usize * 2)
                 .ok_or(ErrorKind::UnexpectedEof)?
                 .chunks_exact(2)
-                .map(|ch| Ok(get_u16(ch, 0, 2)?))
+                .map(|ch| Ok(get_u16(ch, 0)?))
                 .collect::<Result<Vec<_>, Error>>()?;
             
             Ok(KernClassTable::Format1 { start_glyph, glyph_count, class_ids })
         }
         2 => {
-            let range_count = get_u16(bytes, offset, offset + 2)?;
+            let range_count = get_u16(bytes, offset)?;
             offset += 2;
             let ranges: Vec<Range> = bytes.get(offset..offset + range_count as usize * 6)
                 .ok_or(ErrorKind::UnexpectedEof)?
                 .chunks_exact(6)
                 .map(|ch| {
-                    let start_glyph = get_u16(ch, 0, 2)?;
-                    let end_glyph = get_u16(ch, 2, 4)?;
-                    let class = get_u16(ch, 4, 6)?;
+                    let start_glyph = get_u16(ch, 0)?;
+                    let end_glyph = get_u16(ch, 2)?;
+                    let class = get_u16(ch, 4)?;
                     
                     Ok(Range { start_glyph, end_glyph, class })
                 }).collect::<Result<Vec<_>, Error>>()?;
@@ -1216,21 +1214,21 @@ fn parse_kern_class(bytes: &[u8], class_format: u16, offset: usize) -> Result<Ke
 fn parse_script_list(bytes: &[u8], script_list_offset: u16) -> Result<ScriptList, Error> {
     let mut offset = script_list_offset as usize;
     
-    let script_count = get_u16(bytes, offset, offset + 2)?;
+    let script_count = get_u16(bytes, offset)?;
     offset += 2;
     let script_records: Vec<ScriptRecord> = bytes.get(offset..offset + script_count as usize * 6)
         .ok_or(ErrorKind::UnexpectedEof)?
         .chunks_exact(6)
         .map(|ch| {
             let script_tag: [u8; 4] = ch[0..4].try_into().unwrap();
-            let script_offset = get_u16(ch, 4, 6)?;
+            let script_offset = get_u16(ch, 4)?;
             
             Ok(ScriptRecord { script_tag, script_offset })
         }).collect::<Result<Vec<_>, Error>>()?;
     let scripts: Vec<Script> = script_records.iter()
         .map(|sr| {
             let mut offset = (script_list_offset + sr.script_offset) as usize;
-            let test_offset = get_u16(bytes, offset, offset + 2)?;
+            let test_offset = get_u16(bytes, offset)?;
             offset += 2;
             let default_lang_sys_offset = if test_offset != 0 {
                 Some(test_offset)
@@ -1240,15 +1238,15 @@ fn parse_script_list(bytes: &[u8], script_list_offset: u16) -> Result<ScriptList
             };
             let default_lang_sys = if default_lang_sys_offset != None {
                 let mut offset = (script_list_offset + sr.script_offset + default_lang_sys_offset.unwrap()) as usize;
-                let _lookup_order_offset = get_u16(bytes, offset, offset + 2)?;
-                let required_feature_index = get_u16(bytes, offset + 2, offset + 4)?;
-                let feature_index_count = get_u16(bytes, offset + 4, offset + 6)?;
+                let _lookup_order_offset = get_u16(bytes, offset)?;
+                let required_feature_index = get_u16(bytes, offset + 2)?;
+                let feature_index_count = get_u16(bytes, offset + 4)?;
                 offset += 6;
                 let feature_indices = bytes.get(offset..offset + feature_index_count as usize * 2)
                     .ok_or(ErrorKind::UnexpectedEof)?
                     .chunks_exact(2)
                     .map(|ch| {
-                        Ok(get_u16(ch, 0, 2)?)
+                        Ok(get_u16(ch, 0)?)
                     }).collect::<Result<Vec<_>, Error>>()?;
                 
                 Some(LangSys {
@@ -1261,7 +1259,7 @@ fn parse_script_list(bytes: &[u8], script_list_offset: u16) -> Result<ScriptList
             else {
                 None
             };
-            let lang_sys_count = get_u16(bytes, offset, offset + 2)?;
+            let lang_sys_count = get_u16(bytes, offset)?;
             offset += 2;
             let lang_sys_records: Vec<LangSysRecord> = bytes.get(offset..offset + lang_sys_count as usize * 6)
                 .ok_or(ErrorKind::UnexpectedEof)?
@@ -1271,22 +1269,22 @@ fn parse_script_list(bytes: &[u8], script_list_offset: u16) -> Result<ScriptList
                         .ok_or(ErrorKind::UnexpectedEof)?
                         .try_into()
                         .unwrap();
-                    let lang_sys_offset = get_u16(ch, 4, 6)?;
+                    let lang_sys_offset = get_u16(ch, 4)?;
                     
                     Ok(LangSysRecord { lang_sys_tag, lang_sys_offset })
                 }).collect::<Result<Vec<_>, Error>>()?;
             let lang_syses: Vec<LangSys> = lang_sys_records.iter()
                 .map(|lsr| {
                     let mut offset = (script_list_offset + sr.script_offset + lsr.lang_sys_offset) as usize;
-                    let _lookup_order_offset = get_u16(bytes, offset, offset + 2)?;
-                    let required_feature_index = get_u16(bytes, offset + 2, offset + 4)?;
-                    let feature_index_count = get_u16(bytes, offset + 4, offset + 6)?;
+                    let _lookup_order_offset = get_u16(bytes, offset)?;
+                    let required_feature_index = get_u16(bytes, offset + 2)?;
+                    let feature_index_count = get_u16(bytes, offset + 4)?;
                     offset += 6;
                     let feature_indices = bytes.get(offset..offset + feature_index_count as usize * 2)
                         .ok_or(ErrorKind::UnexpectedEof)?
                         .chunks_exact(2)
                         .map(|ch| {
-                            Ok(get_u16(ch, 0, 2)?)
+                            Ok(get_u16(ch, 0)?)
                         }).collect::<Result<Vec<_>, Error>>()?;
                     
                     Ok(LangSys {
@@ -1316,21 +1314,22 @@ fn parse_script_list(bytes: &[u8], script_list_offset: u16) -> Result<ScriptList
 fn parse_feature_list(bytes: &[u8], feature_list_offset: u16) -> Result<FeatureList, Error> {
     let mut offset = feature_list_offset as usize;
     
-    let feature_count = get_u16(bytes, offset, offset + 2)?;
+    let feature_count = get_u16(bytes, offset)?;
     offset += 2;
     let feature_records: Vec<FeatureRecord> = bytes.get(offset..offset + feature_count as usize * 6)
         .ok_or(ErrorKind::UnexpectedEof)?
         .chunks_exact(6)
         .map(|ch| {
             let feature_tag: [u8; 4] = ch[0..4].try_into().unwrap();
-            let feature_offset = get_u16(ch, 4, 6)?;
+            let feature_offset = get_u16(ch, 4)?;
             
             Ok(FeatureRecord { feature_tag, feature_offset })
         }).collect::<Result<Vec<_>, Error>>()?;
     let features: Vec<Feature> = feature_records.iter()
         .map(|fr| {
             let mut offset = (feature_list_offset + fr.feature_offset) as usize;
-            let test_offset = get_u16(bytes, offset, offset + 2)?;
+            let test_offset = get_u16(bytes, offset)?;
+            offset += 2;
             let feature_params_offset: Option<u16> = if test_offset != 0 {
                 Some(test_offset)
             }
@@ -1338,9 +1337,15 @@ fn parse_feature_list(bytes: &[u8], feature_list_offset: u16) -> Result<FeatureL
                 None
             };
             let feature_params: Option<FeatureParams> = if feature_params_offset != None {
-                let mut offset = (feature_list_offset + fr.feature_offset + feature_params_offset.unwrap()) as usize;
-                match *fr.feature_tag {
+                let offset = (feature_list_offset + fr.feature_offset + feature_params_offset.unwrap()) as usize;
+                match &fr.feature_tag {
                     b"size" => {
+                        let design_size = get_u16(bytes, offset)?;
+                        let subfamily_id = get_u16(bytes, offset + 2)?;
+                        let subfamily_name_id = get_u16(bytes, offset + 4)?;
+                        let range_start = get_u16(bytes, offset + 6)?;
+                        let range_end = get_u16(bytes, offset + 8)?;
+                        
                         Some(FeatureParams::Size {
                             design_size,
                             subfamily_id,
@@ -1350,12 +1355,27 @@ fn parse_feature_list(bytes: &[u8], feature_list_offset: u16) -> Result<FeatureL
                         })
                     },
                     tag if tag.starts_with(b"ss") => {
+                        let version = get_u16(bytes, offset)?;
+                        let ui_name_id = get_u16(bytes, offset + 2)?;
+                        
                         Some(FeatureParams::StylisticSet {
                             version,
                             ui_name_id
                         })
                     },
                     tag if tag.starts_with(b"cv") => {
+                        let format = get_u16(bytes, offset)?;
+                        let feat_ui_label_name_id = get_u16(bytes, offset + 2)?;
+                        let feat_tooltip_text_name_id = get_u16(bytes, offset + 4)?;
+                        let sample_text_name_id = get_u16(bytes, offset + 6)?;
+                        let num_named_parameters = get_u16(bytes, offset + 8)?;
+                        let first_param_ui_label_name_id = get_u16(bytes, offset + 10)?;
+                        let char_count = get_u16(bytes, offset + 12)?;
+                        let character: [u8; 3] = bytes.get(offset + 14..offset + 17)
+                            .ok_or(ErrorKind::UnexpectedEof)?
+                            .try_into()
+                            .unwrap();
+                        
                         Some(FeatureParams::CharacterVariant {
                             format,
                             feat_ui_label_name_id,
@@ -1367,11 +1387,20 @@ fn parse_feature_list(bytes: &[u8], feature_list_offset: u16) -> Result<FeatureL
                             character
                         })
                     }
+                    _ => return Err(Error::new(ErrorKind::InvalidData, format!("Feature tag is invalid: {:#?}", fr.feature_tag)))
                 }
             }
             else {
                 None
             };
+            let lookup_index_count = get_u16(bytes, offset)?;
+            offset += 2;
+            let lookup_list_indices: Vec<u16> = bytes.get(offset..offset + lookup_index_count as usize * 2)
+                .ok_or(ErrorKind::UnexpectedEof)?
+                .chunks_exact(2)
+                .map(|ch| {
+                    u16::from_be_bytes(ch.try_into().unwrap())
+                }).collect();
             
             Ok(Feature {
                 feature_params_offset,
@@ -1379,17 +1408,1081 @@ fn parse_feature_list(bytes: &[u8], feature_list_offset: u16) -> Result<FeatureL
                 lookup_index_count,
                 lookup_list_indices
             })
-        }).collect();
+        }).collect::<Result<Vec<_>, Error>>()?;
     
     Ok(FeatureList { feature_count, feature_records, features })
 }
 
-fn parse_lookup_list(bytes: &[u8], lookup_list_offset: u16) -> Result<LookupList, Error> {
-    Ok(())
+fn parse_lookup_list<T: SubtableParser>(bytes: &[u8], lookup_list_offset: u16) -> Result<LookupList<T>, Error> {
+    let mut offset = lookup_list_offset as usize;
+    
+    let lookup_count = get_u16(bytes, offset)?;
+    offset += 2;
+    let lookup_offsets: Vec<u16> = bytes.get(offset..offset + lookup_count as usize * 2)
+        .ok_or(ErrorKind::UnexpectedEof)?
+        .chunks_exact(2)
+        .map(|ch| {
+            u16::from_be_bytes(ch.try_into().unwrap())
+        }).collect();
+    let mut lookups: Vec<Lookup<T>> = Vec::with_capacity(lookup_offsets.len());
+    for offset in lookup_offsets.iter() {
+        let mut offset = *offset as usize;
+        let lookup_type = get_u16(bytes, offset)?;
+        let lookup_flag = get_u16(bytes, offset + 2)?;
+        let subtable_count = get_u16(bytes, offset + 4)?;
+        offset += 4;
+        let subtable_offsets: Vec<u16> = bytes.get(offset..offset + subtable_count as usize * 2)
+            .ok_or(ErrorKind::UnexpectedEof)?
+            .chunks_exact(2)
+            .map(|ch| {
+                u16::from_be_bytes(ch.try_into().unwrap())
+            }).collect();
+        offset += subtable_count as usize * 2;
+        let subtables: Vec<T> = subtable_offsets.iter()
+            .map(|offset| {
+                Ok(T::parse(bytes, *offset, lookup_type)?)
+            }).collect::<Result<Vec<_>, Error>>()?;
+        let mark_filtering_set = if lookup_flag & USE_MARK_FILTERING_SET != 0 {
+            Some(get_u16(bytes, offset)?)
+        }
+        else {
+            None
+        };
+        
+        lookups.push(Lookup {
+            lookup_type,
+            lookup_flag,
+            subtable_count,
+            subtable_offsets,
+            subtables,
+            mark_filtering_set
+        });
+    }
+    
+    Ok(LookupList {
+        lookup_count,
+        lookup_offsets,
+        lookups
+    })
 }
 
-fn parse_feature_variations(bytes: &[u8], feature_variations_offset: u32) -> Result<FeatureVariations, Error> {
-    Ok(())
+trait SubtableParser: Sized {
+    fn parse(bytes: &[u8], subtable_offset: u16, lookup_type: u16) -> Result<Self, Error>;
+}
+
+impl SubtableParser for GposSubtable {
+    fn parse(bytes: &[u8], subtable_offset: u16, lookup_type: u16) -> Result<Self, Error> {
+        let mut offset = subtable_offset as usize;
+        let format = get_u16(bytes, offset)?;
+        match lookup_type {
+            1 => {
+                match format {
+                    1 => {
+                        let coverage_offset = get_u16(bytes, offset)?;
+                        offset += 2;
+                        let coverage = parse_coverage(bytes, subtable_offset, coverage_offset)?;
+                        let value_format = get_u16(bytes, offset)?;
+                        offset += 2;
+                        let value_record = parse_value_record(bytes, value_format, &mut offset, subtable_offset)?;
+                        
+                        Ok(GposSubtable::Type1(GposType1Format::Format1 {
+                            coverage_offset,
+                            coverage,
+                            value_format,
+                            value_record
+                        }))
+                    }
+                    2 => {
+                        let coverage_offset = get_u16(bytes, offset)?;
+                        offset += 2;
+                        let coverage = parse_coverage(bytes, subtable_offset, coverage_offset)?;
+                        let value_format = get_u16(bytes, offset)?;
+                        let value_count = get_u16(bytes, offset + 2)?;
+                        offset += 4;
+                        let value_records: Vec<ValueRecord> = (0..value_count).map(|_| {
+                            Ok(parse_value_record(bytes, value_format, &mut offset, subtable_offset)?)
+                        }).collect::<Result<Vec<_>, Error>>()?;
+                        
+                        Ok(GposSubtable::Type1(GposType1Format::Format2 {
+                            coverage_offset,
+                            coverage,
+                            value_format,
+                            value_count,
+                            value_records
+                        }))
+                    }
+                    _ => Err(Error::new(ErrorKind::InvalidData, format!("Format for Lookup Type 1 is invalid: {}", format)))
+                }
+            }
+            2 => {
+                match format {
+                    1 => {
+                        let coverage_offset = get_u16(bytes, offset)?;
+                        let coverage = parse_coverage(bytes, subtable_offset, coverage_offset)?;
+                        let value_format1 = get_u16(bytes, offset + 2)?;
+                        let value_format2 = get_u16(bytes, offset + 4)?;
+                        let pair_set_count = get_u16(bytes, offset + 6)?;
+                        offset += 6;
+                        let pair_set_offsets: Vec<u16> = bytes.get(offset..offset + pair_set_count as usize * 2)
+                            .ok_or(ErrorKind::UnexpectedEof)?
+                            .chunks_exact(2)
+                            .map(|ch| {
+                                u16::from_be_bytes(ch.try_into().unwrap())
+                            }).collect();
+                        let pair_sets: Vec<PairSet> = pair_set_offsets.iter()
+                            .map(|offset| {
+                                let offset = (subtable_offset + offset) as usize;
+                                let pair_value_count = get_u16(bytes, offset)?;
+                                offset += 2;
+                                let pair_value_records: Vec<PairValueRecord> = (0..pair_value_count).map(|_| {
+                                    let second_glyph = get_u16(bytes, offset)?;
+                                    offset += 2;
+                                    let value_record1 = parse_value_record(bytes, value_format1, &mut offset, subtable_offset)?;
+                                    let value_record2 = parse_value_record(bytes, value_format2, &mut offset, subtable_offset)?;
+                                    
+                                    Ok(PairValueRecord {
+                                        second_glyph,
+                                        value_record1,
+                                        value_record2
+                                    })
+                                }).collect::<Result<Vec<_>, Error>>()?;
+                                
+                                Ok(PairSet {
+                                    pair_value_count,
+                                    pair_value_records
+                                })
+                            }).collect::<Result<Vec<_>, Error>>()?;
+                        
+                        Ok(GposSubtable::Type2(GposType2Format::Format1 {
+                            coverage_offset,
+                            coverage,
+                            value_format1,
+                            value_format2,
+                            pair_set_count,
+                            pair_set_offsets,
+                            pair_sets
+                        }))
+                    }
+                    2 => {
+                        let coverage_offset = get_u16(bytes, offset)?;
+                        let coverage = parse_coverage(bytes, subtable_offset, coverage_offset)?;
+                        let value_format1 = get_u16(bytes, offset + 2)?;
+                        let value_format2 = get_u16(bytes, offset + 4)?;
+                        let class_def1_offset = get_u16(bytes, offset + 6)?;
+                        let class_def1 = parse_class_def(bytes, class_def1_offset)?;
+                        let class_def2_offset = get_u16(bytes, offset + 8)?;
+                        let class_def2 = parse_class_def(bytes, class_def2_offset)?;
+                        let class1_count = get_u16(bytes, offset + 10)?;
+                        let class2_count = get_u16(bytes, offset + 12)?;
+                        offset += 12;
+                        let class1_records: Vec<Class1Record> = (0..class1_count).map(|_| {
+                            Ok(parse_class1_record(bytes, subtable_offset, value_format1, value_format2, class2_count, &mut offset)?)
+                        }).collect::<Result<Vec<_>, Error>>()?;
+                        
+                        Ok(GposSubtable::Type2(GposType2Format::Format2 {
+                            coverage_offset,
+                            coverage,
+                            value_format1,
+                            value_format2,
+                            class_def1_offset,
+                            class_def1,
+                            class_def2_offset,
+                            class_def2,
+                            class1_count,
+                            class2_count,
+                            class1_records
+                        }))
+                    }
+                    _ => Err(Error::new(ErrorKind::InvalidData, format!("Format for Lookup Type 2 is invalid: {}", format)))
+                }
+            }
+            3 => {
+                match format {
+                    1 => {
+                        let coverage_offset = get_u16(bytes, offset)?;
+                        let coverage = parse_coverage(bytes, subtable_offset, coverage_offset)?;
+                        let entry_exit_count = get_u16(bytes, offset + 2)?;
+                        let entry_exit_records: Vec<EntryExitRecord> = (0..entry_exit_count).map(|_| {
+                            Ok(parse_entry_exit_record(bytes, subtable_offset)?)
+                        }).collect::<Result<Vec<_>, Error>>()?;
+                        
+                        Ok(GposSubtable::Type3(GposType3Format::Format1 {
+                            coverage_offset,
+                            coverage,
+                            entry_exit_count,
+                            entry_exit_records
+                        }))
+                    }
+                    _ => Err(Error::new(ErrorKind::InvalidData, format!("Format for Lookup Type 3 is invalid: {}", format)))
+                }
+            }
+            4 => {
+                match format {
+                    1 => {
+                        let mark_coverage_offset = get_u16(bytes, offset)?;
+                        let mark_coverage = parse_coverage(bytes, subtable_offset, mark_coverage_offset)?;
+                        let base_coverage_offset = get_u16(bytes, offset + 2)?;
+                        let base_coverage = parse_coverage(bytes, subtable_offset, base_coverage_offset)?;
+                        let mark_class_count = get_u16(bytes, offset + 4)?;
+                        let mark_array_offset = get_u16(bytes, offset + 6)?;
+                        let mark_array = parse_mark_array(bytes, subtable_offset, mark_array_offset)?;
+                        let base_array_offset = get_u16(bytes, offset + 8)?;
+                        let base_array = parse_base_array(bytes, subtable_offset, base_array_offset)?;
+                        
+                        Ok(GposSubtable::Type4(GposType4Format::Format1 {
+                            mark_coverage_offset,
+                            mark_coverage,
+                            base_coverage_offset,
+                            base_coverage,
+                            mark_class_count,
+                            mark_array_offset,
+                            mark_array,
+                            base_array_offset,
+                            base_array
+                        }))
+                    }
+                    _ => Err(Error::new(ErrorKind::InvalidData, format!("Format for Lookup Type 4 is invalid: {}", format)))
+                }
+            }
+            5 => {
+                match format {
+                    1 => {
+                        let mark_coverage_offset = get_u16(bytes, offset)?;
+                        let mark_coverage = parse_coverage(bytes, subtable_offset, mark_coverage_offset)?;
+                        let ligature_coverage_offset = get_u16(bytes, offset + 2)?;
+                        let ligature_coverage = parse_coverage(bytes, subtable_offset, ligature_coverage_offset)?;
+                        let mark_class_count = get_u16(bytes, offset + 4)?;
+                        let mark_array_offset = get_u16(bytes, offset + 6)?;
+                        let mark_array = parse_mark_array(bytes, subtable_offset, mark_array_offset)?;
+                        let ligature_array_offset = get_u16(bytes, offset + 8)?;
+                        let ligature_array = parse_ligature_array(bytes, subtable_offset, ligature_array_offset)?;
+                        
+                        Ok(GposSubtable::Type5(GposType5Format::Format1 {
+                            mark_coverage_offset,
+                            mark_coverage,
+                            ligature_coverage_offset,
+                            ligature_coverage,
+                            mark_class_count,
+                            mark_array_offset,
+                            mark_array,
+                            ligature_array_offset,
+                            ligature_array
+                        }))
+                    }
+                    _ => Err(Error::new(ErrorKind::InvalidData, format!("Format for Lookup Type 5 is invalid: {}", format)))
+                }
+            }
+            6 => {
+                match format {
+                    1 => {
+                        Ok(GposSubtable::Type6(GposType6Format::Format1 {
+                            mark1_coverage_offset,
+                            mark1_coverage,
+                            mark2_coverage_offset,
+                            mark2_coverage,
+                            mark_class_count,
+                            mark1_array_offset,
+                            mark1_array,
+                            mark2_array_offset,
+                            mark2_array
+                        }))
+                    }
+                    _ => Err(Error::new(ErrorKind::InvalidData, format!("Format for Lookup Type 6 is invalid: {}", format)))
+                }
+            }
+            7 => {
+                match format {
+                    1 => {
+                        Ok(GposSubtable::Type7(GposType7Format::Format1 {
+                            coverage_offset,
+                            coverage,
+                            sub_rule_set_count,
+                            sub_rule_set_offsets,
+                            sub_rule_sets
+                        }))
+                    }
+                    2 => {
+                        Ok(GposSubtable::Type7(GposType7Format::Format2 {
+                            coverage_offset,
+                            coverage,
+                            class_def_offset,
+                            class_def,
+                            sub_class_set_count,
+                            sub_class_set_offsets,
+                            sub_class_sets
+                        }))
+                    }
+                    3 => {
+                        Ok(GposSubtable::Type7(GposType7Format::Format3 {
+                            glyph_count,
+                            sub_count,
+                            coverage_offsets,
+                            coverages,
+                            pos_lookup_records
+                        }))
+                    }
+                    _ => Err(Error::new(ErrorKind::InvalidData, format!("Format for Lookup Type 7 is invalid: {}", format)))
+                }
+            }
+            8 => {
+                match format {
+                    1 => {
+                        Ok(GposSubtable::Type8(GposType8Format::Format1 {
+                            coverage_offset,
+                            coverage,
+                            chain_sub_rule_set_count,
+                            chain_sub_rule_set_offsets,
+                            chain_sub_rule_sets
+                        }))
+                    }
+                    2 => {
+                        Ok(GposSubtable::Type8(GposType8Format::Format2 {
+                            coverage_offset,
+                            coverage,
+                            backtrack_class_def_offset,
+                            backtrack_class_def,
+                            input_class_def_offset,
+                            input_class_def,
+                            lookahead_class_def_offset,
+                            lookahead_class_def,
+                            chain_sub_class_set_count,
+                            chain_sub_class_set_offsets,
+                            chain_sub_class_sets
+                        }))
+                    }
+                    3 => {
+                        Ok(GposSubtable::Type8(GposType8Format::Format3 {
+                            backtrack_glyph_count,
+                            backtrack_coverage_offsets,
+                            backtrack_coverages,
+                            input_glyph_count,
+                            input_coverage_offsets,
+                            input_coverages,
+                            lookahead_glyph_count,
+                            lookahead_coverage_offsets,
+                            lookahead_coverages,
+                            sub_count,
+                            pos_lookup_records
+                        }))
+                    }
+                    _ => Err(Error::new(ErrorKind::InvalidData, format!("Format for Lookup Type 8 is invalid: {}", format)))
+                }
+            }
+            9 => {
+                match format {
+                    1 => {
+                        Ok(GposSubtable::Type9(GposType9Format::Format1 {
+                            extension_lookup_type,
+                            extension_offset,
+                            extension
+                        }))
+                    }
+                    _ => Err(Error::new(ErrorKind::InvalidData, format!("Format for Lookup Type 9 is invalid: {}", format)))
+                }
+            }
+            _ => Err(Error::new(ErrorKind::InvalidData, format!("Lookup Type is invalid: {}", lookup_type)))
+        }
+    }
+}
+
+impl SubtableParser for GsubSubtable {
+    fn parse(bytes: &[u8], subtable_offset: u16, lookup_type: u16) -> Result<Self, Error> {
+        let mut offset = subtable_offset as usize;
+        let format = get_u16(bytes, offset)?;
+        match lookup_type {
+            1 => {
+                match format {
+                    1 => {
+                        Ok(GsubSubtable::Type1(GsubType1Format::Format1 {
+                            coverage_offset,
+                            coverage,
+                            delta_glyph_id
+                        }))
+                    }
+                    2 => {
+                        Ok(GsubSubtable::Type1(GsubType1Format::Format2 {
+                            coverage_offset,
+                            coverage,
+                            glyph_count,
+                            substitute_glyph_ids
+                        }))
+                    }
+                    _ => Err(Error::new(ErrorKind::InvalidData, format!("Format for Lookup Type 1 is invalid: {}", format)))
+                }
+            }
+            2 => {
+                match format {
+                    1 => {
+                        Ok(GsubSubtable::Type2(GsubType2Format::Format1 {
+                            coverage_offset,
+                            coverage,
+                            sequence_count,
+                            sequence_offsets,
+                            sequences
+                        }))
+                    }
+                    _ => Err(Error::new(ErrorKind::InvalidData, format!("Format for Lookup Type 2 is invalid: {}", format)))
+                }
+            }
+            3 => {
+                match format {
+                    1 => {
+                        Ok(GsubSubtable::Type3(GsubType3Format::Format1 {
+                            coverage_offset,
+                            coverage,
+                            alternate_set_count,
+                            alternate_set_offsets,
+                            alternate_sets
+                        }))
+                    }
+                    _ => Err(Error::new(ErrorKind::InvalidData, format!("Format for Lookup Type 3 is invalid: {}", format)))
+                }
+            }
+            4 => {
+                match format {
+                    1 => {
+                        Ok(GsubSubtable::Type4(GsubType4Format::Format1 {
+                            coverage_offset,
+                            coverage,
+                            ligature_set_count,
+                            ligature_set_offsets,
+                            ligature_sets
+                        }))
+                    }
+                    _ => Err(Error::new(ErrorKind::InvalidData, format!("Format for Lookup Type 4 is invalid: {}", format)))
+                }
+            }
+            5 => {
+                match format {
+                    1 => {
+                        Ok(GsubSubtable::Type5(GsubType5Format::Format1 {
+                            coverage_offset,
+                            coverage,
+                            sub_rule_set_count,
+                            sub_rule_set_offsets,
+                            sub_rule_sets
+                        }))
+                    }
+                    2 => {
+                        Ok(GsubSubtable::Type5(GsubType5Format::Format2 {
+                            coverage_offset,
+                            coverage,
+                            class_def_offset,
+                            class_def,
+                            sub_class_set_count,
+                            sub_class_set_offsets,
+                            sub_class_sets
+                        }))
+                    }
+                    3 => {
+                        Ok(GsubSubtable::Type5(GsubType5Format::Format3 {
+                            glyph_count,
+                            sub_count,
+                            coverage_offsets,
+                            coverages,
+                            subst_lookup_records
+                        }))
+                    }
+                    _ => Err(Error::new(ErrorKind::InvalidData, format!("Format for Lookup Type 5 is invalid: {}", format)))
+                }
+            }
+            6 => {
+                match format {
+                    1 => {
+                        Ok(GsubSubtable::Type6(GsubType6Format::Format1 {
+                            coverage_offset,
+                            coverage,
+                            chain_sub_rule_set_count,
+                            chain_sub_rule_set_offsets,
+                            chain_sub_rule_sets
+                        }))
+                    }
+                    2 => {
+                        Ok(GsubSubtable::Type6(GsubType6Format::Format2 {
+                            coverage_offset,
+                            coverage,
+                            backtrack_class_def_offset,
+                            backtrack_class_def,
+                            input_class_def_offset,
+                            input_class_def,
+                            lookahead_class_def_offset,
+                            lookahead_class_def,
+                            chain_sub_class_set_count,
+                            chain_sub_class_set_offsets,
+                            chain_sub_class_sets
+                        }))
+                    }
+                    3 => {
+                        Ok(GsubSubtable::Type6(GsubType6Format::Format3 {
+                            backtrack_glyph_count,
+                            backtrack_coverage_offsets,
+                            backtrack_coverages,
+                            input_glyph_count,
+                            input_coverage_offsets,
+                            input_coverages,
+                            lookahead_glyph_count,
+                            lookahead_coverage_offsets,
+                            lookahead_coverages,
+                            sub_count,
+                            subst_lookup_records
+                        }))
+                    }
+                    _ => Err(Error::new(ErrorKind::InvalidData, format!("Format for Lookup Type 6 is invalid: {}", format)))
+                }
+            }
+            7 => {
+                match format {
+                    1 => {
+                        Ok(GsubSubtable::Type7(GsubType7Format::Format1 {
+                            extension_lookup_type,
+                            extension_offset,
+                            extension
+                        }))
+                    }
+                    _ => Err(Error::new(ErrorKind::InvalidData, format!("Format for Lookup Type 7 is invalid: {}", format)))
+                }
+            }
+            8 => {
+                match format {
+                    1 => {
+                        Ok(GsubSubtable::Type8(GsubType8Format::Format1 {
+                            coverage_offset,
+                            coverage,
+                            backtrack_glyph_count,
+                            backtrack_coverage_offsets,
+                            backtrack_coverages,
+                            lookahead_glyph_count,
+                            lookahead_coverage_offsets,
+                            lookahead_coverages,
+                            glyph_count,
+                            substitute_glyph_ids
+                        }))
+                    }
+                }
+            }
+            _ => Err(Error::new(ErrorKind::InvalidData, format!("Lookup Type is invalid: {}", lookup_type)))
+        }
+    }
+}
+
+fn parse_feature_variations(bytes: &[u8], feature_variations_offset: u32, feature_list: FeatureList) -> Result<FeatureVariations, Error> {
+    let mut offset = feature_variations_offset as usize;
+    
+    let major_version = get_u16(bytes, offset)?;
+    let minor_version = get_u16(bytes, offset + 2)?;
+    let feature_variation_record_count = get_u32(bytes, offset + 4)?;
+    offset += 8;
+    let feature_variation_records: Vec<FeatureVariationRecord> = Vec::with_capacity(feature_variation_record_count as usize);
+    for _ in 0..feature_variation_record_count {
+        let condition_set_offset = get_u32(bytes, offset)?;
+        offset += 4;
+        let condition_set: ConditionSet = {
+            let mut offset = (feature_variations_offset + condition_set_offset) as usize;
+            let condition_count = get_u16(bytes, offset)?;
+            offset += 2;
+            let condition_offsets: Vec<u32> = bytes.get(offset..offset + condition_count as usize * 4)
+                .ok_or(ErrorKind::UnexpectedEof)?
+                .chunks_exact(4)
+                .map(|ch| {
+                    u32::from_be_bytes(ch.try_into().unwrap())
+                }).collect();
+            let conditions: Vec<Condition> = condition_offsets.iter()
+                .map(|off| {
+                    let mut offset = *off as usize;
+                    let format = get_u16(bytes, offset)?;
+                    match format {
+                        1 => {
+                            let axis_index = get_u16(bytes, offset)?;
+                            let filter_range_min_value = get_i16(bytes, offset + 2)?;
+                            let filter_range_max_value = get_i16(bytes, offset + 4)?;
+                            
+                            Ok(Condition::Format1 {
+                                axis_index,
+                                filter_range_min_value,
+                                filter_range_max_value
+                            })
+                        }
+                        _ => return Err(Error::new(ErrorKind::InvalidData, format!("Condition format invalid: {}", format)))
+                    }
+                }).collect::<Result<Vec<_>, Error>>()?;
+            
+            ConditionSet {
+                condition_count,
+                condition_offsets,
+                conditions
+            }
+        };
+        let feature_table_substitution_offset = get_u32(bytes, offset)?;
+        let feature_table_substitution: FeatureTableSubstitution = {
+            let offset = (feature_variations_offset + feature_table_substitution_offset) as usize;
+            let major_version = get_u16(bytes, offset)?;
+            let minor_version = get_u16(bytes, offset + 2)?;
+            let substitution_count = get_u16(bytes, offset + 4)?;
+            offset += 4;
+            let mut substitution_records: Vec<FeatureTableSubstitutionRecord> = Vec::with_capacity(substitution_count as usize);
+            for _ in 0..substitution_count {
+                let feature_index = get_u16(bytes, offset)?;
+                let alternate_feature_table_offset = get_u32(bytes, offset + 2)?;
+                offset += 6;
+                let alternate_feature_table: Feature = {
+                    let mut offset = (feature_variations_offset + feature_table_substitution_offset + alternate_feature_table_offset) as usize;
+                    let test_offset = get_u16(bytes, offset)?;
+                    offset += 2;
+                    let feature_params_offset = if test_offset != 0 {
+                        Some(test_offset)
+                    }
+                    else {
+                        None
+                    };
+                    let feature_params = if feature_params_offset != None {
+                        let feature_tag = feature_list.feature_records
+                            .get(feature_index as usize)
+                            .ok_or(ErrorKind::NotFound)?
+                            .feature_tag;
+                        match &feature_tag {
+                            b"size" => {
+                                let design_size = get_u16(bytes, offset)?;
+                                let subfamily_id = get_u16(bytes, offset + 2)?;
+                                let subfamily_name_id = get_u16(bytes, offset + 4)?;
+                                let range_start = get_u16(bytes, offset + 6)?;
+                                let range_end = get_u16(bytes, offset + 8)?;
+                                
+                                Some(FeatureParams::Size {
+                                    design_size,
+                                    subfamily_id,
+                                    subfamily_name_id,
+                                    range_start,
+                                    range_end
+                                })
+                            },
+                            tag if tag.starts_with(b"ss") => {
+                                let version = get_u16(bytes, offset)?;
+                                let ui_name_id = get_u16(bytes, offset + 2)?;
+                                
+                                Some(FeatureParams::StylisticSet {
+                                    version,
+                                    ui_name_id
+                                })
+                            },
+                            tag if tag.starts_with(b"cv") => {
+                                let format = get_u16(bytes, offset)?;
+                                let feat_ui_label_name_id = get_u16(bytes, offset + 2)?;
+                                let feat_tooltip_text_name_id = get_u16(bytes, offset + 4)?;
+                                let sample_text_name_id = get_u16(bytes, offset + 6)?;
+                                let num_named_parameters = get_u16(bytes, offset + 8)?;
+                                let first_param_ui_label_name_id = get_u16(bytes, offset + 10)?;
+                                let char_count = get_u16(bytes, offset + 12)?;
+                                let character: [u8; 3] = bytes.get(offset + 14..offset + 17)
+                                    .ok_or(ErrorKind::UnexpectedEof)?
+                                    .try_into()
+                                    .unwrap();
+                                
+                                Some(FeatureParams::CharacterVariant {
+                                    format,
+                                    feat_ui_label_name_id,
+                                    feat_tooltip_text_name_id,
+                                    sample_text_name_id,
+                                    num_named_parameters,
+                                    first_param_ui_label_name_id,
+                                    char_count,
+                                    character
+                                })
+                            }
+                            _ => return Err(Error::new(ErrorKind::InvalidData, format!("Feature tag is invalid: {:#?}", fr.feature_tag)))
+                        }
+                    }
+                    else {
+                        None
+                    };
+                    let lookup_index_count = get_u16(bytes, offset)?;
+                    offset += 2;
+                    let lookup_list_indices: Vec<u16> = bytes.get(offset..offset + lookup_index_count as usize  * 2)
+                        .ok_or(ErrorKind::UnexpectedEof)?
+                        .chunks_exact(2)
+                        .map(|ch| {
+                            u16::from_be_bytes(ch.try_into().unwrap())
+                        }).collect();
+                    
+                    Feature {
+                        feature_params_offset,
+                        feature_params,
+                        lookup_index_count,
+                        lookup_list_indices
+                    }
+                };
+                
+                substitution_records.push(FeatureTableSubstitutionRecord {
+                    feature_index,
+                    alternate_feature_table_offset,
+                    alternate_feature_table
+                })
+            }
+            
+            FeatureTableSubstitution {
+                major_version,
+                minor_version,
+                substitution_count,
+                substitution_records
+            }
+        };
+        
+        feature_variation_records.push(FeatureVariationRecord {
+            condition_set_offset,
+            condition_set,
+            feature_table_substitution_offset,
+            feature_table_substitution
+        });
+    }
+    
+    Ok(FeatureVariations {
+        major_version,
+        minor_version,
+        feature_variation_record_count,
+        feature_variation_records
+    })
+}
+
+fn parse_coverage(bytes: &[u8], subtable_offset: u16, coverage_offset: u16) -> Result<Coverage, Error> {
+    let mut offset = (subtable_offset + coverage_offset) as usize;
+    let format = get_u16(bytes, offset)?;
+    offset += 2;
+    match format {
+        1 => {
+            let glyph_count = get_u16(bytes, offset)?;
+            offset += 2;
+            let glyph_array = bytes.get(offset..offset + glyph_count as usize * 2)
+                .ok_or(ErrorKind::UnexpectedEof)?
+                .chunks_exact(2)
+                .map(|ch| {
+                    u16::from_be_bytes(ch.try_into().unwrap())
+                }).collect();
+            
+            Ok(Coverage::Format1 {
+                glyph_count,
+                glyph_array
+            })
+        }
+        2 => {
+            let range_count = get_u16(bytes, offset)?;
+            offset += 2;
+            let range_records: Vec<CoverageRangeRecord> = bytes.get(offset..offset + range_count as usize * 6)
+                .ok_or(ErrorKind::UnexpectedEof)?
+                .chunks_exact(6)
+                .map(|ch| {
+                    let start_glyph_id = u16::from_be_bytes(ch[0..2].try_into().unwrap());
+                    let end_glyph_id = u16::from_be_bytes(ch[2..4].try_into().unwrap());
+                    let start_coverage_index = u16::from_be_bytes(ch[4..6].try_into().unwrap());
+                    
+                    CoverageRangeRecord {
+                        start_glyph_id,
+                        end_glyph_id,
+                        start_coverage_index
+                    }
+                }).collect();
+            
+            Ok(Coverage::Format2 {
+                range_count,
+                range_records
+            })
+        }
+        _ => return Err(Error::new(ErrorKind::InvalidData, format!("Coverage format invalid: {}", format)))
+    }
+}
+
+fn parse_value_record(bytes: &[u8], value_format: u16, offset: &mut usize, subtable_offset: u16) -> Result<ValueRecord, Error> {
+    let x_placement = if value_format & X_PLACEMENT != 0 {
+        *offset += 2;
+        Some(get_i16(bytes, *offset - 2)?)
+    }
+    else { None };
+    let y_placement = if value_format & Y_PLACEMENT != 0 {
+        *offset += 2;
+        Some(get_i16(bytes, *offset - 2)?)
+    }
+    else { None };
+    let x_advance = if value_format & X_ADVANCE != 0 {
+        *offset += 2;
+        Some(get_i16(bytes, *offset - 2)?)
+    }
+    else { None };
+    let y_advance = if value_format & Y_ADVANCE != 0 {
+        *offset += 2;
+        Some(get_i16(bytes, *offset - 2)?)
+    }
+    else { None };
+    let x_pla_device_offset = if value_format & X_PLACEMENT_DEVICE != 0 {
+        *offset += 2;
+        Some(get_u16(bytes, *offset - 2)?)
+    }
+    else { None };
+    let x_pla_device = if x_pla_device_offset != None {
+        Some(parse_device(bytes, subtable_offset + x_pla_device_offset.unwrap())?)
+    }
+    else { None };
+    let y_pla_device_offset = if value_format & Y_PLACEMENT_DEVICE != 0 {
+        *offset += 2;
+        Some(get_u16(bytes, *offset - 2)?)
+    }
+    else { None };
+    let y_pla_device = if y_pla_device_offset != None {
+        Some(parse_device(bytes, subtable_offset + y_pla_device_offset.unwrap())?)
+    }
+    else { None };
+    let x_adv_device_offset = if value_format & X_ADVANCE_DEVICE != 0 {
+        *offset += 2;
+        Some(get_u16(bytes, *offset - 2)?)
+    }
+    else { None };
+    let x_adv_device = if x_adv_device_offset != None {
+        Some(parse_device(bytes, subtable_offset + x_adv_device_offset.unwrap())?)
+    }
+    else { None };
+    let y_adv_device_offset = if value_format & Y_ADVANCE_DEVICE != 0 {
+        *offset += 2;
+        Some(get_u16(bytes, *offset - 2)?)
+    }
+    else { None };
+    let y_adv_device = if y_adv_device_offset != None {
+        Some(parse_device(bytes, subtable_offset + y_adv_device_offset.unwrap())?)
+    }
+    else { None };
+    
+    Ok(ValueRecord {
+        x_placement,
+        y_placement,
+        x_advance,
+        y_advance,
+        x_pla_device_offset,
+        x_pla_device,
+        y_pla_device_offset,
+        y_pla_device,
+        x_adv_device_offset,
+        x_adv_device,
+        y_adv_device_offset,
+        y_adv_device
+    })
+}
+
+fn parse_device(bytes: &[u8], device_offset: u16) -> Result<Device, Error> {
+    let mut offset = device_offset as usize;
+    let start_size = get_u16(bytes, offset)?;
+    let end_size = get_u16(bytes, offset + 2)?;
+    let delta_format = get_u16(bytes, offset + 4)?;
+    offset += 4;
+    let count = end_size - start_size + 1;
+    let length = match delta_format {
+        1 => (count * 2) / 16,
+        2 => (count * 4) / 16,
+        3 => (count * 8) / 16,
+        _ => return Err(Error::new(ErrorKind::InvalidData, format!("DeltaFormat value invalid: {}", delta_format)))
+    };
+    let delta_values: Vec<u16> = bytes.get(offset..offset + length as usize * 2)
+        .ok_or(ErrorKind::UnexpectedEof)?
+        .chunks_exact(2)
+        .map(|ch| {
+            u16::from_be_bytes(ch.try_into().unwrap())
+        }).collect();
+    
+    Ok(Device {
+        start_size,
+        end_size,
+        delta_format,
+        delta_values
+    })
+}
+
+fn parse_class_def(bytes: &[u8], class_def_offset: u16) -> Result<ClassDef, Error> {
+    let mut offset = class_def_offset as usize;
+    let format = get_u16(bytes, offset)?;
+    offset += 2;
+    match format {
+        1 => {
+            let start_glyph_id = get_u16(bytes, offset)?;
+            let glyph_count = get_u16(bytes, offset + 2)?;
+            offset += 2;
+            let class_value_array: Vec<u16> = bytes.get(offset..offset + glyph_count as usize * 2)
+                .ok_or(ErrorKind::UnexpectedEof)?
+                .chunks_exact(2)
+                .map(|ch| {
+                    u16::from_be_bytes(ch.try_into().unwrap())
+                }).collect();
+            
+            Ok(ClassDef::Format1 {
+                start_glyph_id,
+                glyph_count,
+                class_value_array
+            })
+        }
+        2 => {
+            let class_range_count = get_u16(bytes, offset)?;
+            offset += 2;
+            let class_range_records: Vec<ClassRangeRecord> = bytes.get(offset..offset + class_range_count as usize * 6)
+                .ok_or(ErrorKind::UnexpectedEof)?
+                .chunks_exact(6)
+                .map(|ch| {
+                    let start_glyph_id = u16::from_be_bytes(ch[0..2].try_into().unwrap());
+                    let end_glyph_id = u16::from_be_bytes(ch[2..4].try_into().unwrap());
+                    let class = u16::from_be_bytes(ch[4..6].try_into().unwrap());
+                    
+                    ClassRangeRecord {
+                        start_glyph_id,
+                        end_glyph_id,
+                        class
+                    }
+                }).collect();
+            
+            Ok(ClassDef::Format2 {
+                class_range_count,
+                class_range_records
+            })
+        }
+        _ => return Err(Error::new(ErrorKind::InvalidData, format!("ClassDef format invalid: {}", format)))
+    }
+}
+
+fn parse_class1_record(
+    bytes: &[u8],
+    subtable_offset: u16,
+    value_format1: u16,
+    value_format2: u16,
+    class2_count: u16,
+    offset: &mut usize
+) -> Result<Class1Record, Error> {
+    let class2_records: Vec<Class2Record> = (0..class2_count).map(|_| {
+        let value_record1 = parse_value_record(bytes, value_format1, offset, subtable_offset)?;
+        let value_record2 = parse_value_record(bytes, value_format2, offset, subtable_offset)?;
+        
+        Ok(Class2Record { value_record1, value_record2 })
+    }).collect::<Result<Vec<_>, Error>>()?;
+    
+    Ok(Class1Record { class2_records })
+}
+
+fn parse_entry_exit_record(bytes: &[u8], subtable_offset: u16) -> Result<EntryExitRecord, Error> {
+    let offset = subtable_offset as usize;
+    let test_offset = get_u16(bytes, offset)?;
+    let entry_anchor_offset = if test_offset != 0 {
+        Some(test_offset)
+    }
+    else { None };
+    let entry_anchor = if entry_anchor_offset != None {
+        Some(parse_anchor(bytes, subtable_offset, entry_anchor_offset.unwrap())?)
+    }
+    else { None };
+    let test_offset = get_u16(bytes, offset + 2)?;
+    let exit_anchor_offset = if test_offset != 0 {
+        Some(test_offset)
+    }
+    else { None };
+    let exit_anchor = if exit_anchor_offset != None {
+        Some(parse_anchor(bytes, subtable_offset, exit_anchor_offset.unwrap())?)
+    }
+    else { None };
+    
+    Ok(EntryExitRecord {
+        entry_anchor_offset,
+        entry_anchor,
+        exit_anchor_offset,
+        exit_anchor
+    })
+}
+
+fn parse_anchor(bytes: &[u8], subtable_offset: u16, anchor_offset: u16) -> Result<Anchor, Error> {
+    let mut offset = (subtable_offset + anchor_offset) as usize;
+    let format = get_u16(bytes, offset)?;
+    offset += 2;
+    match format {
+        1 => {
+            let x_coordinate = get_i16(bytes, offset)?;
+            let y_coordinate = get_i16(bytes, offset + 2)?;
+            
+            Ok(Anchor::Format1 {
+                x_coordinate,
+                y_coordinate
+            })
+        }
+        2 => {
+            let x_coordinate = get_i16(bytes, offset)?;
+            let y_coordinate = get_i16(bytes, offset + 2)?;
+            let anchor_point = get_u16(bytes, offset + 4)?;
+            
+            Ok(Anchor::Format2 {
+                x_coordinate,
+                y_coordinate,
+                anchor_point
+            })
+        }
+        3 => {
+            let x_coordinate = get_i16(bytes, offset)?;
+            let y_coordinate = get_i16(bytes, offset + 2)?;
+            let x_device_offset = get_u16(bytes, offset + 4)?;
+            let x_device = parse_device(bytes, x_device_offset)?;
+            let y_device_offset = get_u16(bytes, offset + 6)?;
+            let y_device = parse_device(bytes, y_device_offset)?;
+            
+            Ok(Anchor::Format3 {
+                x_coordinate,
+                y_coordinate,
+                x_device_offset,
+                x_device,
+                y_device_offset,
+                y_device
+            })
+        }
+        _ => Err(Error::new(ErrorKind::InvalidData, format!("Anchor invalid format: {}", format)))
+    }
+}
+
+fn parse_mark_array(bytes: &[u8], subtable_offset: u16, mark_array_offset: u16) -> Result<MarkArray, Error> {
+    let mut offset = (subtable_offset + mark_array_offset) as usize;
+    let mark_count = get_u16(bytes, offset)?;
+    offset += 2;
+    let mark_records: Vec<MarkRecord> =  (0..mark_count).map(|_| {
+        let mark_class = get_u16(bytes, offset)?;
+        let mark_anchor_offset = get_u16(bytes, offset + 2)?;
+        let mark_anchor = parse_anchor(bytes, subtable_offset, mark_anchor_offset)?;
+        
+        Ok(MarkRecord {
+            mark_class,
+            mark_anchor_offset,
+            mark_anchor
+        })
+    }).collect::<Result<Vec<_>, Error>>()?;
+    
+    Ok(MarkArray {
+        mark_count,
+        mark_records
+    })
+}
+
+fn parse_base_array(bytes: &[u8], subtable_offset: u16, base_array_offset: u16) -> Result<BaseArray, Error> {
+    let mut offset = (subtable_offset + base_array_offset) as usize;
+    let base_count = get_u16(bytes, offset)?;
+    offset += 2;
+    let base_records: Vec<BaseRecord> = (0..base_count).map(|_| {
+        let base_anchor_offsets: Vec<u16> = bytes.get(offset..offset + base_count as usize * 2)
+            .ok_or(ErrorKind::UnexpectedEof)?
+            .chunks_exact(2)
+            .map(|ch| {
+                u16::from_be_bytes(ch.try_into().unwrap())
+            }).collect();
+        offset += base_count as usize * 2;
+        let base_anchors: Vec<Anchor> = base_anchor_offsets.iter()
+            .map(|offset| {
+                Ok(parse_anchor(bytes, subtable_offset, *offset)?)
+            }).collect::<Result<Vec<_>, Error>>()?;
+        
+        Ok(BaseRecord { base_anchor_offsets, base_anchors })
+    }).collect::<Result<Vec<_>, Error>>()?;
+    
+    Ok(BaseArray {
+        base_count,
+        base_records
+    })
+}
+
+fn parse_ligature_array(bytes: &[u8], subtable_offset: u16, ligature_array_offset: u16) -> Result<LigatureArray, Error> {
+    
 }
 
 fn get_u16(bytes: &[u8], start: usize) -> Result<u16, Error> {
@@ -1894,19 +2987,19 @@ struct GaspRangeRecord {
     pub range_gasp_behavior: u16
 }
 
-struct GposTable {
+struct GposTable<GposSubtable> {
     pub header: TableHeader,
     pub script_list: ScriptList,
     pub feature_list: FeatureList,
-    pub lookup_list: LookupList,
+    pub lookup_list: LookupList<GposSubtable>,
     pub feature_variations: Option<FeatureVariations>
 }
 
-struct GsubTable {
+struct GsubTable<GsubSubtable> {
     pub header: TableHeader,
     pub script_list: ScriptList,
     pub feature_list: FeatureList,
-    pub lookup_list: LookupList,
+    pub lookup_list: LookupList<GsubSubtable>,
     pub feature_variations: Option<FeatureVariations>
 }
 
@@ -1950,17 +3043,20 @@ struct LangSys {
     pub feature_indices: Vec<u16>
 }
 
+#[derive(Clone)]
 struct FeatureList {
     pub feature_count: u16,
     pub feature_records: Vec<FeatureRecord>,
     pub features: Vec<Feature>
 }
 
+#[derive(Clone)]
 struct FeatureRecord {
     pub feature_tag: [u8; 4],
-    pub feature_offset: u16,
+    pub feature_offset: u16
 }
 
+#[derive(Clone)]
 struct Feature {
     pub feature_params_offset: Option<u16>,
     pub feature_params: Option<FeatureParams>,
@@ -1968,6 +3064,7 @@ struct Feature {
     pub lookup_list_indices: Vec<u16>
 }
 
+#[derive(Clone)]
 pub enum FeatureParams {
     Size {
         design_size: u16,
@@ -1992,10 +3089,10 @@ pub enum FeatureParams {
     }
 }
 
-struct LookupList {
+struct LookupList<T> {
     pub lookup_count: u16,
     pub lookup_offsets: Vec<u16>,
-    pub lookups: Vec<Lookup>
+    pub lookups: Vec<Lookup<T>>
 }
 
 struct Lookup<T> {
@@ -2104,7 +3201,7 @@ struct ValueRecord {
     pub x_pla_device_offset: Option<u16>,
     pub x_pla_device: Option<Device>,
     pub y_pla_device_offset: Option<u16>,
-    pub y_play_device: Option<Device>,
+    pub y_pla_device: Option<Device>,
     pub x_adv_device_offset: Option<u16>,
     pub x_adv_device: Option<Device>,
     pub y_adv_device_offset: Option<u16>,
@@ -2178,7 +3275,7 @@ pub enum GposType2Format {
         value_format2: u16,
         pair_set_count: u16,
         pair_set_offsets: Vec<u16>,
-        pair_sets: Vec<PairSetTable>
+        pair_sets: Vec<PairSet>
     },
     Format2 {
         coverage_offset: u16,
@@ -2195,7 +3292,7 @@ pub enum GposType2Format {
     }
 }
 
-struct PairSetTable {
+struct PairSet {
     pub pair_value_count: u16,
     pub pair_value_records: Vec<PairValueRecord>
 }
@@ -2241,11 +3338,11 @@ pub enum GposType4Format {
         mark_array_offset: u16,
         mark_array: MarkArray,
         base_array_offset: u16,
-        base_array: BaseArrayTable
+        base_array: BaseArray
     }
 }
 
-struct BaseArrayTable {
+struct BaseArray {
     pub base_count: u16,
     pub base_records: Vec<BaseRecord>
 }

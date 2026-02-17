@@ -34,6 +34,16 @@ pub const IGNORE_MARKS: u16 = 0x0008;
 pub const USE_MARK_FILTERING_SET: u16 = 0x0010;
 pub const MARK_ATTACHMENT_TYPE_MASK: u16 = 0xFF00;
 
+// ValueFormat flags (GPOS table)
+pub const X_PLACEMENT: u16 = 0x0001;
+pub const Y_PLACEMENT: u16 = 0x0002;
+pub const X_ADVANCE: u16 = 0x0004;
+pub const Y_ADVANCE: u16 = 0x0008;
+pub const X_PLACEMENT_DEVICE: u16 = 0x0010;
+pub const Y_PLACEMENT_DEVICE: u16 = 0x0020;
+pub const X_ADVANCE_DEVICE: u16 = 0x0040;
+pub const Y_ADVANCE_DEVICE: u16 = 0x0080;
+
 pub static MAC_STANDARD_NAMES: [&str; 258] = [
     ".notdef",
     ".null",
