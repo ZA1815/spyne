@@ -1440,7 +1440,7 @@ fn parse_lookup_list<T: SubtableParser>(bytes: &[u8], lookup_list_offset: u16) -
         offset += subtable_count as usize * 2;
         let subtables: Vec<T> = subtable_offsets.iter()
             .map(|offset| {
-                Ok(T::parse(bytes, *offset, lookup_type)?)
+                Ok(T::parse(bytes, *offset, 0, lookup_type)?)
             }).collect::<Result<Vec<_>, Error>>()?;
         let mark_filtering_set = if lookup_flag & USE_MARK_FILTERING_SET != 0 {
             Some(get_u16(bytes, offset)?)
@@ -1467,12 +1467,12 @@ fn parse_lookup_list<T: SubtableParser>(bytes: &[u8], lookup_list_offset: u16) -
 }
 
 trait SubtableParser: Sized {
-    fn parse(bytes: &[u8], subtable_offset: u16, lookup_type: u16) -> Result<Self, Error>;
+    fn parse(bytes: &[u8], subtable_offset: u16, extension_offset: u32, lookup_type: u16) -> Result<Self, Error>;
 }
 
 impl SubtableParser for GposSubtable {
-    fn parse(bytes: &[u8], subtable_offset: u16, lookup_type: u16) -> Result<Self, Error> {
-        let mut offset = subtable_offset as usize;
+    fn parse(bytes: &[u8], subtable_offset: u16, extension_offset: u32, lookup_type: u16) -> Result<Self, Error> {
+        let mut offset = (subtable_offset as u32 + extension_offset) as usize;
         let format = get_u16(bytes, offset)?;
         match lookup_type {
             1 => {
@@ -1675,6 +1675,16 @@ impl SubtableParser for GposSubtable {
             6 => {
                 match format {
                     1 => {
+                        let mark1_coverage_offset = get_u16(bytes, offset)?;
+                        let mark1_coverage = parse_coverage(bytes, subtable_offset, mark1_coverage_offset)?;
+                        let mark2_coverage_offset = get_u16(bytes, offset + 2)?;
+                        let mark2_coverage = parse_coverage(bytes, subtable_offset, mark2_coverage_offset)?;
+                        let mark_class_count = get_u16(bytes, offset + 4)?;
+                        let mark1_array_offset = get_u16(bytes, offset + 6)?;
+                        let mark1_array = parse_mark_array(bytes, subtable_offset, mark1_array_offset)?;
+                        let mark2_array_offset = get_u16(bytes, offset + 8)?;
+                        let mark2_array = parse_mark2_array(bytes, subtable_offset, mark2_array_offset, mark_class_count)?;
+                        
                         Ok(GposSubtable::Type6(GposType6Format::Format1 {
                             mark1_coverage_offset,
                             mark1_coverage,
@@ -1693,6 +1703,21 @@ impl SubtableParser for GposSubtable {
             7 => {
                 match format {
                     1 => {
+                        let coverage_offset = get_u16(bytes, offset)?;
+                        let coverage = parse_coverage(bytes, subtable_offset, coverage_offset)?;
+                        let sub_rule_set_count = get_u16(bytes, offset + 2)?;
+                        offset += 2;
+                        let sub_rule_set_offsets: Vec<u16> = bytes.get(offset..offset + sub_rule_set_count as usize * 2)
+                            .ok_or(ErrorKind::UnexpectedEof)?
+                            .chunks_exact(2)
+                            .map(|ch| {
+                                u16::from_be_bytes(ch.try_into().unwrap())
+                            }).collect();
+                        let sub_rule_sets: Vec<GposSubRuleSet> = sub_rule_set_offsets.iter()
+                            .map(|offset| {
+                                Ok(parse_gpos_sub_rule_set(bytes, subtable_offset, *offset)?)
+                            }).collect::<Result<Vec<_>, Error>>()?;
+                        
                         Ok(GposSubtable::Type7(GposType7Format::Format1 {
                             coverage_offset,
                             coverage,
@@ -1727,6 +1752,21 @@ impl SubtableParser for GposSubtable {
             8 => {
                 match format {
                     1 => {
+                        let coverage_offset = get_u16(bytes, offset)?;
+                        let coverage = parse_coverage(bytes, subtable_offset, coverage_offset)?;
+                        let chain_sub_rule_set_count = get_u16(bytes, offset + 2)?;
+                        offset += 4;
+                        let chain_sub_rule_set_offsets: Vec<u16> = bytes.get(offset..offset + chain_sub_rule_set_count as usize * 2)
+                            .ok_or(ErrorKind::UnexpectedEof)?
+                            .chunks_exact(2)
+                            .map(|ch| {
+                                u16::from_be_bytes(ch.try_into().unwrap())
+                            }).collect();
+                        let chain_sub_rule_sets: Vec<GposChainSubRuleSet> = chain_sub_rule_set_offsets.iter()
+                            .map(|offset| {
+                                Ok(parse_gpos_chain_sub_rule_set(bytes, subtable_offset, *offset)?)
+                            }).collect::<Result<Vec<_>, Error>>()?;
+                        
                         Ok(GposSubtable::Type8(GposType8Format::Format1 {
                             coverage_offset,
                             coverage,
@@ -1736,6 +1776,27 @@ impl SubtableParser for GposSubtable {
                         }))
                     }
                     2 => {
+                        let coverage_offset = get_u16(bytes, offset)?;
+                        let coverage = parse_coverage(bytes, subtable_offset, coverage_offset)?;
+                        let backtrack_class_def_offset = get_u16(bytes, offset + 2)?;
+                        let backtrack_class_def = parse_class_def(bytes, backtrack_class_def_offset)?;
+                        let input_class_def_offset = get_u16(bytes, offset + 4)?;
+                        let input_class_def = parse_class_def(bytes, input_class_def_offset)?;
+                        let lookahead_class_def_offset = get_u16(bytes, offset + 6)?;
+                        let lookahead_class_def = parse_class_def(bytes, lookahead_class_def_offset)?;
+                        let chain_sub_class_set_count = get_u16(bytes, offset + 8)?;
+                        offset += 8;
+                        let chain_sub_class_set_offsets: Vec<u16> = bytes.get(offset..offset + chain_sub_class_set_count as usize * 2)
+                            .ok_or(ErrorKind::UnexpectedEof)?
+                            .chunks_exact(2)
+                            .map(|ch| {
+                                u16::from_be_bytes(ch.try_into().unwrap())
+                            }).collect();
+                        let chain_sub_class_sets: Vec<GposChainSubClassSet> = chain_sub_class_set_offsets.iter()
+                            .map(|offset| {
+                                Ok(parse_gpos_chain_sub_class_set(bytes, subtable_offset, *offset)?)
+                            }).collect::<Result<Vec<_>, Error>>()?;
+                        
                         Ok(GposSubtable::Type8(GposType8Format::Format2 {
                             coverage_offset,
                             coverage,
@@ -1751,6 +1812,51 @@ impl SubtableParser for GposSubtable {
                         }))
                     }
                     3 => {
+                        let backtrack_glyph_count = get_u16(bytes, offset)?;
+                        offset += 2;
+                        let backtrack_coverage_offsets: Vec<u16> = bytes.get(offset..offset + backtrack_glyph_count as usize * 2)
+                            .ok_or(ErrorKind::UnexpectedEof)?
+                            .chunks_exact(2)
+                            .map(|ch| {
+                                u16::from_be_bytes(ch.try_into().unwrap())
+                            }).collect();
+                        offset += backtrack_glyph_count as usize * 2;
+                        let backtrack_coverages: Vec<Coverage> = backtrack_coverage_offsets.iter()
+                            .map(|offset| {
+                                Ok(parse_coverage(bytes, subtable_offset, *offset)?)
+                            }).collect::<Result<Vec<_>, Error>>()?;
+                        let input_glyph_count = get_u16(bytes, offset)?;
+                        offset += 2;
+                        let input_coverage_offsets: Vec<u16> = bytes.get(offset..offset + input_glyph_count as usize * 2)
+                            .ok_or(ErrorKind::UnexpectedEof)?
+                            .chunks_exact(2)
+                            .map(|ch| {
+                                u16::from_be_bytes(ch.try_into().unwrap())
+                            }).collect();
+                        offset += input_glyph_count as usize * 2;
+                        let input_coverages: Vec<Coverage> = input_coverage_offsets.iter()
+                            .map(|offset| {
+                                Ok(parse_coverage(bytes, subtable_offset, *offset)?)
+                            }).collect::<Result<Vec<_>, Error>>()?;
+                        let lookahead_glyph_count = get_u16(bytes, offset)?;
+                        offset += 2;
+                        let lookahead_coverage_offsets: Vec<u16> = bytes.get(offset..offset + lookahead_glyph_count as usize * 2)
+                            .ok_or(ErrorKind::UnexpectedEof)?
+                            .chunks_exact(2)
+                            .map(|ch| {
+                                u16::from_be_bytes(ch.try_into().unwrap())
+                            }).collect();
+                        offset += lookahead_glyph_count as usize * 2;
+                        let lookahead_coverages: Vec<Coverage> = lookahead_coverage_offsets.iter()
+                            .map(|offset| {
+                                Ok(parse_coverage(bytes, subtable_offset, *offset)?)
+                            }).collect::<Result<Vec<_>, Error>>()?;
+                        let sub_count = get_u16(bytes, offset)?;
+                        offset += 2;
+                        let pos_lookup_records: Vec<PosLookupRecord> = (0..sub_count).map(|_| {
+                            Ok(parse_pos_lookup_record(bytes, &mut offset)?)
+                        }).collect::<Result<Vec<_>, Error>>()?;
+                        
                         Ok(GposSubtable::Type8(GposType8Format::Format3 {
                             backtrack_glyph_count,
                             backtrack_coverage_offsets,
@@ -1771,6 +1877,10 @@ impl SubtableParser for GposSubtable {
             9 => {
                 match format {
                     1 => {
+                        let extension_lookup_type = get_u16(bytes, offset)?;
+                        let extension_offset = get_u32(bytes, offset + 2)?;
+                        let extension = Box::new(GposSubtable::parse(bytes, subtable_offset, extension_offset, extension_lookup_type)?);
+                        
                         Ok(GposSubtable::Type9(GposType9Format::Format1 {
                             extension_lookup_type,
                             extension_offset,
@@ -1786,8 +1896,8 @@ impl SubtableParser for GposSubtable {
 }
 
 impl SubtableParser for GsubSubtable {
-    fn parse(bytes: &[u8], subtable_offset: u16, lookup_type: u16) -> Result<Self, Error> {
-        let mut offset = subtable_offset as usize;
+    fn parse(bytes: &[u8], subtable_offset: u16, extension_offset: u32, lookup_type: u16) -> Result<Self, Error> {
+        let mut offset = (subtable_offset as u32 + extension_offset) as usize;
         let format = get_u16(bytes, offset)?;
         match lookup_type {
             1 => {
@@ -2542,6 +2652,234 @@ fn parse_component_record(
     Ok(ComponentRecord {
         ligature_anchor_offsets,
         ligature_anchors
+    })
+}
+
+fn parse_mark2_array(bytes: &[u8], subtable_offset: u16, mark2_array_offset: u16, mark_class_count: u16) -> Result<Mark2Array, Error> {
+    let mut offset = (subtable_offset + mark2_array_offset) as usize;
+    let mark2_count = get_u16(bytes, offset)?;
+    offset += 2;
+    let mark2_records: Vec<Mark2Record> = (0..mark2_count).map(|_| {
+        Ok(parse_mark2_record(bytes, subtable_offset, &mut offset, mark_class_count)?)
+    }).collect::<Result<Vec<_>, Error>>()?;
+    
+    Ok(Mark2Array {
+        mark2_count,
+        mark2_records
+    })
+}
+
+fn parse_mark2_record(bytes: &[u8], subtable_offset: u16, offset: &mut usize, mark_class_count: u16) -> Result<Mark2Record, Error> {
+    let mark2_anchor_offsets: Vec<u16> = bytes.get(*offset..*offset + mark_class_count as usize * 2)
+        .ok_or(ErrorKind::UnexpectedEof)?
+        .chunks_exact(2)
+        .map(|ch| {
+            u16::from_be_bytes(ch.try_into().unwrap())
+        }).collect();
+    *offset += mark_class_count as usize * 2;
+    let mark2_anchors: Vec<Anchor> = mark2_anchor_offsets.iter()
+        .map(|offset| {
+            Ok(parse_anchor(bytes, subtable_offset, *offset)?)
+        }).collect::<Result<Vec<_>, Error>>()?;
+    
+    Ok(Mark2Record {
+        mark2_anchor_offsets,
+        mark2_anchors
+    })
+}
+
+fn parse_gpos_sub_rule_set(bytes: &[u8], subtable_offset: u16, sub_rule_set_offset: u16) -> Result<GposSubRuleSet, Error> {
+    let mut offset = (subtable_offset + sub_rule_set_offset) as usize;
+    let sub_rule_count = get_u16(bytes, offset)?;
+    offset += 2;
+    let sub_rule_offsets: Vec<u16> = bytes.get(offset..offset + sub_rule_count as usize * 2)
+        .ok_or(ErrorKind::UnexpectedEof)?
+        .chunks_exact(2)
+        .map(|ch| {
+            u16::from_be_bytes(ch.try_into().unwrap())
+        }).collect();
+    let sub_rules: Vec<GposSubRule> = sub_rule_offsets.iter()
+        .map(|offset| {
+            Ok(parse_gpos_sub_rule(bytes, subtable_offset, *offset)?)
+        }).collect::<Result<Vec<_>, Error>>()?;
+    
+    Ok(GposSubRuleSet {
+        sub_rule_count,
+        sub_rule_offsets,
+        sub_rules
+    })
+}
+
+fn parse_gpos_sub_rule(bytes: &[u8], subtable_offset: u16, sub_rule_offset: u16) -> Result<GposSubRule, Error> {
+    let mut offset = (subtable_offset + sub_rule_offset) as usize;
+    let glyph_count = get_u16(bytes, offset)?;
+    let sub_count = get_u16(bytes, offset + 2)?;
+    offset += 4;
+    let input_glyph_ids: Vec<u16> = bytes.get(offset..offset + glyph_count as usize * 2)
+        .ok_or(ErrorKind::UnexpectedEof)?
+        .chunks_exact(2)
+        .map(|ch| {
+            u16::from_be_bytes(ch.try_into().unwrap())
+        }).collect();
+    offset += glyph_count as usize * 2;
+    let pos_lookup_records: Vec<PosLookupRecord> = (0..glyph_count).map(|_| {
+        Ok(parse_pos_lookup_record(bytes, &mut offset)?)
+    }).collect::<Result<Vec<_>, Error>>()?;
+    
+    Ok(GposSubRule {
+        glyph_count,
+        sub_count,
+        input_glyph_ids,
+        pos_lookup_records
+    })
+}
+
+fn parse_pos_lookup_record(bytes: &[u8], offset: &mut usize) -> Result<PosLookupRecord, Error> {
+    let glyph_sequence_index = get_u16(bytes, *offset)?;
+    let lookup_list_index = get_u16(bytes, *offset + 2)?;
+    *offset += 2;
+    
+    Ok(PosLookupRecord {
+        glyph_sequence_index,
+        lookup_list_index
+    })
+}
+
+fn parse_gpos_chain_sub_rule_set(bytes: &[u8], subtable_offset: u16, chain_sub_rule_set_offset: u16) -> Result<GposChainSubRuleSet, Error> {
+    let mut offset = (subtable_offset + chain_sub_rule_set_offset) as usize;
+    let chain_sub_rule_count = get_u16(bytes, offset)?;
+    offset += 2;
+    let chain_sub_rule_offsets: Vec<u16> = bytes.get(offset..offset + chain_sub_rule_count as usize * 2)
+        .ok_or(ErrorKind::UnexpectedEof)?
+        .chunks_exact(2)
+        .map(|ch| {
+            u16::from_be_bytes(ch.try_into().unwrap())
+        }).collect();
+    let chain_sub_rules: Vec<GposChainSubRule> = chain_sub_rule_offsets.iter()
+        .map(|offset| {
+            Ok(parse_gpos_chain_sub_rule(bytes, subtable_offset, *offset)?)
+        }).collect::<Result<Vec<_>, Error>>()?;
+    
+    Ok(GposChainSubRuleSet {
+        chain_sub_rule_count,
+        chain_sub_rule_offsets,
+        chain_sub_rules
+    })
+}
+
+fn parse_gpos_chain_sub_class_set(bytes: &[u8], subtable_offset: u16, chain_sub_class_set_offset: u16) -> Result<GposChainSubClassSet, Error> {
+    let mut offset = (subtable_offset + chain_sub_class_set_offset) as usize;
+    let chain_sub_class_rule_count = get_u16(bytes, offset)?;
+    offset += 2;
+    let chain_sub_class_rule_offsets: Vec<u16> = bytes.get(offset..offset + chain_sub_class_rule_count as usize * 2)
+        .ok_or(ErrorKind::UnexpectedEof)?
+        .chunks_exact(2)
+        .map(|ch| {
+            u16::from_be_bytes(ch.try_into().unwrap())
+        }).collect();
+    let chain_sub_class_rules: Vec<GposChainSubClassRule> = chain_sub_class_rule_offsets.iter()
+        .map(|offset| {
+            Ok(parse_gpos_chain_sub_class_rule(bytes, subtable_offset, *offset)?)
+        }).collect::<Result<Vec<_>, Error>>()?;
+    
+    Ok(GposChainSubClassSet {
+        chain_sub_class_rule_count,
+        chain_sub_class_rule_offsets,
+        chain_sub_class_rules
+    })
+}
+
+fn parse_gpos_chain_sub_class_rule(bytes: &[u8], subtable_offset: u16, chain_sub_class_rule_offset: u16) -> Result<GposChainSubClassRule, Error> {
+    let mut offset = (subtable_offset + chain_sub_class_rule_offset) as usize;
+    let backtrack_glyph_count = get_u16(bytes, offset)?;
+    offset += 2;
+    let backtrack_class_ids = bytes.get(offset..offset + backtrack_glyph_count as usize * 2)
+        .ok_or(ErrorKind::UnexpectedEof)?
+        .chunks_exact(2)
+        .map(|ch| {
+            u16::from_be_bytes(ch.try_into().unwrap())
+        }).collect();
+    offset += backtrack_glyph_count as usize * 2;
+    let input_glyph_count = get_u16(bytes, offset)?;
+    offset += 2;
+    let input_class_ids = bytes.get(offset..offset + input_glyph_count as usize * 2)
+        .ok_or(ErrorKind::UnexpectedEof)?
+        .chunks_exact(2)
+        .map(|ch| {
+            u16::from_be_bytes(ch.try_into().unwrap())
+        }).collect();
+    offset += input_glyph_count as usize * 2;
+    let lookahead_glyph_count = get_u16(bytes, offset)?;
+    offset += 2;
+    let lookahead_class_ids = bytes.get(offset..offset + lookahead_glyph_count as usize * 2)
+        .ok_or(ErrorKind::UnexpectedEof)?
+        .chunks_exact(2)
+        .map(|ch| {
+            u16::from_be_bytes(ch.try_into().unwrap())
+        }).collect();
+    offset += lookahead_glyph_count as usize * 2;
+    let sub_count = get_u16(bytes, offset)?;
+    offset += 2;
+    let pos_lookup_records = (0..sub_count).map(|_| {
+        Ok(parse_pos_lookup_record(bytes, &mut offset)?)
+    }).collect::<Result<Vec<_>, Error>>()?;
+    
+    Ok(GposChainSubClassRule {
+        backtrack_glyph_count,
+        backtrack_class_ids,
+        input_glyph_count,
+        input_class_ids,
+        lookahead_glyph_count,
+        lookahead_class_ids,
+        sub_count,
+        pos_lookup_records
+    })
+}
+
+fn parse_gpos_chain_sub_rule(bytes: &[u8], subtable_offset: u16, chain_sub_rule_offset: u16) -> Result<GposChainSubRule, Error> {
+    let mut offset = (subtable_offset + chain_sub_rule_offset) as usize;
+    let backtrack_glyph_count = get_u16(bytes, offset)?;
+    offset += 2;
+    let backtrack_glyph_ids = bytes.get(offset..offset + backtrack_glyph_count as usize * 2)
+        .ok_or(ErrorKind::UnexpectedEof)?
+        .chunks_exact(2)
+        .map(|ch| {
+            u16::from_be_bytes(ch.try_into().unwrap())
+        }).collect();
+    offset += backtrack_glyph_count as usize * 2;
+    let input_glyph_count = get_u16(bytes, offset)?;
+    offset += 2;
+    let input_glyph_ids = bytes.get(offset..offset + input_glyph_count as usize * 2)
+        .ok_or(ErrorKind::UnexpectedEof)?
+        .chunks_exact(2)
+        .map(|ch| {
+            u16::from_be_bytes(ch.try_into().unwrap())
+        }).collect();
+    offset += input_glyph_count as usize * 2;
+    let lookahead_glyph_count = get_u16(bytes, offset)?;
+    offset += 2;
+    let lookahead_glyph_ids = bytes.get(offset..offset + lookahead_glyph_count as usize * 2)
+        .ok_or(ErrorKind::UnexpectedEof)?
+        .chunks_exact(2)
+        .map(|ch| {
+            u16::from_be_bytes(ch.try_into().unwrap())
+        }).collect();
+    offset += lookahead_glyph_count as usize * 2;
+    let sub_count = get_u16(bytes, offset)?;
+    offset += 2;
+    let pos_lookup_records: Vec<PosLookupRecord> = (0..sub_count).map(|_| {
+        Ok(parse_pos_lookup_record(bytes, &mut offset)?)
+    }).collect::<Result<Vec<_>, Error>>()?;
+    
+    Ok(GposChainSubRule {
+        backtrack_glyph_count,
+        backtrack_glyph_ids,
+        input_glyph_count,
+        input_glyph_ids,
+        lookahead_glyph_count,
+        lookahead_glyph_ids,
+        sub_count,
+        pos_lookup_records
     })
 }
 
@@ -3456,7 +3794,7 @@ pub enum GposType6Format {
     }
 }
 
-struct Mark2ArrayTable {
+struct Mark2Array {
     pub mark2_count: u16,
     pub mark2_records: Vec<Mark2Record>
 }
@@ -3529,7 +3867,7 @@ pub enum GposType8Format {
         coverage: Coverage,
         chain_sub_rule_set_count: u16,
         chain_sub_rule_set_offsets: Vec<u16>,
-        chain_sub_rule_sets: Vec<ChainSubRuleSet>
+        chain_sub_rule_sets: Vec<GposChainSubRuleSet>
     },
     Format2 {
         coverage_offset: u16,
@@ -3542,7 +3880,7 @@ pub enum GposType8Format {
         lookahead_class_def: ClassDef,
         chain_sub_class_set_count: u16,
         chain_sub_class_set_offsets: Vec<u16>,
-        chain_sub_class_sets: Vec<ChainSubClassSet>
+        chain_sub_class_sets: Vec<GposChainSubClassSet>
     },
     Format3 {
         backtrack_glyph_count: u16,
@@ -3559,7 +3897,7 @@ pub enum GposType8Format {
     }
 }
 
-struct ChainSubRuleSet {
+struct GposChainSubRuleSet {
     pub chain_sub_rule_count: u16,
     pub chain_sub_rule_offsets: Vec<u16>,
     pub chain_sub_rules: Vec<GposChainSubRule>
@@ -3576,7 +3914,7 @@ struct GposChainSubRule {
     pub pos_lookup_records: Vec<PosLookupRecord>
 }
 
-struct ChainSubClassSet {
+struct GposChainSubClassSet {
     pub chain_sub_class_rule_count: u16,
     pub chain_sub_class_rule_offsets: Vec<u16>,
     pub chain_sub_class_rules: Vec<GposChainSubClassRule>
