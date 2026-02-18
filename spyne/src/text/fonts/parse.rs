@@ -1426,7 +1426,8 @@ fn parse_lookup_list<T: SubtableParser>(bytes: &[u8], lookup_list_offset: u16) -
         }).collect();
     let mut lookups: Vec<Lookup<T>> = Vec::with_capacity(lookup_offsets.len());
     for offset in lookup_offsets.iter() {
-        let mut offset = *offset as usize;
+        let lookup_offset = lookup_list_offset as usize + *offset as usize;
+        let mut offset = lookup_offset;
         let lookup_type = get_u16(bytes, offset)?;
         let lookup_flag = get_u16(bytes, offset + 2)?;
         let subtable_count = get_u16(bytes, offset + 4)?;
@@ -1440,7 +1441,7 @@ fn parse_lookup_list<T: SubtableParser>(bytes: &[u8], lookup_list_offset: u16) -
         offset += subtable_count as usize * 2;
         let subtables: Vec<T> = subtable_offsets.iter()
             .map(|offset| {
-                Ok(T::parse(bytes, *offset, 0, lookup_type)?)
+                Ok(T::parse(bytes, lookup_offset + *offset as usize, 0, lookup_type)?)
             }).collect::<Result<Vec<_>, Error>>()?;
         let mark_filtering_set = if lookup_flag & USE_MARK_FILTERING_SET != 0 {
             Some(get_u16(bytes, offset)?)
@@ -1467,11 +1468,11 @@ fn parse_lookup_list<T: SubtableParser>(bytes: &[u8], lookup_list_offset: u16) -
 }
 
 trait SubtableParser: Sized {
-    fn parse(bytes: &[u8], subtable_offset: u16, extension_offset: u32, lookup_type: u16) -> Result<Self, Error>;
+    fn parse(bytes: &[u8], subtable_offset: usize, extension_offset: u32, lookup_type: u16) -> Result<Self, Error>;
 }
 
 impl SubtableParser for GposSubtable {
-    fn parse(bytes: &[u8], subtable_offset: u16, extension_offset: u32, lookup_type: u16) -> Result<Self, Error> {
+    fn parse(bytes: &[u8], subtable_offset: usize, extension_offset: u32, lookup_type: u16) -> Result<Self, Error> {
         let mut offset = (subtable_offset as u32 + extension_offset) as usize;
         let format = get_u16(bytes, offset)?;
         match lookup_type {
@@ -1531,7 +1532,7 @@ impl SubtableParser for GposSubtable {
                             }).collect();
                         let pair_sets: Vec<PairSet> = pair_set_offsets.iter()
                             .map(|offset| {
-                                let mut offset = (subtable_offset + offset) as usize;
+                                let mut offset = subtable_offset + *offset as usize;
                                 let pair_value_count = get_u16(bytes, offset)?;
                                 offset += 2;
                                 let pair_value_records: Vec<PairValueRecord> = (0..pair_value_count).map(|_| {
@@ -1569,9 +1570,9 @@ impl SubtableParser for GposSubtable {
                         let value_format1 = get_u16(bytes, offset + 2)?;
                         let value_format2 = get_u16(bytes, offset + 4)?;
                         let class_def1_offset = get_u16(bytes, offset + 6)?;
-                        let class_def1 = parse_class_def(bytes, class_def1_offset)?;
+                        let class_def1 = parse_class_def(bytes, subtable_offset, class_def1_offset)?;
                         let class_def2_offset = get_u16(bytes, offset + 8)?;
-                        let class_def2 = parse_class_def(bytes, class_def2_offset)?;
+                        let class_def2 = parse_class_def(bytes, subtable_offset, class_def2_offset)?;
                         let class1_count = get_u16(bytes, offset + 10)?;
                         let class2_count = get_u16(bytes, offset + 12)?;
                         offset += 12;
@@ -1730,7 +1731,7 @@ impl SubtableParser for GposSubtable {
                         let coverage_offset = get_u16(bytes, offset)?;
                         let coverage = parse_coverage(bytes, subtable_offset, coverage_offset)?;
                         let class_def_offset = get_u16(bytes, offset + 2)?;
-                        let class_def = parse_class_def(bytes, class_def_offset)?;
+                        let class_def = parse_class_def(bytes, subtable_offset, class_def_offset)?;
                         let sub_class_set_count = get_u16(bytes, offset + 4)?;
                         offset += 6;
                         let sub_class_set_offsets: Vec<u16> = bytes.get(offset..offset + sub_class_set_count as usize * 2)
@@ -1814,11 +1815,11 @@ impl SubtableParser for GposSubtable {
                         let coverage_offset = get_u16(bytes, offset)?;
                         let coverage = parse_coverage(bytes, subtable_offset, coverage_offset)?;
                         let backtrack_class_def_offset = get_u16(bytes, offset + 2)?;
-                        let backtrack_class_def = parse_class_def(bytes, backtrack_class_def_offset)?;
+                        let backtrack_class_def = parse_class_def(bytes, subtable_offset, backtrack_class_def_offset)?;
                         let input_class_def_offset = get_u16(bytes, offset + 4)?;
-                        let input_class_def = parse_class_def(bytes, input_class_def_offset)?;
+                        let input_class_def = parse_class_def(bytes, subtable_offset, input_class_def_offset)?;
                         let lookahead_class_def_offset = get_u16(bytes, offset + 6)?;
-                        let lookahead_class_def = parse_class_def(bytes, lookahead_class_def_offset)?;
+                        let lookahead_class_def = parse_class_def(bytes, subtable_offset, lookahead_class_def_offset)?;
                         let chain_sub_class_set_count = get_u16(bytes, offset + 8)?;
                         offset += 8;
                         let chain_sub_class_set_offsets: Vec<u16> = bytes.get(offset..offset + chain_sub_class_set_count as usize * 2)
@@ -1931,7 +1932,7 @@ impl SubtableParser for GposSubtable {
 }
 
 impl SubtableParser for GsubSubtable {
-    fn parse(bytes: &[u8], subtable_offset: u16, extension_offset: u32, lookup_type: u16) -> Result<Self, Error> {
+    fn parse(bytes: &[u8], subtable_offset: usize, extension_offset: u32, lookup_type: u16) -> Result<Self, Error> {
         let mut offset = (subtable_offset as u32 + extension_offset) as usize;
         let format = get_u16(bytes, offset)?;
         match lookup_type {
@@ -2087,7 +2088,7 @@ impl SubtableParser for GsubSubtable {
                         let coverage_offset = get_u16(bytes, offset)?;
                         let coverage = parse_coverage(bytes, subtable_offset, coverage_offset)?;
                         let class_def_offset = get_u16(bytes, offset + 2)?;
-                        let class_def = parse_class_def(bytes, class_def_offset)?;
+                        let class_def = parse_class_def(bytes, subtable_offset, class_def_offset)?;
                         let sub_class_set_count = get_u16(bytes, offset + 4)?;
                         offset += 6;
                         let sub_class_set_offsets: Vec<u16> = bytes.get(offset..offset + sub_class_set_count as usize * 2)
@@ -2171,11 +2172,11 @@ impl SubtableParser for GsubSubtable {
                         let coverage_offset = get_u16(bytes, offset)?;
                         let coverage = parse_coverage(bytes, subtable_offset, coverage_offset)?;
                         let backtrack_class_def_offset = get_u16(bytes, offset + 2)?;
-                        let backtrack_class_def = parse_class_def(bytes, backtrack_class_def_offset)?;
+                        let backtrack_class_def = parse_class_def(bytes, subtable_offset, backtrack_class_def_offset)?;
                         let input_class_def_offset = get_u16(bytes, offset + 4)?;
-                        let input_class_def = parse_class_def(bytes, input_class_def_offset)?;
+                        let input_class_def = parse_class_def(bytes, subtable_offset, input_class_def_offset)?;
                         let lookahead_class_def_offset = get_u16(bytes, offset + 6)?;
-                        let lookahead_class_def = parse_class_def(bytes, lookahead_class_def_offset)?;
+                        let lookahead_class_def = parse_class_def(bytes, subtable_offset, lookahead_class_def_offset)?;
                         let chain_sub_class_set_count = get_u16(bytes, offset + 8)?;
                         offset += 8;
                         let chain_sub_class_set_offsets: Vec<u16> = bytes.get(offset..offset + chain_sub_class_set_count as usize * 2)
@@ -2520,8 +2521,8 @@ fn parse_feature_variations(bytes: &[u8], feature_variations_offset: u32, featur
     })
 }
 
-fn parse_coverage(bytes: &[u8], subtable_offset: u16, coverage_offset: u16) -> Result<Coverage, Error> {
-    let mut offset = (subtable_offset + coverage_offset) as usize;
+fn parse_coverage(bytes: &[u8], subtable_offset: usize, coverage_offset: u16) -> Result<Coverage, Error> {
+    let mut offset = subtable_offset + coverage_offset as usize;
     let format = get_u16(bytes, offset)?;
     offset += 2;
     match format {
@@ -2567,7 +2568,7 @@ fn parse_coverage(bytes: &[u8], subtable_offset: u16, coverage_offset: u16) -> R
     }
 }
 
-fn parse_value_record(bytes: &[u8], value_format: u16, offset: &mut usize, subtable_offset: u16) -> Result<ValueRecord, Error> {
+fn parse_value_record(bytes: &[u8], value_format: u16, offset: &mut usize, subtable_offset: usize) -> Result<ValueRecord, Error> {
     let x_placement = if value_format & X_PLACEMENT != 0 {
         *offset += 2;
         Some(get_i16(bytes, *offset - 2)?)
@@ -2594,7 +2595,7 @@ fn parse_value_record(bytes: &[u8], value_format: u16, offset: &mut usize, subta
     }
     else { None };
     let x_pla_device = if x_pla_device_offset != None {
-        Some(parse_device(bytes, subtable_offset + x_pla_device_offset.unwrap())?)
+        Some(parse_device(bytes, subtable_offset, x_pla_device_offset.unwrap())?)
     }
     else { None };
     let y_pla_device_offset = if value_format & Y_PLACEMENT_DEVICE != 0 {
@@ -2603,7 +2604,7 @@ fn parse_value_record(bytes: &[u8], value_format: u16, offset: &mut usize, subta
     }
     else { None };
     let y_pla_device = if y_pla_device_offset != None {
-        Some(parse_device(bytes, subtable_offset + y_pla_device_offset.unwrap())?)
+        Some(parse_device(bytes, subtable_offset, y_pla_device_offset.unwrap())?)
     }
     else { None };
     let x_adv_device_offset = if value_format & X_ADVANCE_DEVICE != 0 {
@@ -2612,7 +2613,7 @@ fn parse_value_record(bytes: &[u8], value_format: u16, offset: &mut usize, subta
     }
     else { None };
     let x_adv_device = if x_adv_device_offset != None {
-        Some(parse_device(bytes, subtable_offset + x_adv_device_offset.unwrap())?)
+        Some(parse_device(bytes, subtable_offset, x_adv_device_offset.unwrap())?)
     }
     else { None };
     let y_adv_device_offset = if value_format & Y_ADVANCE_DEVICE != 0 {
@@ -2621,7 +2622,7 @@ fn parse_value_record(bytes: &[u8], value_format: u16, offset: &mut usize, subta
     }
     else { None };
     let y_adv_device = if y_adv_device_offset != None {
-        Some(parse_device(bytes, subtable_offset + y_adv_device_offset.unwrap())?)
+        Some(parse_device(bytes, subtable_offset, y_adv_device_offset.unwrap())?)
     }
     else { None };
     
@@ -2641,8 +2642,8 @@ fn parse_value_record(bytes: &[u8], value_format: u16, offset: &mut usize, subta
     })
 }
 
-fn parse_device(bytes: &[u8], device_offset: u16) -> Result<Device, Error> {
-    let mut offset = device_offset as usize;
+fn parse_device(bytes: &[u8], subtable_offset: usize, device_offset: u16) -> Result<Device, Error> {
+    let mut offset = subtable_offset + device_offset as usize;
     let start_size = get_u16(bytes, offset)?;
     let end_size = get_u16(bytes, offset + 2)?;
     let delta_format = get_u16(bytes, offset + 4)?;
@@ -2669,8 +2670,8 @@ fn parse_device(bytes: &[u8], device_offset: u16) -> Result<Device, Error> {
     })
 }
 
-fn parse_class_def(bytes: &[u8], class_def_offset: u16) -> Result<ClassDef, Error> {
-    let mut offset = class_def_offset as usize;
+fn parse_class_def(bytes: &[u8], subtable_offset: usize, class_def_offset: u16) -> Result<ClassDef, Error> {
+    let mut offset = subtable_offset + class_def_offset as usize;
     let format = get_u16(bytes, offset)?;
     offset += 2;
     match format {
@@ -2720,7 +2721,7 @@ fn parse_class_def(bytes: &[u8], class_def_offset: u16) -> Result<ClassDef, Erro
 
 fn parse_class1_record(
     bytes: &[u8],
-    subtable_offset: u16,
+    subtable_offset: usize,
     value_format1: u16,
     value_format2: u16,
     class2_count: u16,
@@ -2736,7 +2737,7 @@ fn parse_class1_record(
     Ok(Class1Record { class2_records })
 }
 
-fn parse_entry_exit_record(bytes: &[u8], subtable_offset: u16) -> Result<EntryExitRecord, Error> {
+fn parse_entry_exit_record(bytes: &[u8], subtable_offset: usize) -> Result<EntryExitRecord, Error> {
     let offset = subtable_offset as usize;
     let test_offset = get_u16(bytes, offset)?;
     let entry_anchor_offset = if test_offset != 0 {
@@ -2765,8 +2766,8 @@ fn parse_entry_exit_record(bytes: &[u8], subtable_offset: u16) -> Result<EntryEx
     })
 }
 
-fn parse_anchor(bytes: &[u8], subtable_offset: u16, anchor_offset: u16) -> Result<Anchor, Error> {
-    let mut offset = (subtable_offset + anchor_offset) as usize;
+fn parse_anchor(bytes: &[u8], subtable_offset: usize, anchor_offset: u16) -> Result<Anchor, Error> {
+    let mut offset = subtable_offset + anchor_offset as usize;
     let format = get_u16(bytes, offset)?;
     offset += 2;
     match format {
@@ -2794,9 +2795,9 @@ fn parse_anchor(bytes: &[u8], subtable_offset: u16, anchor_offset: u16) -> Resul
             let x_coordinate = get_i16(bytes, offset)?;
             let y_coordinate = get_i16(bytes, offset + 2)?;
             let x_device_offset = get_u16(bytes, offset + 4)?;
-            let x_device = parse_device(bytes, x_device_offset)?;
+            let x_device = parse_device(bytes, subtable_offset, x_device_offset)?;
             let y_device_offset = get_u16(bytes, offset + 6)?;
-            let y_device = parse_device(bytes, y_device_offset)?;
+            let y_device = parse_device(bytes, subtable_offset, y_device_offset)?;
             
             Ok(Anchor::Format3 {
                 x_coordinate,
@@ -2811,8 +2812,8 @@ fn parse_anchor(bytes: &[u8], subtable_offset: u16, anchor_offset: u16) -> Resul
     }
 }
 
-fn parse_mark_array(bytes: &[u8], subtable_offset: u16, mark_array_offset: u16) -> Result<MarkArray, Error> {
-    let mut offset = (subtable_offset + mark_array_offset) as usize;
+fn parse_mark_array(bytes: &[u8], subtable_offset: usize, mark_array_offset: u16) -> Result<MarkArray, Error> {
+    let mut offset = subtable_offset + mark_array_offset as usize;
     let mark_count = get_u16(bytes, offset)?;
     offset += 2;
     let mark_records: Vec<MarkRecord> =  (0..mark_count).map(|_| {
@@ -2833,8 +2834,8 @@ fn parse_mark_array(bytes: &[u8], subtable_offset: u16, mark_array_offset: u16) 
     })
 }
 
-fn parse_base_array(bytes: &[u8], subtable_offset: u16, base_array_offset: u16) -> Result<BaseArray, Error> {
-    let mut offset = (subtable_offset + base_array_offset) as usize;
+fn parse_base_array(bytes: &[u8], subtable_offset: usize, base_array_offset: u16) -> Result<BaseArray, Error> {
+    let mut offset = subtable_offset + base_array_offset as usize;
     let base_count = get_u16(bytes, offset)?;
     offset += 2;
     let base_records: Vec<BaseRecord> = (0..base_count).map(|_| {
@@ -2859,8 +2860,8 @@ fn parse_base_array(bytes: &[u8], subtable_offset: u16, base_array_offset: u16) 
     })
 }
 
-fn parse_ligature_array(bytes: &[u8], subtable_offset: u16, ligature_array_offset: u16, mark_class_count: u16) -> Result<LigatureArray, Error> {
-    let mut offset = (subtable_offset + ligature_array_offset) as usize;
+fn parse_ligature_array(bytes: &[u8], subtable_offset: usize, ligature_array_offset: u16, mark_class_count: u16) -> Result<LigatureArray, Error> {
+    let mut offset = subtable_offset + ligature_array_offset as usize;
     let ligature_count = get_u16(bytes, offset)?;
     offset += 2;
     let ligature_attach_offsets: Vec<u16> = bytes.get(offset..offset + ligature_count as usize * 2)
@@ -2883,11 +2884,11 @@ fn parse_ligature_array(bytes: &[u8], subtable_offset: u16, ligature_array_offse
 
 fn parse_ligature_attach(
     bytes: &[u8],
-    subtable_offset: u16,
+    subtable_offset: usize,
     ligature_attach_offset: u16,
     mark_class_count: u16
 ) -> Result<LigatureAttach, Error> {
-    let mut offset = (subtable_offset + ligature_attach_offset) as usize;
+    let mut offset = subtable_offset + ligature_attach_offset as usize;
     let component_count = get_u16(bytes, offset)?;
     offset += 2;
     let component_records: Vec<ComponentRecord> = (0..component_count).map(|_| {
@@ -2902,7 +2903,7 @@ fn parse_ligature_attach(
 
 fn parse_component_record(
     bytes: &[u8],
-    subtable_offset: u16,
+    subtable_offset: usize,
     offset: usize,
     mark_class_count: u16
 ) -> Result<ComponentRecord, Error> {
@@ -2923,8 +2924,8 @@ fn parse_component_record(
     })
 }
 
-fn parse_mark2_array(bytes: &[u8], subtable_offset: u16, mark2_array_offset: u16, mark_class_count: u16) -> Result<Mark2Array, Error> {
-    let mut offset = (subtable_offset + mark2_array_offset) as usize;
+fn parse_mark2_array(bytes: &[u8], subtable_offset: usize, mark2_array_offset: u16, mark_class_count: u16) -> Result<Mark2Array, Error> {
+    let mut offset = subtable_offset + mark2_array_offset as usize;
     let mark2_count = get_u16(bytes, offset)?;
     offset += 2;
     let mark2_records: Vec<Mark2Record> = (0..mark2_count).map(|_| {
@@ -2937,7 +2938,7 @@ fn parse_mark2_array(bytes: &[u8], subtable_offset: u16, mark2_array_offset: u16
     })
 }
 
-fn parse_mark2_record(bytes: &[u8], subtable_offset: u16, offset: &mut usize, mark_class_count: u16) -> Result<Mark2Record, Error> {
+fn parse_mark2_record(bytes: &[u8], subtable_offset: usize, offset: &mut usize, mark_class_count: u16) -> Result<Mark2Record, Error> {
     let mark2_anchor_offsets: Vec<u16> = bytes.get(*offset..*offset + mark_class_count as usize * 2)
         .ok_or(ErrorKind::UnexpectedEof)?
         .chunks_exact(2)
@@ -2956,8 +2957,8 @@ fn parse_mark2_record(bytes: &[u8], subtable_offset: u16, offset: &mut usize, ma
     })
 }
 
-fn parse_gpos_sub_rule_set(bytes: &[u8], subtable_offset: u16, sub_rule_set_offset: u16) -> Result<GposSubRuleSet, Error> {
-    let mut offset = (subtable_offset + sub_rule_set_offset) as usize;
+fn parse_gpos_sub_rule_set(bytes: &[u8], subtable_offset: usize, sub_rule_set_offset: u16) -> Result<GposSubRuleSet, Error> {
+    let mut offset = subtable_offset + sub_rule_set_offset as usize;
     let sub_rule_count = get_u16(bytes, offset)?;
     offset += 2;
     let sub_rule_offsets: Vec<u16> = bytes.get(offset..offset + sub_rule_count as usize * 2)
@@ -2978,8 +2979,8 @@ fn parse_gpos_sub_rule_set(bytes: &[u8], subtable_offset: u16, sub_rule_set_offs
     })
 }
 
-fn parse_gpos_sub_rule(bytes: &[u8], subtable_offset: u16, sub_rule_offset: u16) -> Result<GposSubRule, Error> {
-    let mut offset = (subtable_offset + sub_rule_offset) as usize;
+fn parse_gpos_sub_rule(bytes: &[u8], subtable_offset: usize, sub_rule_offset: u16) -> Result<GposSubRule, Error> {
+    let mut offset = subtable_offset + sub_rule_offset as usize;
     let glyph_count = get_u16(bytes, offset)?;
     let sub_count = get_u16(bytes, offset + 2)?;
     offset += 4;
@@ -3013,8 +3014,8 @@ fn parse_pos_lookup_record(bytes: &[u8], offset: &mut usize) -> Result<PosLookup
     })
 }
 
-fn parse_gpos_sub_class_set(bytes: &[u8], subtable_offset: u16, sub_class_set_offset: u16) -> Result<GposSubClassSet, Error> {
-    let mut offset = (subtable_offset + sub_class_set_offset) as usize;
+fn parse_gpos_sub_class_set(bytes: &[u8], subtable_offset: usize, sub_class_set_offset: u16) -> Result<GposSubClassSet, Error> {
+    let mut offset = subtable_offset + sub_class_set_offset as usize;
     let sub_class_rule_count = get_u16(bytes, offset)?;
     offset += 2;
     let sub_class_rule_offsets: Vec<u16> = bytes.get(offset..offset + sub_class_rule_count as usize * 2)
@@ -3035,8 +3036,8 @@ fn parse_gpos_sub_class_set(bytes: &[u8], subtable_offset: u16, sub_class_set_of
     })
 }
 
-fn parse_gpos_sub_class_rule(bytes: &[u8], subtable_offset: u16, sub_class_rule_offset: u16) -> Result<GposSubClassRule, Error> {
-    let mut offset = (subtable_offset + sub_class_rule_offset) as usize;
+fn parse_gpos_sub_class_rule(bytes: &[u8], subtable_offset: usize, sub_class_rule_offset: u16) -> Result<GposSubClassRule, Error> {
+    let mut offset = subtable_offset + sub_class_rule_offset as usize;
     let glyph_count = get_u16(bytes, offset)?;
     let sub_count = get_u16(bytes, offset + 2)?;
     offset += 4;
@@ -3059,8 +3060,8 @@ fn parse_gpos_sub_class_rule(bytes: &[u8], subtable_offset: u16, sub_class_rule_
     })
 }
 
-fn parse_gpos_chain_sub_rule_set(bytes: &[u8], subtable_offset: u16, chain_sub_rule_set_offset: u16) -> Result<GposChainSubRuleSet, Error> {
-    let mut offset = (subtable_offset + chain_sub_rule_set_offset) as usize;
+fn parse_gpos_chain_sub_rule_set(bytes: &[u8], subtable_offset: usize, chain_sub_rule_set_offset: u16) -> Result<GposChainSubRuleSet, Error> {
+    let mut offset = subtable_offset + chain_sub_rule_set_offset as usize;
     let chain_sub_rule_count = get_u16(bytes, offset)?;
     offset += 2;
     let chain_sub_rule_offsets: Vec<u16> = bytes.get(offset..offset + chain_sub_rule_count as usize * 2)
@@ -3081,8 +3082,8 @@ fn parse_gpos_chain_sub_rule_set(bytes: &[u8], subtable_offset: u16, chain_sub_r
     })
 }
 
-fn parse_gpos_chain_sub_class_set(bytes: &[u8], subtable_offset: u16, chain_sub_class_set_offset: u16) -> Result<GposChainSubClassSet, Error> {
-    let mut offset = (subtable_offset + chain_sub_class_set_offset) as usize;
+fn parse_gpos_chain_sub_class_set(bytes: &[u8], subtable_offset: usize, chain_sub_class_set_offset: u16) -> Result<GposChainSubClassSet, Error> {
+    let mut offset = subtable_offset + chain_sub_class_set_offset as usize;
     let chain_sub_class_rule_count = get_u16(bytes, offset)?;
     offset += 2;
     let chain_sub_class_rule_offsets: Vec<u16> = bytes.get(offset..offset + chain_sub_class_rule_count as usize * 2)
@@ -3103,8 +3104,8 @@ fn parse_gpos_chain_sub_class_set(bytes: &[u8], subtable_offset: u16, chain_sub_
     })
 }
 
-fn parse_gpos_chain_sub_class_rule(bytes: &[u8], subtable_offset: u16, chain_sub_class_rule_offset: u16) -> Result<GposChainSubClassRule, Error> {
-    let mut offset = (subtable_offset + chain_sub_class_rule_offset) as usize;
+fn parse_gpos_chain_sub_class_rule(bytes: &[u8], subtable_offset: usize, chain_sub_class_rule_offset: u16) -> Result<GposChainSubClassRule, Error> {
+    let mut offset = subtable_offset + chain_sub_class_rule_offset as usize;
     let backtrack_glyph_count = get_u16(bytes, offset)?;
     offset += 2;
     let backtrack_class_ids = bytes.get(offset..offset + backtrack_glyph_count as usize * 2)
@@ -3150,8 +3151,8 @@ fn parse_gpos_chain_sub_class_rule(bytes: &[u8], subtable_offset: u16, chain_sub
     })
 }
 
-fn parse_gpos_chain_sub_rule(bytes: &[u8], subtable_offset: u16, chain_sub_rule_offset: u16) -> Result<GposChainSubRule, Error> {
-    let mut offset = (subtable_offset + chain_sub_rule_offset) as usize;
+fn parse_gpos_chain_sub_rule(bytes: &[u8], subtable_offset: usize, chain_sub_rule_offset: u16) -> Result<GposChainSubRule, Error> {
+    let mut offset = subtable_offset + chain_sub_rule_offset as usize;
     let backtrack_glyph_count = get_u16(bytes, offset)?;
     offset += 2;
     let backtrack_glyph_ids = bytes.get(offset..offset + backtrack_glyph_count as usize * 2)
@@ -3197,8 +3198,8 @@ fn parse_gpos_chain_sub_rule(bytes: &[u8], subtable_offset: u16, chain_sub_rule_
     })
 }
 
-fn parse_sequence(bytes: &[u8], subtable_offset: u16, sequence_offset: u16) -> Result<Sequence, Error> {
-    let mut offset = (subtable_offset + sequence_offset) as usize;
+fn parse_sequence(bytes: &[u8], subtable_offset: usize, sequence_offset: u16) -> Result<Sequence, Error> {
+    let mut offset = subtable_offset + sequence_offset as usize;
     let glyph_count = get_u16(bytes, offset)?;
     offset += 2;
     let substitute_glyph_ids: Vec<u16> = bytes.get(offset..offset + glyph_count as usize * 2)
@@ -3214,8 +3215,8 @@ fn parse_sequence(bytes: &[u8], subtable_offset: u16, sequence_offset: u16) -> R
     })
 }
 
-fn parse_alternate_set(bytes: &[u8], subtable_offset: u16, alternate_set_offset: u16) -> Result<AlternateSet, Error> {
-    let mut offset = (subtable_offset + alternate_set_offset) as usize;
+fn parse_alternate_set(bytes: &[u8], subtable_offset: usize, alternate_set_offset: u16) -> Result<AlternateSet, Error> {
+    let mut offset = subtable_offset + alternate_set_offset as usize;
     let glyph_count = get_u16(bytes, offset)?;
     offset += 2;
     let alternate_glyph_ids = bytes.get(offset..offset + glyph_count as usize * 2)
@@ -3231,8 +3232,8 @@ fn parse_alternate_set(bytes: &[u8], subtable_offset: u16, alternate_set_offset:
     })
 }
 
-fn parse_ligature_set(bytes: &[u8], subtable_offset: u16, ligature_set_offset: u16) -> Result<LigatureSet, Error> {
-    let mut offset = (subtable_offset + ligature_set_offset) as usize;
+fn parse_ligature_set(bytes: &[u8], subtable_offset: usize, ligature_set_offset: u16) -> Result<LigatureSet, Error> {
+    let mut offset = subtable_offset + ligature_set_offset as usize;
     let ligature_count = get_u16(bytes, offset)?;
     offset += 2;
     let ligature_offsets = bytes.get(offset..offset + ligature_count as usize * 2)
@@ -3248,8 +3249,8 @@ fn parse_ligature_set(bytes: &[u8], subtable_offset: u16, ligature_set_offset: u
     })
 }
 
-fn parse_gsub_sub_rule_set(bytes: &[u8], subtable_offset: u16, sub_rule_set_offset: u16) -> Result<GsubSubRuleSet, Error> {
-    let mut offset = (subtable_offset + sub_rule_set_offset) as usize;
+fn parse_gsub_sub_rule_set(bytes: &[u8], subtable_offset: usize, sub_rule_set_offset: u16) -> Result<GsubSubRuleSet, Error> {
+    let mut offset = subtable_offset + sub_rule_set_offset as usize;
     let sub_rule_count = get_u16(bytes, offset)?;
     offset += 2;
     let sub_rule_offsets: Vec<u16> = bytes.get(offset..offset + sub_rule_count as usize * 2)
@@ -3270,8 +3271,8 @@ fn parse_gsub_sub_rule_set(bytes: &[u8], subtable_offset: u16, sub_rule_set_offs
     })
 }
 
-fn parse_gsub_sub_rule(bytes: &[u8], subtable_offset: u16, sub_rule_offset: u16) -> Result<GsubSubRule, Error> {
-    let mut offset = (subtable_offset + sub_rule_offset) as usize;
+fn parse_gsub_sub_rule(bytes: &[u8], subtable_offset: usize, sub_rule_offset: u16) -> Result<GsubSubRule, Error> {
+    let mut offset = subtable_offset + sub_rule_offset as usize;
     let glyph_count = get_u16(bytes, offset)?;
     let sub_count = get_u16(bytes, offset + 2)?;
     offset += 4;
@@ -3305,8 +3306,8 @@ fn parse_subst_lookup_record(bytes: &[u8], offset: &mut usize) -> Result<SubstLo
     })
 }
 
-fn parse_gsub_sub_class_set(bytes: &[u8], subtable_offset: u16, sub_class_set_offset: u16) -> Result<GsubSubClassSet, Error> {
-    let mut offset = (subtable_offset + sub_class_set_offset) as usize;
+fn parse_gsub_sub_class_set(bytes: &[u8], subtable_offset: usize, sub_class_set_offset: u16) -> Result<GsubSubClassSet, Error> {
+    let mut offset = subtable_offset + sub_class_set_offset as usize;
     let sub_class_rule_count = get_u16(bytes, offset)?;
     offset += 2;
     let sub_class_rule_offsets: Vec<u16> = bytes.get(offset..offset + sub_class_rule_count as usize * 2)
@@ -3327,8 +3328,8 @@ fn parse_gsub_sub_class_set(bytes: &[u8], subtable_offset: u16, sub_class_set_of
     })
 }
 
-fn parse_gsub_sub_class_rule(bytes: &[u8], subtable_offset: u16, sub_class_rule_offset: u16) -> Result<GsubSubClassRule, Error> {
-    let mut offset = (subtable_offset + sub_class_rule_offset) as usize;
+fn parse_gsub_sub_class_rule(bytes: &[u8], subtable_offset: usize, sub_class_rule_offset: u16) -> Result<GsubSubClassRule, Error> {
+    let mut offset = subtable_offset + sub_class_rule_offset as usize;
     let glyph_count = get_u16(bytes, offset)?;
     let sub_count = get_u16(bytes, offset + 2)?;
     offset += 4;
@@ -3351,8 +3352,8 @@ fn parse_gsub_sub_class_rule(bytes: &[u8], subtable_offset: u16, sub_class_rule_
     })
 }
 
-fn parse_gsub_chain_sub_rule_set(bytes: &[u8], subtable_offset: u16, chain_sub_rule_set_offset: u16) -> Result<GsubChainSubRuleSet, Error> {
-    let mut offset = (subtable_offset + chain_sub_rule_set_offset) as usize;
+fn parse_gsub_chain_sub_rule_set(bytes: &[u8], subtable_offset: usize, chain_sub_rule_set_offset: u16) -> Result<GsubChainSubRuleSet, Error> {
+    let mut offset = subtable_offset + chain_sub_rule_set_offset as usize;
     let chain_sub_rule_count = get_u16(bytes, offset)?;
     offset += 2;
     let chain_sub_rule_offsets: Vec<u16> = bytes.get(offset..offset + chain_sub_rule_count as usize * 2)
@@ -3373,8 +3374,8 @@ fn parse_gsub_chain_sub_rule_set(bytes: &[u8], subtable_offset: u16, chain_sub_r
     })
 }
 
-fn parse_gsub_chain_sub_class_set(bytes: &[u8], subtable_offset: u16, chain_sub_class_set_offset: u16) -> Result<GsubChainSubClassSet, Error> {
-    let mut offset = (subtable_offset + chain_sub_class_set_offset) as usize;
+fn parse_gsub_chain_sub_class_set(bytes: &[u8], subtable_offset: usize, chain_sub_class_set_offset: u16) -> Result<GsubChainSubClassSet, Error> {
+    let mut offset = subtable_offset + chain_sub_class_set_offset as usize;
     let chain_sub_class_rule_count = get_u16(bytes, offset)?;
     offset += 2;
     let chain_sub_class_rule_offsets: Vec<u16> = bytes.get(offset..offset + chain_sub_class_rule_count as usize * 2)
@@ -3395,8 +3396,8 @@ fn parse_gsub_chain_sub_class_set(bytes: &[u8], subtable_offset: u16, chain_sub_
     })
 }
 
-fn parse_gsub_chain_sub_class_rule(bytes: &[u8], subtable_offset: u16, chain_sub_class_rule_offset: u16) -> Result<GsubChainSubClassRule, Error> {
-    let mut offset = (subtable_offset + chain_sub_class_rule_offset) as usize;
+fn parse_gsub_chain_sub_class_rule(bytes: &[u8], subtable_offset: usize, chain_sub_class_rule_offset: u16) -> Result<GsubChainSubClassRule, Error> {
+    let mut offset = subtable_offset + chain_sub_class_rule_offset as usize;
     let backtrack_glyph_count = get_u16(bytes, offset)?;
     offset += 2;
     let backtrack_class_ids = bytes.get(offset..offset + backtrack_glyph_count as usize * 2)
@@ -3442,8 +3443,8 @@ fn parse_gsub_chain_sub_class_rule(bytes: &[u8], subtable_offset: u16, chain_sub
     })
 }
 
-fn parse_gsub_chain_sub_rule(bytes: &[u8], subtable_offset: u16, chain_sub_rule_offset: u16) -> Result<GsubChainSubRule, Error> {
-    let mut offset = (subtable_offset + chain_sub_rule_offset) as usize;
+fn parse_gsub_chain_sub_rule(bytes: &[u8], subtable_offset: usize, chain_sub_rule_offset: u16) -> Result<GsubChainSubRule, Error> {
+    let mut offset = subtable_offset + chain_sub_rule_offset as usize;
     let backtrack_glyph_count = get_u16(bytes, offset)?;
     offset += 2;
     let backtrack_glyph_ids = bytes.get(offset..offset + backtrack_glyph_count as usize * 2)
