@@ -1655,7 +1655,7 @@ impl SubtableParser for GposSubtable {
                         let mark_array_offset = get_u16(bytes, offset + 6)?;
                         let mark_array = parse_mark_array(bytes, subtable_offset, mark_array_offset)?;
                         let ligature_array_offset = get_u16(bytes, offset + 8)?;
-                        let ligature_array = parse_ligature_array(bytes, subtable_offset, ligature_array_offset)?;
+                        let ligature_array = parse_ligature_array(bytes, subtable_offset, ligature_array_offset, mark_class_count)?;
                         
                         Ok(GposSubtable::Type5(GposType5Format::Format1 {
                             mark_coverage_offset,
@@ -2481,8 +2481,68 @@ fn parse_base_array(bytes: &[u8], subtable_offset: u16, base_array_offset: u16) 
     })
 }
 
-fn parse_ligature_array(bytes: &[u8], subtable_offset: u16, ligature_array_offset: u16) -> Result<LigatureArray, Error> {
+fn parse_ligature_array(bytes: &[u8], subtable_offset: u16, ligature_array_offset: u16, mark_class_count: u16) -> Result<LigatureArray, Error> {
+    let mut offset = (subtable_offset + ligature_array_offset) as usize;
+    let ligature_count = get_u16(bytes, offset)?;
+    offset += 2;
+    let ligature_attach_offsets: Vec<u16> = bytes.get(offset..offset + ligature_count as usize * 2)
+        .ok_or(ErrorKind::UnexpectedEof)?
+        .chunks_exact(2)
+        .map(|ch| {
+            u16::from_be_bytes(ch.try_into().unwrap())
+        }).collect();
+    let ligature_attaches: Vec<LigatureAttach> = ligature_attach_offsets.iter()
+        .map(|offset| {
+            Ok(parse_ligature_attach(bytes, subtable_offset, *offset, mark_class_count)?)
+        }).collect::<Result<Vec<_>, Error>>()?;
     
+    Ok(LigatureArray {
+        ligature_count,
+        ligature_attach_offsets,
+        ligature_attaches
+    })
+}
+
+fn parse_ligature_attach(
+    bytes: &[u8],
+    subtable_offset: u16,
+    ligature_attach_offset: u16,
+    mark_class_count: u16
+) -> Result<LigatureAttach, Error> {
+    let mut offset = (subtable_offset + ligature_attach_offset) as usize;
+    let component_count = get_u16(bytes, offset)?;
+    offset += 2;
+    let component_records: Vec<ComponentRecord> = (0..component_count).map(|_| {
+        Ok(parse_component_record(bytes, subtable_offset, offset, mark_class_count)?)
+    }).collect::<Result<Vec<_>, Error>>()?;
+    
+    Ok(LigatureAttach {
+        component_count,
+        component_records
+    })
+}
+
+fn parse_component_record(
+    bytes: &[u8],
+    subtable_offset: u16,
+    offset: usize,
+    mark_class_count: u16
+) -> Result<ComponentRecord, Error> {
+    let ligature_anchor_offsets: Vec<u16> = bytes.get(offset..offset + mark_class_count as usize * 2)
+        .ok_or(ErrorKind::UnexpectedEof)?
+        .chunks_exact(2)
+        .map(|ch| {
+            u16::from_be_bytes(ch.try_into().unwrap())
+        }).collect();
+    let ligature_anchors: Vec<Anchor> = ligature_anchor_offsets.iter()
+        .map(|offset| {
+            Ok(parse_anchor(bytes, subtable_offset, *offset)?)
+        }).collect::<Result<Vec<_>, Error>>()?;
+    
+    Ok(ComponentRecord {
+        ligature_anchor_offsets,
+        ligature_anchors
+    })
 }
 
 fn get_u16(bytes: &[u8], start: usize) -> Result<u16, Error> {
