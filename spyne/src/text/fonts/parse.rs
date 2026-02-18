@@ -1938,6 +1938,10 @@ impl SubtableParser for GsubSubtable {
             1 => {
                 match format {
                     1 => {
+                        let coverage_offset = get_u16(bytes, offset)?;
+                        let coverage = parse_coverage(bytes, subtable_offset, coverage_offset)?;
+                        let delta_glyph_id = get_i16(bytes, offset + 2)?;
+                        
                         Ok(GsubSubtable::Type1(GsubType1Format::Format1 {
                             coverage_offset,
                             coverage,
@@ -1945,6 +1949,17 @@ impl SubtableParser for GsubSubtable {
                         }))
                     }
                     2 => {
+                        let coverage_offset = get_u16(bytes, offset)?;
+                        let coverage = parse_coverage(bytes, subtable_offset, coverage_offset)?;
+                        let glyph_count = get_u16(bytes, offset + 2)?;
+                        offset += 4;
+                        let substitute_glyph_ids = bytes.get(offset..offset + glyph_count as usize * 2)
+                            .ok_or(ErrorKind::UnexpectedEof)?
+                            .chunks_exact(2)
+                            .map(|ch| {
+                                u16::from_be_bytes(ch.try_into().unwrap())
+                            }).collect();
+                        
                         Ok(GsubSubtable::Type1(GsubType1Format::Format2 {
                             coverage_offset,
                             coverage,
@@ -1958,6 +1973,21 @@ impl SubtableParser for GsubSubtable {
             2 => {
                 match format {
                     1 => {
+                        let coverage_offset = get_u16(bytes, offset)?;
+                        let coverage = parse_coverage(bytes, subtable_offset, coverage_offset)?;
+                        let sequence_count = get_u16(bytes, offset + 2)?;
+                        offset += 4;
+                        let sequence_offsets: Vec<u16> = bytes.get(offset..offset + sequence_count as usize * 2)
+                            .ok_or(ErrorKind::UnexpectedEof)?
+                            .chunks_exact(2)
+                            .map(|ch| {
+                                u16::from_be_bytes(ch.try_into().unwrap())
+                            }).collect();
+                        let sequences: Vec<Sequence> = sequence_offsets.iter()
+                            .map(|offset| {
+                                Ok(parse_sequence(bytes, subtable_offset, *offset)?)
+                            }).collect::<Result<Vec<_>, Error>>()?;
+                        
                         Ok(GsubSubtable::Type2(GsubType2Format::Format1 {
                             coverage_offset,
                             coverage,
@@ -1972,6 +2002,21 @@ impl SubtableParser for GsubSubtable {
             3 => {
                 match format {
                     1 => {
+                        let coverage_offset = get_u16(bytes, offset)?;
+                        let coverage = parse_coverage(bytes, subtable_offset, coverage_offset)?;
+                        let alternate_set_count = get_u16(bytes, offset + 2)?;
+                        offset += 4;
+                        let alternate_set_offsets: Vec<u16> = bytes.get(offset..offset + alternate_set_count as usize * 2)
+                            .ok_or(ErrorKind::UnexpectedEof)?
+                            .chunks_exact(2)
+                            .map(|ch| {
+                                u16::from_be_bytes(ch.try_into().unwrap())
+                            }).collect();
+                        let alternate_sets: Vec<AlternateSet> = alternate_set_offsets.iter()
+                            .map(|offset| {
+                                Ok(parse_alternate_set(bytes, subtable_offset, *offset)?)
+                            }).collect::<Result<Vec<_>, Error>>()?;
+                        
                         Ok(GsubSubtable::Type3(GsubType3Format::Format1 {
                             coverage_offset,
                             coverage,
@@ -1986,6 +2031,21 @@ impl SubtableParser for GsubSubtable {
             4 => {
                 match format {
                     1 => {
+                        let coverage_offset = get_u16(bytes, offset)?;
+                        let coverage = parse_coverage(bytes, subtable_offset, coverage_offset)?;
+                        let ligature_set_count = get_u16(bytes, offset + 2)?;
+                        offset += 4;
+                        let ligature_set_offsets: Vec<u16> = bytes.get(offset..offset + ligature_set_count as usize)
+                            .ok_or(ErrorKind::UnexpectedEof)?
+                            .chunks_exact(2)
+                            .map(|ch| {
+                                u16::from_be_bytes(ch.try_into().unwrap())
+                            }).collect();
+                        let ligature_sets: Vec<LigatureSet> = ligature_set_offsets.iter()
+                            .map(|offset| {
+                                Ok(parse_ligature_set(bytes, subtable_offset, *offset)?)
+                            }).collect::<Result<Vec<_>, Error>>()?;
+                        
                         Ok(GsubSubtable::Type4(GsubType4Format::Format1 {
                             coverage_offset,
                             coverage,
@@ -2000,6 +2060,21 @@ impl SubtableParser for GsubSubtable {
             5 => {
                 match format {
                     1 => {
+                        let coverage_offset = get_u16(bytes, offset)?;
+                        let coverage = parse_coverage(bytes, subtable_offset, coverage_offset)?;
+                        let sub_rule_set_count = get_u16(bytes, offset + 2)?;
+                        offset += 4;
+                        let sub_rule_set_offsets: Vec<u16> = bytes.get(offset..offset + sub_rule_set_count as usize * 2)
+                            .ok_or(ErrorKind::UnexpectedEof)?
+                            .chunks_exact(2)
+                            .map(|ch| {
+                                u16::from_be_bytes(ch.try_into().unwrap())
+                            }).collect();
+                        let sub_rule_sets: Vec<GsubSubRuleSet> = sub_rule_set_offsets.iter()
+                            .map(|offset| {
+                                Ok(parse_gsub_sub_rule_set(bytes, subtable_offset, *offset)?)
+                            }).collect::<Result<Vec<_>, Error>>()?;
+                        
                         Ok(GsubSubtable::Type5(GsubType5Format::Format1 {
                             coverage_offset,
                             coverage,
@@ -2009,6 +2084,23 @@ impl SubtableParser for GsubSubtable {
                         }))
                     }
                     2 => {
+                        let coverage_offset = get_u16(bytes, offset)?;
+                        let coverage = parse_coverage(bytes, subtable_offset, coverage_offset)?;
+                        let class_def_offset = get_u16(bytes, offset + 2)?;
+                        let class_def = parse_class_def(bytes, class_def_offset)?;
+                        let sub_class_set_count = get_u16(bytes, offset + 4)?;
+                        offset += 6;
+                        let sub_class_set_offsets: Vec<u16> = bytes.get(offset..offset + sub_class_set_count as usize * 2)
+                            .ok_or(ErrorKind::UnexpectedEof)?
+                            .chunks_exact(2)
+                            .map(|ch| {
+                                u16::from_be_bytes(ch.try_into().unwrap())
+                            }).collect();
+                        let sub_class_sets: Vec<GsubSubClassSet> = sub_class_set_offsets.iter()
+                            .map(|offset| {
+                                Ok(parse_gsub_sub_class_set(bytes, subtable_offset, *offset)?)
+                            }).collect::<Result<Vec<_>, Error>>()?;
+                        
                         Ok(GsubSubtable::Type5(GsubType5Format::Format2 {
                             coverage_offset,
                             coverage,
@@ -2020,6 +2112,24 @@ impl SubtableParser for GsubSubtable {
                         }))
                     }
                     3 => {
+                        let glyph_count = get_u16(bytes, offset)?;
+                        let sub_count = get_u16(bytes, offset + 2)?;
+                        offset += 4;
+                        let coverage_offsets: Vec<u16> = bytes.get(offset..offset + glyph_count as usize * 2)
+                            .ok_or(ErrorKind::UnexpectedEof)?
+                            .chunks_exact(2)
+                            .map(|ch| {
+                                u16::from_be_bytes(ch.try_into().unwrap())
+                            }).collect();
+                        offset += glyph_count as usize * 2;
+                        let coverages: Vec<Coverage> = coverage_offsets.iter()
+                            .map(|offset| {
+                                Ok(parse_coverage(bytes, subtable_offset, *offset)?)
+                            }).collect::<Result<Vec<_>, Error>>()?;
+                        let subst_lookup_records: Vec<SubstLookupRecord> = (0..sub_count).map(|_| {
+                            Ok(parse_subst_lookup_record(bytes, &mut offset)?)
+                        }).collect::<Result<Vec<_>, Error>>()?;
+                        
                         Ok(GsubSubtable::Type5(GsubType5Format::Format3 {
                             glyph_count,
                             sub_count,
@@ -2034,6 +2144,21 @@ impl SubtableParser for GsubSubtable {
             6 => {
                 match format {
                     1 => {
+                        let coverage_offset = get_u16(bytes, offset)?;
+                        let coverage = parse_coverage(bytes, subtable_offset, coverage_offset)?;
+                        let chain_sub_rule_set_count = get_u16(bytes, offset + 2)?;
+                        offset += 4;
+                        let chain_sub_rule_set_offsets: Vec<u16> = bytes.get(offset..offset + chain_sub_rule_set_count as usize * 2)
+                            .ok_or(ErrorKind::UnexpectedEof)?
+                            .chunks_exact(2)
+                            .map(|ch| {
+                                u16::from_be_bytes(ch.try_into().unwrap())
+                            }).collect();
+                        let chain_sub_rule_sets: Vec<GsubChainSubRuleSet> = chain_sub_rule_set_offsets.iter()
+                            .map(|offset| {
+                                Ok(parse_gsub_chain_sub_rule_set(bytes, subtable_offset, *offset)?)
+                            }).collect::<Result<Vec<_>, Error>>()?;
+                        
                         Ok(GsubSubtable::Type6(GsubType6Format::Format1 {
                             coverage_offset,
                             coverage,
@@ -2043,6 +2168,27 @@ impl SubtableParser for GsubSubtable {
                         }))
                     }
                     2 => {
+                        let coverage_offset = get_u16(bytes, offset)?;
+                        let coverage = parse_coverage(bytes, subtable_offset, coverage_offset)?;
+                        let backtrack_class_def_offset = get_u16(bytes, offset + 2)?;
+                        let backtrack_class_def = parse_class_def(bytes, backtrack_class_def_offset)?;
+                        let input_class_def_offset = get_u16(bytes, offset + 4)?;
+                        let input_class_def = parse_class_def(bytes, input_class_def_offset)?;
+                        let lookahead_class_def_offset = get_u16(bytes, offset + 6)?;
+                        let lookahead_class_def = parse_class_def(bytes, lookahead_class_def_offset)?;
+                        let chain_sub_class_set_count = get_u16(bytes, offset + 8)?;
+                        offset += 8;
+                        let chain_sub_class_set_offsets: Vec<u16> = bytes.get(offset..offset + chain_sub_class_set_count as usize * 2)
+                            .ok_or(ErrorKind::UnexpectedEof)?
+                            .chunks_exact(2)
+                            .map(|ch| {
+                                u16::from_be_bytes(ch.try_into().unwrap())
+                            }).collect();
+                        let chain_sub_class_sets: Vec<GsubChainSubClassSet> = chain_sub_class_set_offsets.iter()
+                            .map(|offset| {
+                                Ok(parse_gsub_chain_sub_class_set(bytes, subtable_offset, *offset)?)
+                            }).collect::<Result<Vec<_>, Error>>()?;
+                        
                         Ok(GsubSubtable::Type6(GsubType6Format::Format2 {
                             coverage_offset,
                             coverage,
@@ -2058,6 +2204,51 @@ impl SubtableParser for GsubSubtable {
                         }))
                     }
                     3 => {
+                        let backtrack_glyph_count = get_u16(bytes, offset)?;
+                        offset += 2;
+                        let backtrack_coverage_offsets: Vec<u16> = bytes.get(offset..offset + backtrack_glyph_count as usize * 2)
+                            .ok_or(ErrorKind::UnexpectedEof)?
+                            .chunks_exact(2)
+                            .map(|ch| {
+                                u16::from_be_bytes(ch.try_into().unwrap())
+                            }).collect();
+                        offset += backtrack_glyph_count as usize * 2;
+                        let backtrack_coverages: Vec<Coverage> = backtrack_coverage_offsets.iter()
+                            .map(|offset| {
+                                Ok(parse_coverage(bytes, subtable_offset, *offset)?)
+                            }).collect::<Result<Vec<_>, Error>>()?;
+                        let input_glyph_count = get_u16(bytes, offset)?;
+                        offset += 2;
+                        let input_coverage_offsets: Vec<u16> = bytes.get(offset..offset + input_glyph_count as usize * 2)
+                            .ok_or(ErrorKind::UnexpectedEof)?
+                            .chunks_exact(2)
+                            .map(|ch| {
+                                u16::from_be_bytes(ch.try_into().unwrap())
+                            }).collect();
+                        offset += input_glyph_count as usize * 2;
+                        let input_coverages: Vec<Coverage> = input_coverage_offsets.iter()
+                            .map(|offset| {
+                                Ok(parse_coverage(bytes, subtable_offset, *offset)?)
+                            }).collect::<Result<Vec<_>, Error>>()?;
+                        let lookahead_glyph_count = get_u16(bytes, offset)?;
+                        offset += 2;
+                        let lookahead_coverage_offsets: Vec<u16> = bytes.get(offset..offset + lookahead_glyph_count as usize * 2)
+                            .ok_or(ErrorKind::UnexpectedEof)?
+                            .chunks_exact(2)
+                            .map(|ch| {
+                                u16::from_be_bytes(ch.try_into().unwrap())
+                            }).collect();
+                        offset += lookahead_glyph_count as usize * 2;
+                        let lookahead_coverages: Vec<Coverage> = lookahead_coverage_offsets.iter()
+                            .map(|offset| {
+                                Ok(parse_coverage(bytes, subtable_offset, *offset)?)
+                            }).collect::<Result<Vec<_>, Error>>()?;
+                        let sub_count = get_u16(bytes, offset)?;
+                        offset += 2;
+                        let subst_lookup_records: Vec<SubstLookupRecord> = (0..sub_count).map(|_| {
+                            Ok(parse_subst_lookup_record(bytes, &mut offset)?)
+                        }).collect::<Result<Vec<_>, Error>>()?;
+                        
                         Ok(GsubSubtable::Type6(GsubType6Format::Format3 {
                             backtrack_glyph_count,
                             backtrack_coverage_offsets,
@@ -2078,6 +2269,10 @@ impl SubtableParser for GsubSubtable {
             7 => {
                 match format {
                     1 => {
+                        let extension_lookup_type = get_u16(bytes, offset)?;
+                        let extension_offset = get_u32(bytes, offset + 2)?;
+                        let extension = Box::new(GsubSubtable::parse(bytes, subtable_offset, extension_offset, extension_lookup_type)?);
+                                                
                         Ok(GsubSubtable::Type7(GsubType7Format::Format1 {
                             extension_lookup_type,
                             extension_offset,
@@ -2090,6 +2285,43 @@ impl SubtableParser for GsubSubtable {
             8 => {
                 match format {
                     1 => {
+                        let coverage_offset = get_u16(bytes, offset)?;
+                        let coverage = parse_coverage(bytes, subtable_offset, coverage_offset)?;
+                        let backtrack_glyph_count = get_u16(bytes, offset + 2)?;
+                        offset += 4;
+                        let backtrack_coverage_offsets: Vec<u16> = bytes.get(offset..offset + backtrack_glyph_count as usize * 2)
+                            .ok_or(ErrorKind::UnexpectedEof)?
+                            .chunks_exact(2)
+                            .map(|ch| {
+                                u16::from_be_bytes(ch.try_into().unwrap())
+                            }).collect();
+                        offset += backtrack_glyph_count as usize * 2;
+                        let backtrack_coverages: Vec<Coverage> = backtrack_coverage_offsets.iter()
+                            .map(|offset| {
+                                Ok(parse_coverage(bytes, subtable_offset, *offset)?)
+                            }).collect::<Result<Vec<_>, Error>>()?;
+                        let lookahead_glyph_count = get_u16(bytes, offset)?;
+                        offset += 2;
+                        let lookahead_coverage_offsets: Vec<u16> = bytes.get(offset..offset + lookahead_glyph_count as usize * 2)
+                            .ok_or(ErrorKind::UnexpectedEof)?
+                            .chunks_exact(2)
+                            .map(|ch| {
+                                u16::from_be_bytes(ch.try_into().unwrap())
+                            }).collect();
+                        offset += lookahead_glyph_count as usize * 2;
+                        let lookahead_coverages: Vec<Coverage> = lookahead_coverage_offsets.iter()
+                            .map(|offset| {
+                                Ok(parse_coverage(bytes, subtable_offset, *offset)?)
+                            }).collect::<Result<Vec<_>, Error>>()?;
+                        let glyph_count = get_u16(bytes, offset)?;
+                        offset += 2;
+                        let substitute_glyph_ids: Vec<u16> = bytes.get(offset..offset + glyph_count as usize * 2)
+                            .ok_or(ErrorKind::UnexpectedEof)?
+                            .chunks_exact(2)
+                            .map(|ch| {
+                                u16::from_be_bytes(ch.try_into().unwrap())
+                            }).collect();
+                        
                         Ok(GsubSubtable::Type8(GsubType8Format::Format1 {
                             coverage_offset,
                             coverage,
@@ -2103,6 +2335,7 @@ impl SubtableParser for GsubSubtable {
                             substitute_glyph_ids
                         }))
                     }
+                    _ => Err(Error::new(ErrorKind::InvalidData, format!("Format for Lookup Type 8 is invalid: {}", format)))
                 }
             }
             _ => Err(Error::new(ErrorKind::InvalidData, format!("Lookup Type is invalid: {}", lookup_type)))
@@ -2117,7 +2350,7 @@ fn parse_feature_variations(bytes: &[u8], feature_variations_offset: u32, featur
     let minor_version = get_u16(bytes, offset + 2)?;
     let feature_variation_record_count = get_u32(bytes, offset + 4)?;
     offset += 8;
-    let feature_variation_records: Vec<FeatureVariationRecord> = Vec::with_capacity(feature_variation_record_count as usize);
+    let mut feature_variation_records: Vec<FeatureVariationRecord> = Vec::with_capacity(feature_variation_record_count as usize);
     for _ in 0..feature_variation_record_count {
         let condition_set_offset = get_u32(bytes, offset)?;
         offset += 4;
@@ -2133,7 +2366,7 @@ fn parse_feature_variations(bytes: &[u8], feature_variations_offset: u32, featur
                 }).collect();
             let conditions: Vec<Condition> = condition_offsets.iter()
                 .map(|off| {
-                    let mut offset = *off as usize;
+                    let offset = *off as usize;
                     let format = get_u16(bytes, offset)?;
                     match format {
                         1 => {
@@ -2159,7 +2392,7 @@ fn parse_feature_variations(bytes: &[u8], feature_variations_offset: u32, featur
         };
         let feature_table_substitution_offset = get_u32(bytes, offset)?;
         let feature_table_substitution: FeatureTableSubstitution = {
-            let offset = (feature_variations_offset + feature_table_substitution_offset) as usize;
+            let mut offset = (feature_variations_offset + feature_table_substitution_offset) as usize;
             let major_version = get_u16(bytes, offset)?;
             let minor_version = get_u16(bytes, offset + 2)?;
             let substitution_count = get_u16(bytes, offset + 4)?;
@@ -2233,7 +2466,7 @@ fn parse_feature_variations(bytes: &[u8], feature_variations_offset: u32, featur
                                     character
                                 })
                             }
-                            _ => return Err(Error::new(ErrorKind::InvalidData, format!("Feature tag is invalid: {:#?}", fr.feature_tag)))
+                            _ => return Err(Error::new(ErrorKind::InvalidData, format!("Feature tag is invalid: {:#?}", feature_tag)))
                         }
                     }
                     else {
@@ -2961,6 +3194,298 @@ fn parse_gpos_chain_sub_rule(bytes: &[u8], subtable_offset: u16, chain_sub_rule_
         lookahead_glyph_ids,
         sub_count,
         pos_lookup_records
+    })
+}
+
+fn parse_sequence(bytes: &[u8], subtable_offset: u16, sequence_offset: u16) -> Result<Sequence, Error> {
+    let mut offset = (subtable_offset + sequence_offset) as usize;
+    let glyph_count = get_u16(bytes, offset)?;
+    offset += 2;
+    let substitute_glyph_ids: Vec<u16> = bytes.get(offset..offset + glyph_count as usize * 2)
+        .ok_or(ErrorKind::UnexpectedEof)?
+        .chunks_exact(2)
+        .map(|ch| {
+            u16::from_be_bytes(ch.try_into().unwrap())
+        }).collect();
+    
+    Ok(Sequence {
+        glyph_count,
+        substitute_glyph_ids
+    })
+}
+
+fn parse_alternate_set(bytes: &[u8], subtable_offset: u16, alternate_set_offset: u16) -> Result<AlternateSet, Error> {
+    let mut offset = (subtable_offset + alternate_set_offset) as usize;
+    let glyph_count = get_u16(bytes, offset)?;
+    offset += 2;
+    let alternate_glyph_ids = bytes.get(offset..offset + glyph_count as usize * 2)
+        .ok_or(ErrorKind::UnexpectedEof)?
+        .chunks_exact(2)
+        .map(|ch| {
+            u16::from_be_bytes(ch.try_into().unwrap())
+        }).collect();
+    
+    Ok(AlternateSet {
+        glyph_count,
+        alternate_glyph_ids
+    })
+}
+
+fn parse_ligature_set(bytes: &[u8], subtable_offset: u16, ligature_set_offset: u16) -> Result<LigatureSet, Error> {
+    let mut offset = (subtable_offset + ligature_set_offset) as usize;
+    let ligature_count = get_u16(bytes, offset)?;
+    offset += 2;
+    let ligature_offsets = bytes.get(offset..offset + ligature_count as usize * 2)
+        .ok_or(ErrorKind::UnexpectedEof)?
+        .chunks_exact(2)
+        .map(|ch| {
+            u16::from_be_bytes(ch.try_into().unwrap())
+        }).collect();
+    
+    Ok(LigatureSet {
+        ligature_count,
+        ligature_offsets
+    })
+}
+
+fn parse_gsub_sub_rule_set(bytes: &[u8], subtable_offset: u16, sub_rule_set_offset: u16) -> Result<GsubSubRuleSet, Error> {
+    let mut offset = (subtable_offset + sub_rule_set_offset) as usize;
+    let sub_rule_count = get_u16(bytes, offset)?;
+    offset += 2;
+    let sub_rule_offsets: Vec<u16> = bytes.get(offset..offset + sub_rule_count as usize * 2)
+        .ok_or(ErrorKind::UnexpectedEof)?
+        .chunks_exact(2)
+        .map(|ch| {
+            u16::from_be_bytes(ch.try_into().unwrap())
+        }).collect();
+    let sub_rules: Vec<GsubSubRule> = sub_rule_offsets.iter()
+        .map(|offset| {
+            Ok(parse_gsub_sub_rule(bytes, subtable_offset, *offset)?)
+        }).collect::<Result<Vec<_>, Error>>()?;
+    
+    Ok(GsubSubRuleSet {
+        sub_rule_count,
+        sub_rule_offsets,
+        sub_rules
+    })
+}
+
+fn parse_gsub_sub_rule(bytes: &[u8], subtable_offset: u16, sub_rule_offset: u16) -> Result<GsubSubRule, Error> {
+    let mut offset = (subtable_offset + sub_rule_offset) as usize;
+    let glyph_count = get_u16(bytes, offset)?;
+    let sub_count = get_u16(bytes, offset + 2)?;
+    offset += 4;
+    let input_glyph_ids: Vec<u16> = bytes.get(offset..offset + glyph_count as usize * 2)
+        .ok_or(ErrorKind::UnexpectedEof)?
+        .chunks_exact(2)
+        .map(|ch| {
+            u16::from_be_bytes(ch.try_into().unwrap())
+        }).collect();
+    offset += glyph_count as usize * 2;
+    let subst_lookup_records: Vec<SubstLookupRecord> = (0..glyph_count).map(|_| {
+        Ok(parse_subst_lookup_record(bytes, &mut offset)?)
+    }).collect::<Result<Vec<_>, Error>>()?;
+    
+    Ok(GsubSubRule {
+        glyph_count,
+        sub_count,
+        input_glyph_ids,
+        subst_lookup_records
+    })
+}
+
+fn parse_subst_lookup_record(bytes: &[u8], offset: &mut usize) -> Result<SubstLookupRecord, Error> {
+    let glyph_sequence_index = get_u16(bytes, *offset)?;
+    let lookup_list_index = get_u16(bytes, *offset + 2)?;
+    *offset += 2;
+    
+    Ok(SubstLookupRecord {
+        glyph_sequence_index,
+        lookup_list_index
+    })
+}
+
+fn parse_gsub_sub_class_set(bytes: &[u8], subtable_offset: u16, sub_class_set_offset: u16) -> Result<GsubSubClassSet, Error> {
+    let mut offset = (subtable_offset + sub_class_set_offset) as usize;
+    let sub_class_rule_count = get_u16(bytes, offset)?;
+    offset += 2;
+    let sub_class_rule_offsets: Vec<u16> = bytes.get(offset..offset + sub_class_rule_count as usize * 2)
+        .ok_or(ErrorKind::UnexpectedEof)?
+        .chunks_exact(2)
+        .map(|ch| {
+            u16::from_be_bytes(ch.try_into().unwrap())
+        }).collect();
+    let sub_class_rules: Vec<GsubSubClassRule> = sub_class_rule_offsets.iter()
+        .map(|offset| {
+            Ok(parse_gsub_sub_class_rule(bytes, subtable_offset, *offset)?)
+        }).collect::<Result<Vec<_>, Error>>()?;
+    
+    Ok(GsubSubClassSet {
+        sub_class_rule_count,
+        sub_class_rule_offsets,
+        sub_class_rules
+    })
+}
+
+fn parse_gsub_sub_class_rule(bytes: &[u8], subtable_offset: u16, sub_class_rule_offset: u16) -> Result<GsubSubClassRule, Error> {
+    let mut offset = (subtable_offset + sub_class_rule_offset) as usize;
+    let glyph_count = get_u16(bytes, offset)?;
+    let sub_count = get_u16(bytes, offset + 2)?;
+    offset += 4;
+    let class_ids = bytes.get(offset..offset + glyph_count as usize * 2)
+        .ok_or(ErrorKind::UnexpectedEof)?
+        .chunks_exact(2)
+        .map(|ch| {
+            u16::from_be_bytes(ch.try_into().unwrap())
+        }).collect();
+    offset += glyph_count as usize * 2;
+    let subst_lookup_records: Vec<SubstLookupRecord> = (0..sub_count).map(|_| {
+        Ok(parse_subst_lookup_record(bytes, &mut offset)?)
+    }).collect::<Result<Vec<_>, Error>>()?;
+    
+    Ok(GsubSubClassRule {
+        glyph_count,
+        sub_count,
+        class_ids,
+        subst_lookup_records
+    })
+}
+
+fn parse_gsub_chain_sub_rule_set(bytes: &[u8], subtable_offset: u16, chain_sub_rule_set_offset: u16) -> Result<GsubChainSubRuleSet, Error> {
+    let mut offset = (subtable_offset + chain_sub_rule_set_offset) as usize;
+    let chain_sub_rule_count = get_u16(bytes, offset)?;
+    offset += 2;
+    let chain_sub_rule_offsets: Vec<u16> = bytes.get(offset..offset + chain_sub_rule_count as usize * 2)
+        .ok_or(ErrorKind::UnexpectedEof)?
+        .chunks_exact(2)
+        .map(|ch| {
+            u16::from_be_bytes(ch.try_into().unwrap())
+        }).collect();
+    let chain_sub_rules: Vec<GsubChainSubRule> = chain_sub_rule_offsets.iter()
+        .map(|offset| {
+            Ok(parse_gsub_chain_sub_rule(bytes, subtable_offset, *offset)?)
+        }).collect::<Result<Vec<_>, Error>>()?;
+    
+    Ok(GsubChainSubRuleSet {
+        chain_sub_rule_count,
+        chain_sub_rule_offsets,
+        chain_sub_rules
+    })
+}
+
+fn parse_gsub_chain_sub_class_set(bytes: &[u8], subtable_offset: u16, chain_sub_class_set_offset: u16) -> Result<GsubChainSubClassSet, Error> {
+    let mut offset = (subtable_offset + chain_sub_class_set_offset) as usize;
+    let chain_sub_class_rule_count = get_u16(bytes, offset)?;
+    offset += 2;
+    let chain_sub_class_rule_offsets: Vec<u16> = bytes.get(offset..offset + chain_sub_class_rule_count as usize * 2)
+        .ok_or(ErrorKind::UnexpectedEof)?
+        .chunks_exact(2)
+        .map(|ch| {
+            u16::from_be_bytes(ch.try_into().unwrap())
+        }).collect();
+    let chain_sub_class_rules: Vec<GsubChainSubClassRule> = chain_sub_class_rule_offsets.iter()
+        .map(|offset| {
+            Ok(parse_gsub_chain_sub_class_rule(bytes, subtable_offset, *offset)?)
+        }).collect::<Result<Vec<_>, Error>>()?;
+    
+    Ok(GsubChainSubClassSet {
+        chain_sub_class_rule_count,
+        chain_sub_class_rule_offsets,
+        chain_sub_class_rules
+    })
+}
+
+fn parse_gsub_chain_sub_class_rule(bytes: &[u8], subtable_offset: u16, chain_sub_class_rule_offset: u16) -> Result<GsubChainSubClassRule, Error> {
+    let mut offset = (subtable_offset + chain_sub_class_rule_offset) as usize;
+    let backtrack_glyph_count = get_u16(bytes, offset)?;
+    offset += 2;
+    let backtrack_class_ids = bytes.get(offset..offset + backtrack_glyph_count as usize * 2)
+        .ok_or(ErrorKind::UnexpectedEof)?
+        .chunks_exact(2)
+        .map(|ch| {
+            u16::from_be_bytes(ch.try_into().unwrap())
+        }).collect();
+    offset += backtrack_glyph_count as usize * 2;
+    let input_glyph_count = get_u16(bytes, offset)?;
+    offset += 2;
+    let input_class_ids = bytes.get(offset..offset + input_glyph_count as usize * 2)
+        .ok_or(ErrorKind::UnexpectedEof)?
+        .chunks_exact(2)
+        .map(|ch| {
+            u16::from_be_bytes(ch.try_into().unwrap())
+        }).collect();
+    offset += input_glyph_count as usize * 2;
+    let lookahead_glyph_count = get_u16(bytes, offset)?;
+    offset += 2;
+    let lookahead_class_ids = bytes.get(offset..offset + lookahead_glyph_count as usize * 2)
+        .ok_or(ErrorKind::UnexpectedEof)?
+        .chunks_exact(2)
+        .map(|ch| {
+            u16::from_be_bytes(ch.try_into().unwrap())
+        }).collect();
+    offset += lookahead_glyph_count as usize * 2;
+    let sub_count = get_u16(bytes, offset)?;
+    offset += 2;
+    let subst_lookup_records = (0..sub_count).map(|_| {
+        Ok(parse_subst_lookup_record(bytes, &mut offset)?)
+    }).collect::<Result<Vec<_>, Error>>()?;
+    
+    Ok(GsubChainSubClassRule {
+        backtrack_glyph_count,
+        backtrack_class_ids,
+        input_glyph_count,
+        input_class_ids,
+        lookahead_glyph_count,
+        lookahead_class_ids,
+        sub_count,
+        subst_lookup_records
+    })
+}
+
+fn parse_gsub_chain_sub_rule(bytes: &[u8], subtable_offset: u16, chain_sub_rule_offset: u16) -> Result<GsubChainSubRule, Error> {
+    let mut offset = (subtable_offset + chain_sub_rule_offset) as usize;
+    let backtrack_glyph_count = get_u16(bytes, offset)?;
+    offset += 2;
+    let backtrack_glyph_ids = bytes.get(offset..offset + backtrack_glyph_count as usize * 2)
+        .ok_or(ErrorKind::UnexpectedEof)?
+        .chunks_exact(2)
+        .map(|ch| {
+            u16::from_be_bytes(ch.try_into().unwrap())
+        }).collect();
+    offset += backtrack_glyph_count as usize * 2;
+    let input_glyph_count = get_u16(bytes, offset)?;
+    offset += 2;
+    let input_glyph_ids = bytes.get(offset..offset + input_glyph_count as usize * 2)
+        .ok_or(ErrorKind::UnexpectedEof)?
+        .chunks_exact(2)
+        .map(|ch| {
+            u16::from_be_bytes(ch.try_into().unwrap())
+        }).collect();
+    offset += input_glyph_count as usize * 2;
+    let lookahead_glyph_count = get_u16(bytes, offset)?;
+    offset += 2;
+    let lookahead_glyph_ids = bytes.get(offset..offset + lookahead_glyph_count as usize * 2)
+        .ok_or(ErrorKind::UnexpectedEof)?
+        .chunks_exact(2)
+        .map(|ch| {
+            u16::from_be_bytes(ch.try_into().unwrap())
+        }).collect();
+    offset += lookahead_glyph_count as usize * 2;
+    let sub_count = get_u16(bytes, offset)?;
+    offset += 2;
+    let subst_lookup_records: Vec<SubstLookupRecord> = (0..sub_count).map(|_| {
+        Ok(parse_subst_lookup_record(bytes, &mut offset)?)
+    }).collect::<Result<Vec<_>, Error>>()?;
+    
+    Ok(GsubChainSubRule {
+        backtrack_glyph_count,
+        backtrack_glyph_ids,
+        input_glyph_count,
+        input_glyph_ids,
+        lookahead_glyph_count,
+        lookahead_glyph_ids,
+        sub_count,
+        subst_lookup_records
     })
 }
 
@@ -3871,7 +4396,7 @@ pub enum GposType6Format {
         mark1_array_offset: u16,
         mark1_array: MarkArray,
         mark2_array_offset: u16,
-        mark2_array: Mark2ArrayTable
+        mark2_array: Mark2Array
     }
 }
 
