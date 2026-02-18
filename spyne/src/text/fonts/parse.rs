@@ -68,7 +68,7 @@ impl FontFile {
                 let offset = table.offset as usize;
                 let length = table.length as usize;
                 
-                Ok(&self.bytes[offset..offset + length])
+                Ok(&self.bytes.get(offset..offset + length).ok_or(ErrorKind::UnexpectedEof)?)
             },
             Err(_) => Err(Error::new(ErrorKind::NotFound, "Given tag was not found in table records"))
         }
@@ -142,12 +142,12 @@ impl FontFile {
                 let max_composite_contours = get_u16(bytes, 12)?;
                 let max_zones = get_u16(bytes, 14)?;
                 let max_twilight_points = get_u16(bytes, 16)?;
-                let max_storage = get_u16(bytes, 16)?;
-                let max_function_defs = get_u16(bytes, 18)?;
-                let max_instruction_defs = get_u16(bytes, 20)?;
-                let max_stack_elements = get_u16(bytes, 22)?;
-                let max_size_of_instructions = get_u16(bytes, 24)?;
-                let max_component_elements = get_u16(bytes, 26)?;
+                let max_storage = get_u16(bytes, 18)?;
+                let max_function_defs = get_u16(bytes, 20)?;
+                let max_instruction_defs = get_u16(bytes, 22)?;
+                let max_stack_elements = get_u16(bytes, 24)?;
+                let max_size_of_instructions = get_u16(bytes, 26)?;
+                let max_component_elements = get_u16(bytes, 28)?;
                 let max_component_depth = get_u16(bytes, 30)?;
                 
                 Ok(MaxpTable {
@@ -243,15 +243,15 @@ impl FontFile {
                     let start_code: Vec<u16> = bytes.get(offset..offset + seg_count_x2 as usize).ok_or(ErrorKind::UnexpectedEof)?.chunks_exact(2).map(|ch| {
                         u16::from_be_bytes(ch.try_into().unwrap())
                     }).collect();
-                    offset += seg_count_x2 as usize / 2;
+                    offset += seg_count_x2 as usize;
                     let id_delta: Vec<i16> = bytes.get(offset..offset + seg_count_x2 as usize).ok_or(ErrorKind::UnexpectedEof)?.chunks_exact(2).map(|ch| {
                         i16::from_be_bytes(ch.try_into().unwrap())
                     }).collect();
-                    offset += seg_count_x2 as usize / 2;
+                    offset += seg_count_x2 as usize;
                     let id_range_offset: Vec<u16> = bytes.get(offset..offset + seg_count_x2 as usize).ok_or(ErrorKind::UnexpectedEof)?.chunks_exact(2).map(|ch| {
                         u16::from_be_bytes(ch.try_into().unwrap())
                     }).collect();
-                    offset += seg_count_x2 as usize / 2;
+                    offset += seg_count_x2 as usize;
                     let glyph_id_array: Vec<u16> = bytes.get(offset..).ok_or(ErrorKind::UnexpectedEof)?.chunks_exact(2).map(|ch| {
                         u16::from_be_bytes(ch.try_into().unwrap())
                     }).collect();
@@ -275,7 +275,7 @@ impl FontFile {
                     let length = get_u32(bytes, offset + 2)?;
                     let language = get_u32(bytes, offset + 6)?;
                     let num_groups = get_u32(bytes, offset + 10)?;
-                    let groups: Vec<Group> = bytes.get(offset + 14..).ok_or(ErrorKind::UnexpectedEof)?.chunks_exact(num_groups as usize).map(|ch| {
+                    let groups: Vec<Group> = bytes.get(offset + 14..).ok_or(ErrorKind::UnexpectedEof)?.chunks_exact(12).map(|ch| {
                         let start_char_code = u32::from_be_bytes(ch[0..4].try_into().unwrap());
                         let end_char_code = u32::from_be_bytes(ch[4..8].try_into().unwrap());
                         let start_glyph_id = u32::from_be_bytes(ch[8..].try_into().unwrap());
@@ -290,7 +290,7 @@ impl FontFile {
                     let length = get_u32(bytes, offset + 2)?;
                     let language = get_u32(bytes, offset + 6)?;
                     let num_groups = get_u32(bytes, offset + 10)?;
-                    let groups: Vec<Group> = bytes.get(offset + 14..).ok_or(ErrorKind::UnexpectedEof)?.chunks_exact(num_groups as usize).map(|ch| {
+                    let groups: Vec<Group> = bytes.get(offset + 14..).ok_or(ErrorKind::UnexpectedEof)?.chunks_exact(12).map(|ch| {
                         let start_char_code = u32::from_be_bytes(ch[0..4].try_into().unwrap());
                         let end_char_code = u32::from_be_bytes(ch[4..8].try_into().unwrap());
                         let start_glyph_id = u32::from_be_bytes(ch[8..].try_into().unwrap());
@@ -303,7 +303,7 @@ impl FontFile {
                 14 => {
                     let length = get_u32(bytes, offset)?;
                     let num_var_selector_records = get_u32(bytes, offset + 4)?;
-                    let var_selector: Vec<VariationSelectorRecord> = bytes.get(offset + 8..).ok_or(ErrorKind::UnexpectedEof)?.chunks_exact(num_var_selector_records as usize).map(|ch| {
+                    let var_selector: Vec<VariationSelectorRecord> = bytes.get(offset + 8..).ok_or(ErrorKind::UnexpectedEof)?.chunks_exact(11).map(|ch| {
                         let var_selector: [u8; 3] = ch[0..3].try_into().unwrap();
                         let default_uvs_offset = u32::from_be_bytes(ch[3..7].try_into().unwrap());
                         let non_default_uvs_offset = u32::from_be_bytes(ch[7..11].try_into().unwrap());
@@ -377,7 +377,7 @@ impl FontFile {
                             u16::from_be_bytes(ch.try_into().unwrap())
                         }).collect();
                     current_offset += number_of_contours as usize * 2;
-                    let instruction_length = get_u16(bytes, current_offset)?;
+                    let instruction_length = get_u16(current_glyph_bytes, current_offset)?;
                     current_offset += 2;
                     let instructions: Vec<u8> = current_glyph_bytes.get(current_offset..current_offset + instruction_length as usize).ok_or(ErrorKind::UnexpectedEof)?.to_vec();
                     current_offset += instruction_length as usize;
@@ -794,7 +794,9 @@ impl FontFile {
                 offset += num_glyphs.unwrap() as usize * 2;
                 for _ in 0..(max_idx - 257) {
                     let length = bytes.get(offset).ok_or(ErrorKind::UnexpectedEof)?;
-                    let string_bytes = bytes.get(offset + 1..offset + *length as usize).ok_or(ErrorKind::UnexpectedEof)?;
+                    offset += 1;
+                    let string_bytes = bytes.get(offset..offset + *length as usize).ok_or(ErrorKind::UnexpectedEof)?;
+                    offset += *length as usize;
                     extra_names.push(decode_name_bytes(string_bytes, 1, 0)?);
                 }
             }
@@ -804,7 +806,7 @@ impl FontFile {
                     names.as_mut().unwrap().push(MAC_STANDARD_NAMES[*idx as usize].to_string());
                 }
                 else {
-                    names.as_mut().unwrap().push(extra_names[*idx as usize].to_string());
+                    names.as_mut().unwrap().push(extra_names[*idx as usize - 258].to_string());
                 }
             }
         }
@@ -1431,7 +1433,7 @@ fn parse_lookup_list<T: SubtableParser>(bytes: &[u8], lookup_list_offset: u16) -
         let lookup_type = get_u16(bytes, offset)?;
         let lookup_flag = get_u16(bytes, offset + 2)?;
         let subtable_count = get_u16(bytes, offset + 4)?;
-        offset += 4;
+        offset += 6;
         let subtable_offsets: Vec<u16> = bytes.get(offset..offset + subtable_count as usize * 2)
             .ok_or(ErrorKind::UnexpectedEof)?
             .chunks_exact(2)
@@ -1475,6 +1477,7 @@ impl SubtableParser for GposSubtable {
     fn parse(bytes: &[u8], subtable_offset: usize, extension_offset: u32, lookup_type: u16) -> Result<Self, Error> {
         let mut offset = (subtable_offset as u32 + extension_offset) as usize;
         let format = get_u16(bytes, offset)?;
+        offset += 2;
         match lookup_type {
             1 => {
                 match format {
@@ -1603,8 +1606,9 @@ impl SubtableParser for GposSubtable {
                         let coverage_offset = get_u16(bytes, offset)?;
                         let coverage = parse_coverage(bytes, subtable_offset, coverage_offset)?;
                         let entry_exit_count = get_u16(bytes, offset + 2)?;
+                        offset += 4;
                         let entry_exit_records: Vec<EntryExitRecord> = (0..entry_exit_count).map(|_| {
-                            Ok(parse_entry_exit_record(bytes, subtable_offset)?)
+                            Ok(parse_entry_exit_record(bytes, subtable_offset, &mut offset)?)
                         }).collect::<Result<Vec<_>, Error>>()?;
                         
                         Ok(GposSubtable::Type3(GposType3Format::Format1 {
@@ -1935,6 +1939,7 @@ impl SubtableParser for GsubSubtable {
     fn parse(bytes: &[u8], subtable_offset: usize, extension_offset: u32, lookup_type: u16) -> Result<Self, Error> {
         let mut offset = (subtable_offset as u32 + extension_offset) as usize;
         let format = get_u16(bytes, offset)?;
+        offset += 2;
         match lookup_type {
             1 => {
                 match format {
@@ -2647,12 +2652,12 @@ fn parse_device(bytes: &[u8], subtable_offset: usize, device_offset: u16) -> Res
     let start_size = get_u16(bytes, offset)?;
     let end_size = get_u16(bytes, offset + 2)?;
     let delta_format = get_u16(bytes, offset + 4)?;
-    offset += 4;
+    offset += 6;
     let count = end_size - start_size + 1;
     let length = match delta_format {
-        1 => (count * 2) / 16,
-        2 => (count * 4) / 16,
-        3 => (count * 8) / 16,
+        1 => (count * 2).div_ceil(16),
+        2 => (count * 4).div_ceil(16),
+        3 => (count * 8).div_ceil(16),
         _ => return Err(Error::new(ErrorKind::InvalidData, format!("DeltaFormat value invalid: {}", delta_format)))
     };
     let delta_values: Vec<u16> = bytes.get(offset..offset + length as usize * 2)
@@ -2678,7 +2683,7 @@ fn parse_class_def(bytes: &[u8], subtable_offset: usize, class_def_offset: u16) 
         1 => {
             let start_glyph_id = get_u16(bytes, offset)?;
             let glyph_count = get_u16(bytes, offset + 2)?;
-            offset += 2;
+            offset += 4;
             let class_value_array: Vec<u16> = bytes.get(offset..offset + glyph_count as usize * 2)
                 .ok_or(ErrorKind::UnexpectedEof)?
                 .chunks_exact(2)
@@ -2737,9 +2742,8 @@ fn parse_class1_record(
     Ok(Class1Record { class2_records })
 }
 
-fn parse_entry_exit_record(bytes: &[u8], subtable_offset: usize) -> Result<EntryExitRecord, Error> {
-    let offset = subtable_offset as usize;
-    let test_offset = get_u16(bytes, offset)?;
+fn parse_entry_exit_record(bytes: &[u8], subtable_offset: usize, offset: &mut usize) -> Result<EntryExitRecord, Error> {
+    let test_offset = get_u16(bytes, *offset)?;
     let entry_anchor_offset = if test_offset != 0 {
         Some(test_offset)
     }
@@ -2748,7 +2752,7 @@ fn parse_entry_exit_record(bytes: &[u8], subtable_offset: usize) -> Result<Entry
         Some(parse_anchor(bytes, subtable_offset, entry_anchor_offset.unwrap())?)
     }
     else { None };
-    let test_offset = get_u16(bytes, offset + 2)?;
+    let test_offset = get_u16(bytes, *offset + 2)?;
     let exit_anchor_offset = if test_offset != 0 {
         Some(test_offset)
     }
@@ -2757,6 +2761,7 @@ fn parse_entry_exit_record(bytes: &[u8], subtable_offset: usize) -> Result<Entry
         Some(parse_anchor(bytes, subtable_offset, exit_anchor_offset.unwrap())?)
     }
     else { None };
+    *offset += 4;
     
     Ok(EntryExitRecord {
         entry_anchor_offset,
@@ -2819,6 +2824,7 @@ fn parse_mark_array(bytes: &[u8], subtable_offset: usize, mark_array_offset: u16
     let mark_records: Vec<MarkRecord> =  (0..mark_count).map(|_| {
         let mark_class = get_u16(bytes, offset)?;
         let mark_anchor_offset = get_u16(bytes, offset + 2)?;
+        offset += 4;
         let mark_anchor = parse_anchor(bytes, subtable_offset, mark_anchor_offset)?;
         
         Ok(MarkRecord {
@@ -2984,14 +2990,14 @@ fn parse_gpos_sub_rule(bytes: &[u8], subtable_offset: usize, sub_rule_offset: u1
     let glyph_count = get_u16(bytes, offset)?;
     let sub_count = get_u16(bytes, offset + 2)?;
     offset += 4;
-    let input_glyph_ids: Vec<u16> = bytes.get(offset..offset + glyph_count as usize * 2)
+    let input_glyph_ids: Vec<u16> = bytes.get(offset..offset + (glyph_count as usize - 1) * 2)
         .ok_or(ErrorKind::UnexpectedEof)?
         .chunks_exact(2)
         .map(|ch| {
             u16::from_be_bytes(ch.try_into().unwrap())
         }).collect();
     offset += glyph_count as usize * 2;
-    let pos_lookup_records: Vec<PosLookupRecord> = (0..glyph_count).map(|_| {
+    let pos_lookup_records: Vec<PosLookupRecord> = (0..sub_count).map(|_| {
         Ok(parse_pos_lookup_record(bytes, &mut offset)?)
     }).collect::<Result<Vec<_>, Error>>()?;
     
@@ -3006,7 +3012,7 @@ fn parse_gpos_sub_rule(bytes: &[u8], subtable_offset: usize, sub_rule_offset: u1
 fn parse_pos_lookup_record(bytes: &[u8], offset: &mut usize) -> Result<PosLookupRecord, Error> {
     let glyph_sequence_index = get_u16(bytes, *offset)?;
     let lookup_list_index = get_u16(bytes, *offset + 2)?;
-    *offset += 2;
+    *offset += 4;
     
     Ok(PosLookupRecord {
         glyph_sequence_index,
@@ -3276,14 +3282,14 @@ fn parse_gsub_sub_rule(bytes: &[u8], subtable_offset: usize, sub_rule_offset: u1
     let glyph_count = get_u16(bytes, offset)?;
     let sub_count = get_u16(bytes, offset + 2)?;
     offset += 4;
-    let input_glyph_ids: Vec<u16> = bytes.get(offset..offset + glyph_count as usize * 2)
+    let input_glyph_ids: Vec<u16> = bytes.get(offset..offset + (glyph_count as usize - 1) * 2)
         .ok_or(ErrorKind::UnexpectedEof)?
         .chunks_exact(2)
         .map(|ch| {
             u16::from_be_bytes(ch.try_into().unwrap())
         }).collect();
     offset += glyph_count as usize * 2;
-    let subst_lookup_records: Vec<SubstLookupRecord> = (0..glyph_count).map(|_| {
+    let subst_lookup_records: Vec<SubstLookupRecord> = (0..sub_count).map(|_| {
         Ok(parse_subst_lookup_record(bytes, &mut offset)?)
     }).collect::<Result<Vec<_>, Error>>()?;
     
@@ -3298,7 +3304,7 @@ fn parse_gsub_sub_rule(bytes: &[u8], subtable_offset: usize, sub_rule_offset: u1
 fn parse_subst_lookup_record(bytes: &[u8], offset: &mut usize) -> Result<SubstLookupRecord, Error> {
     let glyph_sequence_index = get_u16(bytes, *offset)?;
     let lookup_list_index = get_u16(bytes, *offset + 2)?;
-    *offset += 2;
+    *offset += 4;
     
     Ok(SubstLookupRecord {
         glyph_sequence_index,
