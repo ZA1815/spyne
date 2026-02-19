@@ -1,6 +1,6 @@
 use std::collections;
 
-use crate::text::fonts::parse::structures::Glyph;
+use crate::text::fonts::parse::{constants::ON_CURVE_POINT, structures::Glyph};
 
 pub enum Segment {
     Line(Point, Point),
@@ -11,6 +11,7 @@ pub enum Segment {
     }
 }
 
+#[derive(Clone)]
 struct Point {
     flags: u8,
     x: isize,
@@ -32,7 +33,7 @@ pub fn create_outline(glyph: Glyph) -> Vec<Segment> {
                 // Change this to an error later
                 panic!("Lengths of flags, x_coordinates, and y_coordinates Vecs are not equal");
             }
-            let points: Vec<Point> = flags.iter()
+            let points_unsliced: Vec<Point> = flags.iter()
                 .zip(x_coordinates.iter())
                 .zip(y_coordinates.iter())
                 .map(|((f, x), y)| {
@@ -43,7 +44,20 @@ pub fn create_outline(glyph: Glyph) -> Vec<Segment> {
                     }
                 })
                 .collect();
-            
+            let mut points: Vec<Vec<Point>> = Vec::with_capacity(end_pts_of_contours.len());
+            for (idx, _) in points.into_iter().enumerate() {
+                
+            }
+            for (idx, p) in points.iter().enumerate() {
+                match points.get(idx + 1) {
+                    Some(p) => {
+                        
+                    }
+                    None => {
+                        
+                    }
+                }
+            }
             
             vec![]
         },
