@@ -1,3 +1,5 @@
+// Maybe switch to getters instead of public fields for extra API safety
+
 pub(super) struct FontFile {
     pub file_type: FontFileType,
     pub bytes: Vec<u8>,
