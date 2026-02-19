@@ -117,20 +117,20 @@ pub enum CmapSubtable {
     }
 }
 
-pub(super) struct SubHeader {
+pub struct SubHeader {
     pub first_code: u16,
     pub entry_count: u16,
     pub id_delta: i16,
     pub id_range_offset: u16
 }
 
-pub(super) struct Group {
+pub struct Group {
     pub start_char_code: u32,
     pub end_char_code: u32,
     pub start_glyph_id: u32
 }
 
-pub(super) struct VariationSelectorRecord {
+pub struct VariationSelectorRecord {
     pub var_selector: [u8; 3],
     pub default_uvs_offset: u32,
     pub non_default_uvs_offset: u32
@@ -154,7 +154,7 @@ pub enum Glyph {
     }
 }
 
-pub(super) struct GlyphHeader {
+pub struct GlyphHeader {
     pub number_of_contours: i16,
     pub x_min: i16,
     pub y_min: i16,
@@ -162,7 +162,7 @@ pub(super) struct GlyphHeader {
     pub y_max: i16
 }
 
-pub(super) struct Component {
+pub struct Component {
     pub flags: u16,
     pub glyph_index: u16,
     pub argument_1: i16,
@@ -334,14 +334,14 @@ pub enum KernTable {
     }
 }
 
-pub(super) struct WindowsSubtable {
+pub struct WindowsSubtable {
     pub version: u16,
     pub length: u16,
     pub coverage: u16,
     pub subtable: KernSubtable
 }
 
-pub(super) struct MacSubtable {
+pub struct MacSubtable {
     pub length: u32,
     pub coverage: u16,
     pub tuple_index: u16,
@@ -367,7 +367,7 @@ pub enum KernSubtable {
     }
 }
 
-pub(super) struct KernPair {
+pub struct KernPair {
     pub left: u16,
     pub right: u16,
     pub value: i16
@@ -385,7 +385,7 @@ pub enum KernClassTable {
     }
 }
 
-pub(super) struct Range {
+pub struct Range {
     pub start_glyph: u16,
     pub end_glyph: u16,
     pub class: u16
@@ -571,7 +571,7 @@ pub enum Coverage {
     }
 }
 
-pub(super) struct CoverageRangeRecord {
+pub struct CoverageRangeRecord {
     pub start_glyph_id: u16,
     pub end_glyph_id: u16,
     pub start_coverage_index: u16
@@ -589,13 +589,13 @@ pub enum ClassDef {
     }
 }
 
-pub(super) struct ClassRangeRecord {
+pub struct ClassRangeRecord {
     pub start_glyph_id: u16,
     pub end_glyph_id: u16,
     pub class: u16
 }
 
-pub(super) struct Device {
+pub struct Device {
     pub start_size: u16,
     pub end_size: u16,
     pub delta_format: u16,
@@ -608,7 +608,7 @@ pub(super) struct VariationIndexTable {
     pub delta_format: u16
 }
 
-pub(super) struct ValueRecord {
+pub struct ValueRecord {
     pub x_placement: Option<i16>,
     pub y_placement: Option<i16>,
     pub x_advance: Option<i16>,
@@ -643,12 +643,12 @@ pub enum Anchor {
     }
 }
 
-pub(super) struct MarkArray {
+pub struct MarkArray {
     pub mark_count: u16,
     pub mark_records: Vec<MarkRecord>
 }
 
-pub(super) struct MarkRecord {
+pub struct MarkRecord {
     pub mark_class: u16,
     pub mark_anchor_offset: u16,
     pub mark_anchor: Anchor
@@ -707,22 +707,22 @@ pub enum GposType2Format {
     }
 }
 
-pub(super) struct PairSet {
+pub struct PairSet {
     pub pair_value_count: u16,
     pub pair_value_records: Vec<PairValueRecord>
 }
 
-pub(super) struct PairValueRecord {
+pub struct PairValueRecord {
     pub second_glyph: u16,
     pub value_record1: ValueRecord,
     pub value_record2: ValueRecord
 }
 
-pub(super) struct Class1Record {
+pub struct Class1Record {
     pub class2_records: Vec<Class2Record>
 }
 
-pub(super) struct Class2Record {
+pub struct Class2Record {
     pub value_record1: ValueRecord,
     pub value_record2: ValueRecord
 }
@@ -736,7 +736,7 @@ pub enum GposType3Format {
     }
 }
 
-pub(super) struct EntryExitRecord {
+pub struct EntryExitRecord {
     pub entry_anchor_offset: Option<u16>,
     pub entry_anchor: Option<Anchor>,
     pub exit_anchor_offset: Option<u16>,
@@ -757,12 +757,12 @@ pub enum GposType4Format {
     }
 }
 
-pub(super) struct BaseArray {
+pub struct BaseArray {
     pub base_count: u16,
     pub base_records: Vec<BaseRecord>
 }
 
-pub(super) struct BaseRecord {
+pub struct BaseRecord {
     pub base_anchor_offsets: Vec<u16>,
     pub base_anchors: Vec<Anchor>
 }
@@ -781,18 +781,18 @@ pub enum GposType5Format {
     }
 }
 
-pub(super) struct LigatureArray {
+pub struct LigatureArray {
     pub ligature_count: u16,
     pub ligature_attach_offsets: Vec<u16>,
     pub ligature_attaches: Vec<LigatureAttach>
 }
 
-pub(super) struct LigatureAttach {
+pub struct LigatureAttach {
     pub component_count: u16,
     pub component_records: Vec<ComponentRecord>
 }
 
-pub(super) struct ComponentRecord {
+pub struct ComponentRecord {
     pub ligature_anchor_offsets: Vec<u16>,
     pub ligature_anchors: Vec<Anchor>
 }
@@ -811,12 +811,12 @@ pub enum GposType6Format {
     }
 }
 
-pub(super) struct Mark2Array {
+pub struct Mark2Array {
     pub mark2_count: u16,
     pub mark2_records: Vec<Mark2Record>
 }
 
-pub(super) struct Mark2Record {
+pub struct Mark2Record {
     pub mark2_anchor_offsets: Vec<u16>,
     pub mark2_anchors: Vec<Anchor>
 }
@@ -847,31 +847,31 @@ pub enum GposType7Format {
     }
 }
 
-pub(super) struct GposSubRuleSet {
+pub struct GposSubRuleSet {
     pub sub_rule_count: u16,
     pub sub_rule_offsets: Vec<u16>,
     pub sub_rules: Vec<GposSubRule>
 }
 
-pub(super) struct GposSubRule {
+pub struct GposSubRule {
     pub glyph_count: u16,
     pub sub_count: u16,
     pub input_glyph_ids: Vec<u16>,
     pub pos_lookup_records: Vec<PosLookupRecord>
 }
 
-pub(super) struct PosLookupRecord {
+pub struct PosLookupRecord {
     pub glyph_sequence_index: u16,
     pub lookup_list_index: u16
 }
 
-pub(super) struct GposSubClassSet {
+pub struct GposSubClassSet {
     pub sub_class_rule_count: u16,
     pub sub_class_rule_offsets: Vec<u16>,
     pub sub_class_rules: Vec<GposSubClassRule>
 }
 
-pub(super) struct GposSubClassRule {
+pub struct GposSubClassRule {
     pub glyph_count: u16,
     pub sub_count: u16,
     pub class_ids: Vec<u16>,
@@ -914,13 +914,13 @@ pub enum GposType8Format {
     }
 }
 
-pub(super) struct GposChainSubRuleSet {
+pub struct GposChainSubRuleSet {
     pub chain_sub_rule_count: u16,
     pub chain_sub_rule_offsets: Vec<u16>,
     pub chain_sub_rules: Vec<GposChainSubRule>
 }
 
-pub(super) struct GposChainSubRule {
+pub struct GposChainSubRule {
     pub backtrack_glyph_count: u16,
     pub backtrack_glyph_ids: Vec<u16>,
     pub input_glyph_count: u16,
@@ -931,13 +931,13 @@ pub(super) struct GposChainSubRule {
     pub pos_lookup_records: Vec<PosLookupRecord>
 }
 
-pub(super) struct GposChainSubClassSet {
+pub struct GposChainSubClassSet {
     pub chain_sub_class_rule_count: u16,
     pub chain_sub_class_rule_offsets: Vec<u16>,
     pub chain_sub_class_rules: Vec<GposChainSubClassRule>
 }
 
-pub(super) struct GposChainSubClassRule {
+pub struct GposChainSubClassRule {
     pub backtrack_glyph_count: u16,
     pub backtrack_class_ids: Vec<u16>,
     pub input_glyph_count: u16,
@@ -991,7 +991,7 @@ pub enum GsubType2Format {
     }
 }
 
-pub(super) struct Sequence {
+pub struct Sequence {
     pub glyph_count: u16,
     pub substitute_glyph_ids: Vec<u16>
 }
@@ -1006,7 +1006,7 @@ pub enum GsubType3Format {
     }
 }
 
-pub(super) struct AlternateSet {
+pub struct AlternateSet {
     pub glyph_count: u16,
     pub alternate_glyph_ids: Vec<u16>
 }
@@ -1021,7 +1021,7 @@ pub enum GsubType4Format {
     }
 }
 
-pub(super) struct LigatureSet {
+pub struct LigatureSet {
     pub ligature_count: u16,
     pub ligature_offsets: Vec<u16>
 }
@@ -1058,31 +1058,31 @@ pub enum GsubType5Format {
     }
 }
 
-pub(super) struct GsubSubRuleSet {
+pub struct GsubSubRuleSet {
     pub sub_rule_count: u16,
     pub sub_rule_offsets: Vec<u16>,
     pub sub_rules: Vec<GsubSubRule>
 }
 
-pub(super) struct GsubSubRule {
+pub struct GsubSubRule {
     pub glyph_count: u16,
     pub sub_count: u16,
     pub input_glyph_ids: Vec<u16>,
     pub subst_lookup_records: Vec<SubstLookupRecord>
 }
 
-pub(super) struct SubstLookupRecord {
+pub struct SubstLookupRecord {
     pub glyph_sequence_index: u16,
     pub lookup_list_index: u16
 }
 
-pub(super) struct GsubSubClassSet {
+pub struct GsubSubClassSet {
     pub sub_class_rule_count: u16,
     pub sub_class_rule_offsets: Vec<u16>,
     pub sub_class_rules: Vec<GsubSubClassRule>
 }
 
-pub(super) struct GsubSubClassRule {
+pub struct GsubSubClassRule {
     pub glyph_count: u16,
     pub sub_count: u16,
     pub class_ids: Vec<u16>,
@@ -1125,13 +1125,13 @@ pub enum GsubType6Format {
     }
 }
 
-pub(super) struct GsubChainSubRuleSet {
+pub struct GsubChainSubRuleSet {
     pub chain_sub_rule_count: u16,
     pub chain_sub_rule_offsets: Vec<u16>,
     pub chain_sub_rules: Vec<GsubChainSubRule>
 }
 
-pub(super) struct GsubChainSubRule {
+pub struct GsubChainSubRule {
     pub backtrack_glyph_count: u16,
     pub backtrack_glyph_ids: Vec<u16>,
     pub input_glyph_count: u16,
@@ -1142,13 +1142,13 @@ pub(super) struct GsubChainSubRule {
     pub subst_lookup_records: Vec<SubstLookupRecord>
 }
 
-pub(super) struct GsubChainSubClassSet {
+pub struct GsubChainSubClassSet {
     pub chain_sub_class_rule_count: u16,
     pub chain_sub_class_rule_offsets: Vec<u16>,
     pub chain_sub_class_rules: Vec<GsubChainSubClassRule>
 }
 
-pub(super) struct GsubChainSubClassRule {
+pub struct GsubChainSubClassRule {
     pub backtrack_glyph_count: u16,
     pub backtrack_class_ids: Vec<u16>,
     pub input_glyph_count: u16,
