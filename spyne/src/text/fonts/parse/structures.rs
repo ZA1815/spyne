@@ -138,6 +138,7 @@ pub struct VariationSelectorRecord {
     pub non_default_uvs_offset: u32
 }
 
+#[derive(Clone)]
 pub enum Glyph {
     Simple {
         header: GlyphHeader,
@@ -156,6 +157,7 @@ pub enum Glyph {
     }
 }
 
+#[derive(Clone, Copy)]
 pub struct GlyphHeader {
     pub number_of_contours: i16,
     pub x_min: i16,
@@ -164,6 +166,7 @@ pub struct GlyphHeader {
     pub y_max: i16
 }
 
+#[derive(Clone, Copy)]
 pub struct Component {
     pub flags: u16,
     pub glyph_index: u16,
