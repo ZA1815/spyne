@@ -11,9 +11,9 @@ pub enum Segment {
 
 #[derive(Clone, Copy, PartialEq, Default)]
 pub struct Point {
-    flags: u8,
-    x: isize,
-    y: isize
+    pub flags: u8,
+    pub x: isize,
+    pub y: isize
 }
 
 pub fn create_outline(glyph: &Glyph, lookup: &[Glyph]) -> Vec<Vec<Segment>> {
@@ -80,7 +80,7 @@ pub fn create_outline(glyph: &Glyph, lookup: &[Glyph]) -> Vec<Vec<Segment>> {
                             }
                         }
                     }
-                    let (idx, _) = seg.iter().enumerate().find(|(idx, p)| p.flags & ON_CURVE_POINT != 0).unwrap();
+                    let (idx, _) = seg.iter().enumerate().find(|(_, p)| p.flags & ON_CURVE_POINT != 0).unwrap();
                     seg.rotate_left(idx);
                 });
             
@@ -171,23 +171,19 @@ pub fn create_outline(glyph: &Glyph, lookup: &[Glyph]) -> Vec<Vec<Segment>> {
                             point.y += comp.argument_2 as isize;
                         }
                     };
-                    glyph_base.iter_mut()
-                        .for_each(|seg| {
-                            seg.iter_mut()
-                                .for_each(|point| {
-                                    match point {
-                                        Segment::Line(p1, p2) => {
-                                            transform(p1);
-                                            transform(p2);
-                                        },
-                                        Segment::Quad { start, control, end } => {
-                                            transform(start);
-                                            transform(control);
-                                            transform(end);
-                                        }
-                                    }
-                                });
-                        });
+                    glyph_base.iter_mut().flatten().for_each(|seg| {
+                        match seg {
+                            Segment::Line(p1, p2) => {
+                                transform(p1);
+                                transform(p2);
+                            },
+                            Segment::Quad { start, control, end } => {
+                                transform(start);
+                                transform(control);
+                                transform(end);
+                            }
+                        }
+                    });
                     
                     glyph_base
                 }).collect()
