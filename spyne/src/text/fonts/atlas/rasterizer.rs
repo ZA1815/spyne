@@ -60,3 +60,44 @@ pub fn rasterize(outline: Vec<Vec<Segment>>, glyph_header: GlyphHeader) -> Vec<V
     
     bitmap
 }
+
+#[cfg(test)]
+mod test {
+    use crate::text::fonts::{atlas::{outline::{Point, Segment}, rasterizer::rasterize}, parse::{constants::ON_CURVE_POINT, structures::GlyphHeader}};
+
+    // Currently only tests line segments (a square), add test for beziers later
+    #[test]
+    fn test_rasterizer() {
+        let outline: Vec<Vec<Segment>> = vec![
+            vec![
+                Segment::Line(
+                    Point { flags: ON_CURVE_POINT, x: 0, y: 0 },
+                    Point { flags: ON_CURVE_POINT, x: 10, y: 0 }
+                ),
+                Segment::Line(
+                    Point { flags: ON_CURVE_POINT, x: 10, y: 0 },
+                    Point { flags: ON_CURVE_POINT, x: 10, y: -10 }
+                ),
+                Segment::Line(
+                    Point { flags: ON_CURVE_POINT, x: 10, y: -10 }, 
+                    Point { flags: ON_CURVE_POINT, x: 0, y: -10 }
+                ),
+                Segment::Line(
+                    Point { flags: ON_CURVE_POINT, x: 0, y: -10 }, 
+                    Point { flags: ON_CURVE_POINT, x: 0, y: 0 }
+                )
+            ]
+        ];
+        let glyph_header = GlyphHeader {
+            number_of_contours: 1,
+            x_min: 0,
+            y_min: -20,
+            x_max: 10,
+            y_max: 20
+        };
+        let bitmap = rasterize(outline, glyph_header);
+        assert_eq!(bitmap[17][4], 255);
+        assert_eq!(bitmap[12][7], 255);
+        assert_eq!(bitmap[5][8], 0);
+    }
+}
