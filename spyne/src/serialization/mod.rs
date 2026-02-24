@@ -3,6 +3,9 @@ mod binary;
 // #[cfg(feature = "serialization-binary")]
 pub use binary::BinarySerde;
 
+mod json;
+pub use json::JsonSerde;
+
 use std::{borrow::Cow, collections::{BTreeMap, BTreeSet, HashMap, HashSet}, hash::Hash, marker::PhantomData};
 
 pub struct Bytes<'a>(pub &'a [u8]);
@@ -193,7 +196,7 @@ impl<T: Serialize> Serialize for HashSet<T> {
 }
 impl<K: Serialize, V: Serialize> Serialize for HashMap<K, V> {
     fn serialize(&self, serializer: &mut impl Serializer) {
-        serializer.write_seq(self.len(), |enc| {
+        serializer.write_map(self.len(), |enc| {
             for (k, v) in self {
                 k.serialize(enc);
                 v.serialize(enc);
@@ -212,7 +215,7 @@ impl<T: Serialize> Serialize for BTreeSet<T> {
 }
 impl<K: Serialize, V: Serialize> Serialize for BTreeMap<K, V> {
     fn serialize(&self, serializer: &mut impl Serializer) {
-        serializer.write_seq(self.len(), |enc| {
+        serializer.write_map(self.len(), |enc| {
             for (k, v) in self {
                 k.serialize(enc);
                 v.serialize(enc);
@@ -239,6 +242,8 @@ pub trait Serializer {
     fn write_bytes(&mut self, bytes: &[u8]);
     fn write_string(&mut self, s: &str);
     fn write_seq<F>(&mut self, len: usize, f: F)
+    where F: FnOnce(&mut Self);
+    fn write_map<F>(&mut self, len: usize, f: F)
     where F: FnOnce(&mut Self);
     fn write_tuple<F>(&mut self, len: usize, f: F)
     where F: FnOnce(&mut Self);
@@ -410,7 +415,7 @@ where T: Hash + Eq, T: Deserialize {
 impl<K, V> Deserialize for HashMap<K, V>
 where K: Hash + Eq, K: Deserialize, V: Deserialize {
     fn deserialize(deserializer: &mut impl Deserializer) -> Result<Self, String> {
-        deserializer.read_seq(|dec, len| {
+        deserializer.read_map(|dec, len| {
             let mut hm = HashMap::with_capacity(len);
             for _ in 0..len {
                 hm.insert(K::deserialize(dec)?, V::deserialize(dec)?);
@@ -436,7 +441,7 @@ where T: Ord, T: Deserialize {
 impl<K, V> Deserialize for BTreeMap<K, V>
 where K: Ord, K: Deserialize, V: Deserialize {
     fn deserialize(deserializer: &mut impl Deserializer) -> Result<Self, String> {
-        deserializer.read_seq(|dec, len| {
+        deserializer.read_map(|dec, len| {
             let mut bm = BTreeMap::new();
             for _ in 0..len {
                 bm.insert(K::deserialize(dec)?, V::deserialize(dec)?);
@@ -465,6 +470,8 @@ pub trait Deserializer {
     fn read_bytes(&mut self) -> Result<Vec<u8>, String>;
     fn read_string(&mut self) -> Result<String, String>;
     fn read_seq<F, T>(&mut self, f: F) -> Result<T, String>
+    where F: FnOnce(&mut Self, usize) -> Result<T, String>;
+    fn read_map<F, T>(&mut self, f: F) -> Result<T, String>
     where F: FnOnce(&mut Self, usize) -> Result<T, String>;
     fn read_tuple<F, T>(&mut self, len: usize, f: F) -> Result<T, String>
     where F: FnOnce(&mut Self) -> Result<T, String>;

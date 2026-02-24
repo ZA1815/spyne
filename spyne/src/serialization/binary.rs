@@ -107,6 +107,12 @@ impl Serializer for BinarySerde {
         f(self)
     }
     
+    fn write_map<F>(&mut self, len: usize, f: F)
+    where F: FnOnce(&mut Self) {
+        self.buffer.extend_from_slice(&(len as u64).to_le_bytes());
+        f(self)
+    }
+    
     fn write_struct<F>(&mut self, _name: &str, _fields: &[&str], f: F)
     where F: FnOnce(&mut Self) {
         f(self)
@@ -208,6 +214,13 @@ impl Deserializer for BinarySerde {
     where F: FnOnce(&mut Self, usize) -> Result<T, String> {
         let len = u64::from_le_bytes(self.read_inc::<8>()?) as usize;
         
+        Ok(f(self, len)?)
+    }
+    
+    fn read_map<F, T>(&mut self, f: F) -> Result<T, String>
+    where F: FnOnce(&mut Self, usize) -> Result<T, String> {
+        let len = u64::from_le_bytes(self.read_inc::<8>()?) as usize;
+                
         Ok(f(self, len)?)
     }
     

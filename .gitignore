@@ -2,3 +2,5 @@ target/
 Cargo.lock
 .cargo
 __pycache__
+*.txt
+*.md
