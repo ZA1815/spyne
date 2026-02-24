@@ -1,6 +1,6 @@
 // Maybe switch to getters instead of public fields for extra API safety
 
-pub(super) struct FontFile {
+pub struct FontFile {
     pub file_type: FontFileType,
     pub bytes: Vec<u8>,
     pub table_records: Vec<TableRecord>
@@ -12,7 +12,7 @@ pub enum FontFileType {
 }
 
 #[derive(Clone, Copy)]
-pub(super) struct TableRecord {
+pub struct TableRecord {
     pub tag: [u8; 4],
     pub checksum: u32,
     pub offset: u32,
