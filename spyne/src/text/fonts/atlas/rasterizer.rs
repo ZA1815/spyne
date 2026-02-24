@@ -1,9 +1,11 @@
 use crate::text::fonts::{atlas::outline::Segment, parse::structures::GlyphHeader};
 
-pub fn rasterize(outline: Vec<Vec<Segment>>, glyph_header: GlyphHeader) -> Vec<Vec<bool>> {
+// UNOPTIMIZED, BENCHMARK LATER AND SEE IF IT NEEDS TO BE OPTIMIZED
+
+pub fn rasterize(outline: Vec<Vec<Segment>>, glyph_header: GlyphHeader) -> Vec<Vec<u8>> {
     let x_diff = (glyph_header.x_max - glyph_header.x_min) as usize;
     let y_diff = (glyph_header.y_max - glyph_header.y_min) as usize;
-    let mut bitmap = vec![vec![false; x_diff]; y_diff];
+    let mut bitmap = vec![vec![0; x_diff]; y_diff];
     bitmap.iter_mut().enumerate().for_each(|(row, row_vec)| {
         row_vec.iter_mut().enumerate().for_each(|(col, pixel)| {
             let x_coord = (col as i16 + glyph_header.x_min) as isize;
@@ -51,7 +53,7 @@ pub fn rasterize(outline: Vec<Vec<Segment>>, glyph_header: GlyphHeader) -> Vec<V
             });
             
             if num_intersections % 2 != 0 {
-                *pixel = true
+                *pixel = 255;
             }
         });
     });

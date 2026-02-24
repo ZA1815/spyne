@@ -16,6 +16,8 @@ pub struct Point {
     pub y: isize
 }
 
+// UNOPTIMIZED, BENCHMARK LATER AND SEE IF IT NEEDS TO BE OPTIMIZED
+
 pub fn create_outline(glyph: &Glyph, lookup: &[Glyph]) -> Vec<Vec<Segment>> {
     match glyph {
         Glyph::Simple {
