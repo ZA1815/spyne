@@ -1,5 +1,6 @@
 use crate::text::fonts::parse::{constants::{ARGS_ARE_XY_VALUES, ON_CURVE_POINT, WE_HAVE_A_SCALE, WE_HAVE_A_TWO_BY_TWO, WE_HAVE_AN_X_AND_Y_SCALE}, structures::Glyph};
 
+#[derive(Debug, PartialEq, Eq)]
 pub enum Segment {
     Line(Point, Point),
     Quad {
@@ -9,7 +10,7 @@ pub enum Segment {
     }
 }
 
-#[derive(Clone, Copy, PartialEq, Default)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub struct Point {
     pub flags: u8,
     pub x: isize,
@@ -190,5 +191,61 @@ pub fn create_outline(glyph: &Glyph, lookup: &[Glyph]) -> Vec<Vec<Segment>> {
                     glyph_base
                 }).collect()
         }
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use crate::text::fonts::{atlas::outline::{Point, Segment, create_outline}, parse::{constants::ON_CURVE_POINT, structures::{Glyph, GlyphHeader}}};
+
+    #[test]
+    fn test_outline() {
+        let glyph_header = GlyphHeader {
+            number_of_contours: 0,
+            x_min: 0,
+            y_min: 0,
+            x_max: 0,
+            y_max: 0
+        };
+        let glyph = Glyph::Simple {
+            header: glyph_header,
+            end_pts_of_contours: vec![3],
+            instruction_length: 0,
+            instructions: Vec::new(),
+            flags: vec![ON_CURVE_POINT; 4],
+            x_coordinates: vec![0, 10, 10, 0],
+            y_coordinates: vec![0, 0, -10, -10],
+        };
+        let outline = create_outline(&glyph, &[]);
+        assert_eq!(outline.len(), 1);
+        assert_eq!(outline[0].len(), 4);
+        assert_eq!(
+            outline[0][0],
+            Segment::Line(
+                Point { flags: ON_CURVE_POINT, x: 0, y: 0 },
+                Point { flags: ON_CURVE_POINT, x: 10, y: 0 }
+            )
+        );
+        assert_eq!(
+            outline[0][1],
+            Segment::Line(
+                Point { flags: ON_CURVE_POINT, x: 10, y: 0 },
+                Point { flags: ON_CURVE_POINT, x: 10, y: -10 }
+            )
+        );
+        assert_eq!(
+            outline[0][2],
+            Segment::Line(
+                Point { flags: ON_CURVE_POINT, x: 10, y: -10 }, 
+                Point { flags: ON_CURVE_POINT, x: 0, y: -10 }
+            )
+        );
+        assert_eq!(
+            outline[0][3],
+            Segment::Line(
+                Point { flags: ON_CURVE_POINT, x: 0, y: -10 }, 
+                Point { flags: ON_CURVE_POINT, x: 0, y: 0 }
+            )
+        );
     }
 }
