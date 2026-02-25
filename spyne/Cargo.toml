@@ -6,8 +6,9 @@ description = "All-in-one toolkit"
 license = "MIT"
 
 [dependencies]
+spyne-encoding = { path = "../spyne-encoding" }
 spyne-ffi = "0.3.0"
-spyne-macros = "0.1.1"
+spyne-macros = { path = "../spyne-macros" }
 spyne-quote = "0.1.6"
 spyne-syntax = "0.1.3"
 

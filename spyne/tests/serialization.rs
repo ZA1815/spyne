@@ -1,5 +1,5 @@
-use spyne::serialization::BinarySerde;
-use spyne::macros::serialization::{Deserialize, Serialize};
+use spyne::encoding::serialization::BinarySerde;
+use spyne::macros::serialization::{Serialize, Deserialize};
 
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize)]
 pub struct TestStruct {
@@ -16,7 +16,7 @@ pub enum TestEnum {
 }
 
 #[test]
-fn test_serde() {
+fn test_binary_serde() {
     let test_struct = TestStruct {
         a: vec![5, 3, 10],
         b: false,

@@ -6,6 +6,7 @@ description = "Macros for the spyne crate"
 license = "MIT"
 
 [dependencies]
+spyne-encoding = { path = "../spyne-encoding" }
 spyne-quote = "0.1.8"
 spyne-syntax = "0.2.0"
 

@@ -1,4 +1,4 @@
-use crate::serialization::Serializer;
+use crate::serialization::serialize::Serializer;
 
 pub struct JsonSerde {
     buffer: String,

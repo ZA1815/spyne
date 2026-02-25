@@ -7,8 +7,8 @@ pub mod io;
 // #[cfg(feature = "macros")]
 pub mod macros;
 
-// #[cfg(feature = "serialization")]
-pub mod serialization;
+// #[cfg(feature = "encoding")]
+pub mod encoding;
 
 // #[cfg(feature = "syntax")]
 pub mod syntax;
