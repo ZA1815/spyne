@@ -1,4 +1,4 @@
-use crate::{serialization::{deserialize::{Deserialize, Deserializer}, serialize::{Serialize, Serializer}}, transfer::base64::encode_into};
+use crate::{serialization::{deserialize::{Deserialize, Deserializer}, serialize::{Serialize, Serializer}}, transfer::base64::{decode, encode_into}};
 
 pub struct JsonSerde<'a> {
     buffer: String,
@@ -517,8 +517,7 @@ impl<'a> Deserializer for JsonSerde<'a> {
     }
     
     fn read_bytes(&mut self) -> Result<Vec<u8>, String> {
-        Ok(Vec::new())
-        // TODO: Base64 Decoding
+        Ok(decode(self.read_string()?))
     }
     
     fn read_string(&mut self) -> Result<String, String> {
