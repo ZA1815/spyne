@@ -1,4 +1,4 @@
-use spyne::encoding::serialization::BinarySerde;
+use spyne::encoding::serialization::{BinarySerde, JsonSerde};
 use spyne::macros::serialization::{Serialize, Deserialize};
 
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize)]
@@ -73,4 +73,64 @@ fn test_binary_serde() {
         Err(err) => panic!("ERROR DE ENUM STRUCT: {:?}", err)
     };
     assert_eq!(test_enum_3, de_enum_3);
+}
+
+#[test]
+fn test_json_serde() {
+    let test_struct = TestStruct {
+        a: vec![5, 3, 10],
+        b: false,
+        c: 3
+    };
+    let test_enum_1 = TestEnum::Unit;
+    let test_enum_2 = TestEnum::Tuple(3, vec![4, 5, 12]);
+    let test_enum_3 = TestEnum::Struct { x: 9, y: 15 };
+    
+    let ser_struct = match JsonSerde::serialize(&test_struct) {
+        Ok(ser) => ser,
+        Err(err) => panic!("ERROR SER STRUCT: {:?}", err)
+    };
+    debug_assert_eq!(ser_struct.clone(), "{\"a\":[5,3,10],\"b\":false,\"c\":3}");
+    
+    let de_struct = match JsonSerde::deserialize::<TestStruct>(ser_struct) {
+        Ok(de) => de,
+        Err(err) => panic!("ERROR DE STRUCT: {:?}", err)
+    };
+    debug_assert_eq!(test_struct, de_struct);
+    
+    let ser_enum_1 = match JsonSerde::serialize(&test_enum_1) {
+        Ok(ser) => ser,
+        Err(err) => panic!("ERROR SER ENUM UNIT: {:?}", err)
+    };
+    debug_assert_eq!(ser_enum_1, "{\"Unit\"}");
+    
+    let de_enum_1: TestEnum = match JsonSerde::deserialize::<TestEnum>(ser_enum_1) {
+        Ok(de) => de,
+        Err(err) => panic!("ERROR DE ENUM UNIT: {:?}", err)
+    };
+    debug_assert_eq!(test_enum_1, de_enum_1);
+    
+    let ser_enum_2 = match JsonSerde::serialize(&test_enum_2) {
+        Ok(ser) => ser,
+        Err(err) => panic!("ERROR SER ENUM TUPLE: {:?}", err)
+    };
+    debug_assert_eq!(ser_enum_2, "{\"Tuple\":[3,[4,5,12]]}");
+    
+    let de_enum_2: TestEnum = match JsonSerde::deserialize::<TestEnum>(ser_enum_2) {
+        Ok(de) => de,
+        Err(err) => panic!("ERROR DE ENUM TUPLE: {:?}", err)
+    };
+    debug_assert_eq!(test_enum_2, de_enum_2);
+    
+    let ser_enum_3 = match JsonSerde::serialize(&test_enum_3) {
+        Ok(ser) => ser,
+        Err(err) => panic!("ERROR SER ENUM STRUCT: {:?}", err)
+    };
+    debug_assert_eq!(ser_enum_3, "{\"Struct\":{\"x\":9,\"y\":15}}");
+    
+    let de_enum_3: TestEnum = match JsonSerde::deserialize::<TestEnum>(ser_enum_3) {
+        Ok(de) => de,
+        Err(err) => panic!("ERROR DE ENUM STRUCT: {:?}", err)
+    };
+    debug_assert_eq!(test_enum_3, de_enum_3);
 }

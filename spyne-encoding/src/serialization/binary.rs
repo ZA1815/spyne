@@ -26,7 +26,7 @@ impl BinarySerde {
         Ok(slice)
     }
     
-    pub fn serialize<T: Serialize>(item: &T) -> Result<Vec<u8>, String> {
+    pub fn serialize<'a, T: Serialize<'a>>(item: &T) -> Result<Vec<u8>, String> {
         let mut serde = BinarySerde::new(None);
         item.serialize(&mut serde);
         Ok(serde.buffer.clone())
@@ -38,7 +38,7 @@ impl BinarySerde {
     }
 }
 
-impl Serializer for BinarySerde {
+impl<'a> Serializer<'a> for BinarySerde {
     fn write_u8(&mut self, n: u8) {
         self.buffer.push(n);
     }
@@ -123,7 +123,7 @@ impl Serializer for BinarySerde {
         f(self)
     }
     
-    fn write_enum<F>(&mut self, _enum_name: &str, variant_index: u32, _variant_name: &str, f: F)
+    fn write_enum<F>(&mut self, _enum_name: &str, variant_index: u32, _variant_name: &'a [&'a str], f: F)
     where F: FnOnce(&mut Self) {
         self.buffer.extend_from_slice(&variant_index.to_le_bytes());
         f(self)
@@ -252,8 +252,8 @@ mod test {
         values: Vec<i32>
     }
     
-    impl Serialize for Widget {
-        fn serialize(&self, serializer: &mut impl Serializer) {
+    impl<'a> Serialize<'a> for Widget {
+        fn serialize(&self, serializer: &mut impl Serializer<'a>) {
             serializer.write_u64(self.id);
             serializer.write_string(&self.name);
             serializer.write_seq(self.values.len(), |enc| {

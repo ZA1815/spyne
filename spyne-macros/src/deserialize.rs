@@ -66,7 +66,9 @@ fn deserialize_enum(iter: &mut TokenIter) -> Vec<TokenTree> {
                 });
             }
             VariantData::Tuple(data, s) => {
-                let var_name = TokenTree::Ident(variant.name.clone(), s);
+                let var_name_ident = TokenTree::Ident(variant.name.clone(), s);
+                let var_name_lit = TokenTree::Literal(format!("{:?}", variant.name.clone()), s);
+                variants.push(var_name_lit);
                 let mut field_types: Vec<TokenTree> = Vec::new();
                 let field_num = TokenTree::Literal(format!("{}", data.len()), s);
                 for field in data {
@@ -75,13 +77,14 @@ fn deserialize_enum(iter: &mut TokenIter) -> Vec<TokenTree> {
                 
                 enum_arms.extend(quote! {
                     [$ var_idx ] => de.read_tuple([$ field_num ], |de| {
-                       Ok([$ enum_name_ident ]::[$ var_name ](($ <[$ field_types ]>::deserialize(de)? ),*)) 
+                       Ok([$ enum_name_ident ]::[$ var_name_ident ](($ <[$ field_types ]>::deserialize(de)? ),*)) 
                     }),
                 });
             }
             VariantData::Struct(data, s) => {
                 let var_name_ident = TokenTree::Ident(variant.name.clone(), s);
                 let var_name_lit = TokenTree::Literal(format!("{:?}", variant.name.clone()), s);
+                variants.push(var_name_lit.clone());
                 let mut field_names_ident: Vec<TokenTree> = Vec::new();
                 let mut field_names_lit: Vec<TokenTree> = Vec::new();
                 let mut field_types: Vec<TokenTree> = Vec::new();
