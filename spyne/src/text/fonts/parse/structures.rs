@@ -1,4 +1,4 @@
-// Maybe switch to getters instead of public fields for extra API safety
+// REMEMBER TO ADD GETTERS
 
 pub struct FontFile {
     pub file_type: FontFileType,
@@ -19,7 +19,7 @@ pub struct TableRecord {
     pub length: u32
 }
 
-pub(super) struct HeadTable {
+pub struct HeadTable {
     pub units_per_em: u16,
     pub created: i64,
     pub modified: i64,
@@ -33,7 +33,7 @@ pub(super) struct HeadTable {
     pub index_to_loc_format: i16
 }
 
-pub(super) struct MaxpTable {
+pub struct MaxpTable {
     pub version: u32,
     pub num_glyphs: u16,
     pub max_points: Option<u16>,
@@ -51,19 +51,20 @@ pub(super) struct MaxpTable {
     pub max_component_depth: Option<u16>
 }
 
-pub(super) struct CmapTable {
+pub struct CmapTable {
     pub version: u16,
     pub num_tables: u16,
     pub encoding_records: Vec<EncodingRecord>,
     pub subtables: Vec<CmapSubtable>
 }
 
-pub(super) struct EncodingRecord {
+pub struct EncodingRecord {
     pub platform_id: u16,
     pub encoding_id: u16,
     pub offset: u32
 }
 
+#[derive(Clone, PartialEq, Eq)]
 pub enum CmapSubtable {
     Format0 {
         length: u16,
@@ -119,6 +120,7 @@ pub enum CmapSubtable {
     }
 }
 
+#[derive(Clone, Copy, PartialEq, Eq)]
 pub struct SubHeader {
     pub first_code: u16,
     pub entry_count: u16,
@@ -126,12 +128,14 @@ pub struct SubHeader {
     pub id_range_offset: u16
 }
 
+#[derive(Clone, Copy, PartialEq, Eq)]
 pub struct Group {
     pub start_char_code: u32,
     pub end_char_code: u32,
     pub start_glyph_id: u32
 }
 
+#[derive(Clone, Copy, PartialEq, Eq)]
 pub struct VariationSelectorRecord {
     pub var_selector: [u8; 3],
     pub default_uvs_offset: u32,
@@ -175,7 +179,7 @@ pub struct Component {
     pub transformation: [i16; 4]
 }
 
-pub(super) struct HheaTable {
+pub struct HheaTable {
     pub version: u32,
     pub ascender: i16,
     pub descender: i16,
@@ -187,15 +191,15 @@ pub(super) struct HheaTable {
     pub caret_slope_rise: i16,
     pub caret_slope_run: i16,
     pub caret_offset: i16,
-    pub(super) _reserved1: i16,
-    pub(super) _reserved2: i16,
-    pub(super) _reserved3: i16,
-    pub(super) _reserved4: i16,
+    pub _reserved1: i16,
+    pub _reserved2: i16,
+    pub _reserved3: i16,
+    pub _reserved4: i16,
     pub metric_data_format: i16,
     pub number_of_h_metrics: u16
 }
 
-pub(super) struct HmtxTable {
+pub struct HmtxTable {
     pub entries: Vec<HmtxEntry>,
     pub shared_advance_width: u16
 }
@@ -208,7 +212,7 @@ pub enum HmtxEntry {
     LeftoverBearing(i16)
 }
 
-pub(super) struct NameTable {
+pub struct NameTable {
     pub version: u16,
     pub count: u16,
     pub storage_offset: u16,
@@ -217,7 +221,7 @@ pub(super) struct NameTable {
     pub lang_tag_records: Option<Vec<LangTagRecord>>
 }
 
-pub(super) struct NameRecord {
+pub struct NameRecord {
     pub platform_id: u16,
     pub encoding_id: u16,
     pub language_id: u16,
@@ -227,13 +231,13 @@ pub(super) struct NameRecord {
     pub string: String
 }
 
-pub(super) struct LangTagRecord {
+pub struct LangTagRecord {
     pub length: u16,
     pub lang_tag_offset: u16,
     pub string: String
 }
 
-pub(super) struct OS2Table {
+pub struct OS2Table {
     pub version: u16,
     pub x_avg_char_width: i16,
     pub us_weight_class: u16,
@@ -278,7 +282,7 @@ pub(super) struct OS2Table {
     pub us_upper_optical_point_size: Option<u16>
 }
 
-pub(super) struct PostTable {
+pub struct PostTable {
     pub version: u32,
     pub italic_angle: i32,
     pub underline_position: i16,
@@ -293,7 +297,7 @@ pub(super) struct PostTable {
     pub names: Option<Vec<String>>
 }
 
-pub(super) struct VheaTable {
+pub struct VheaTable {
     pub version: u32,
     pub vert_typo_ascender: i16,
     pub vert_typo_descender: i16,
@@ -305,15 +309,15 @@ pub(super) struct VheaTable {
     pub caret_slope_rise: i16,
     pub caret_slope_run: i16,
     pub caret_offset: i16,
-    pub(super) _reserved1: i16,
-    pub(super) _reserved2: i16,
-    pub(super) _reserved3: i16,
-    pub(super) _reserved4: i16,
+    pub _reserved1: i16,
+    pub _reserved2: i16,
+    pub _reserved3: i16,
+    pub _reserved4: i16,
     pub metric_data_format: i16,
     pub num_of_long_ver_metrics: u16
 }
 
-pub(super) struct VmtxTable {
+pub struct VmtxTable {
     pub entries: Vec<VmtxEntry>,
     pub shared_advance_height: u16
 }
@@ -396,18 +400,18 @@ pub struct Range {
     pub class: u16
 }
 
-pub(super) struct GaspTable {
+pub struct GaspTable {
     pub version: u16,
     pub num_ranges: u16,
     pub range_records: Vec<GaspRangeRecord>
 }
 
-pub(super) struct GaspRangeRecord {
+pub struct GaspRangeRecord {
     pub range_max_ppem: u16,
     pub range_gasp_behavior: u16
 }
 
-pub(super) struct GposTable<GposSubtable> {
+pub struct GposTable<GposSubtable> {
     pub header: TableHeader,
     pub script_list: ScriptList,
     pub feature_list: FeatureList,
@@ -415,7 +419,7 @@ pub(super) struct GposTable<GposSubtable> {
     pub feature_variations: Option<FeatureVariations>
 }
 
-pub(super) struct GsubTable<GsubSubtable> {
+pub struct GsubTable<GsubSubtable> {
     pub header: TableHeader,
     pub script_list: ScriptList,
     pub feature_list: FeatureList,
@@ -423,7 +427,7 @@ pub(super) struct GsubTable<GsubSubtable> {
     pub feature_variations: Option<FeatureVariations>
 }
 
-pub(super) struct TableHeader {
+pub struct TableHeader {
     pub major_version: u16,
     pub minor_version: u16,
     pub script_list_offset: u16,
@@ -432,18 +436,18 @@ pub(super) struct TableHeader {
     pub feature_variations_offset: Option<u32>
 }
 
-pub(super) struct ScriptList {
+pub struct ScriptList {
     pub script_count: u16,
     pub script_records: Vec<ScriptRecord>,
     pub scripts: Vec<Script>
 }
 
-pub(super) struct ScriptRecord {
+pub struct ScriptRecord {
     pub script_tag: [u8; 4],
     pub script_offset: u16
 }
 
-pub(super) struct Script {
+pub struct Script {
     pub default_lang_sys_offset: Option<u16>,
     pub default_lang_sys: Option<LangSys>,
     pub lang_sys_count: u16,
@@ -451,33 +455,33 @@ pub(super) struct Script {
     pub lang_syses: Vec<LangSys>
 }
 
-pub(super) struct LangSysRecord {
+pub struct LangSysRecord {
     pub lang_sys_tag: [u8; 4],
     pub lang_sys_offset: u16,
 }
 
-pub(super) struct LangSys {
-    pub(super) _lookup_order_offset: u16,
+pub struct LangSys {
+    pub _lookup_order_offset: u16,
     pub required_feature_index: u16,
     pub feature_index_count: u16,
     pub feature_indices: Vec<u16>
 }
 
 #[derive(Clone)]
-pub(super) struct FeatureList {
+pub struct FeatureList {
     pub feature_count: u16,
     pub feature_records: Vec<FeatureRecord>,
     pub features: Vec<Feature>
 }
 
 #[derive(Clone)]
-pub(super) struct FeatureRecord {
+pub struct FeatureRecord {
     pub feature_tag: [u8; 4],
     pub feature_offset: u16
 }
 
 #[derive(Clone)]
-pub(super) struct Feature {
+pub struct Feature {
     pub feature_params_offset: Option<u16>,
     pub feature_params: Option<FeatureParams>,
     pub lookup_index_count: u16,
@@ -509,13 +513,13 @@ pub enum FeatureParams {
     }
 }
 
-pub(super) struct LookupList<T> {
+pub struct LookupList<T> {
     pub lookup_count: u16,
     pub lookup_offsets: Vec<u16>,
     pub lookups: Vec<Lookup<T>>
 }
 
-pub(super) struct Lookup<T> {
+pub struct Lookup<T> {
     pub lookup_type: u16,
     pub lookup_flag: u16,
     pub subtable_count: u16,
@@ -524,21 +528,21 @@ pub(super) struct Lookup<T> {
     pub mark_filtering_set: Option<u16>
 }
 
-pub(super) struct FeatureVariations {
+pub struct FeatureVariations {
     pub major_version: u16,
     pub minor_version: u16,
     pub feature_variation_record_count: u32,
     pub feature_variation_records: Vec<FeatureVariationRecord>
 }
 
-pub(super) struct FeatureVariationRecord {
+pub struct FeatureVariationRecord {
     pub condition_set_offset: u32,
     pub condition_set: ConditionSet,
     pub feature_table_substitution_offset: u32,
     pub feature_table_substitution: FeatureTableSubstitution
 }
 
-pub(super) struct ConditionSet {
+pub struct ConditionSet {
     pub condition_count: u16,
     pub condition_offsets: Vec<u32>,
     pub conditions: Vec<Condition>
@@ -552,14 +556,14 @@ pub enum Condition {
     }
 }
 
-pub(super) struct FeatureTableSubstitution {
+pub struct FeatureTableSubstitution {
     pub major_version: u16,
     pub minor_version: u16,
     pub substitution_count: u16,
     pub substitution_records: Vec<FeatureTableSubstitutionRecord>
 }
 
-pub(super) struct FeatureTableSubstitutionRecord {
+pub struct FeatureTableSubstitutionRecord {
     pub feature_index: u16,
     pub alternate_feature_table_offset: u32,
     pub alternate_feature_table: Feature
@@ -607,7 +611,7 @@ pub struct Device {
     pub delta_values: Vec<u16>
 }
 
-pub(super) struct VariationIndexTable {
+pub struct VariationIndexTable {
     pub delta_set_outer_index: u16,
     pub delta_set_inner_index: u16,
     pub delta_format: u16
@@ -1031,7 +1035,7 @@ pub struct LigatureSet {
     pub ligature_offsets: Vec<u16>
 }
 
-pub(super) struct Ligature {
+pub struct Ligature {
     pub ligature_glyph: u16,
     pub component_count: u16,
     pub component_glyph_ids: Vec<u16>
