@@ -20,7 +20,7 @@ impl Atlas {
     pub fn new(algorithm: AtlasAlgorithm) -> Self {
         Self {
             texture: Vec::new(),
-            lookup_table: Vec::new(),
+            lookup_table: vec![None; 1114112],
             algorithm,
             width: 0,
             height: 0,
@@ -35,22 +35,28 @@ impl Atlas {
         }
     }
     
-    // IMPLEMENT RESIZE POLICY (IMPORTANT)
     // UNOPTIMIZED, BENCHMARK LATER AND SEE IF IT NEEDS TO BE OPTIMIZED
     
     fn shelf_packer(&mut self, mut bitmaps: Vec<(char, Vec<Vec<u8>>)>) {
         bitmaps.sort_by(|a, b| b.1.len().cmp(&a.1.len()));
-        if self.width == 0 {
-            let mut area = 0;
-            bitmaps.iter()
-                .for_each(|(_, bitmap)| {
-                    area += bitmap.len() * bitmap[0].len();
+        let mut area = 0;
+        bitmaps.iter()
+            .for_each(|(_, bitmap)| {
+                area += bitmap.len() * bitmap[0].len();
+            });
+        area += self.width + self.width;
+        let n = area.isqrt();
+        let width = if (n & (n - 1)) != 0 { 1 << (usize::BITS - n.leading_zeros()) } else { n };
+        if self.height == 0 { self.height = bitmaps[0].1.len(); }
+        if self.width < width {
+            let mut new_tex = vec![0; width * width];
+            if self.width != 0 {
+                self.texture.chunks(self.width).into_iter().enumerate().for_each(|(idx, row)| {
+                    new_tex[idx * width..idx * width + self.width].copy_from_slice(row);
                 });
-            let n = area.isqrt();
-            if (n & (n - 1)) != 0 { self.width = 1 << (usize::BITS - n.leading_zeros()); } else { self.width = n };
-            self.texture = vec![0; self.width * self.width];
-            self.lookup_table = vec![None; 1114112];
-            self.height = bitmaps[0].1.len();
+            }
+            self.texture = new_tex;
+            self.width = width;
         }
         bitmaps.iter()
             .for_each(|(char, bitmap)| {
