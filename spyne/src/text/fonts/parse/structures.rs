@@ -157,7 +157,7 @@ pub enum Glyph {
     }
 }
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Default)]
 pub struct GlyphHeader {
     pub number_of_contours: i16,
     pub x_min: i16,

@@ -200,15 +200,8 @@ mod test {
 
     #[test]
     fn test_outline() {
-        let glyph_header = GlyphHeader {
-            number_of_contours: 0,
-            x_min: 0,
-            y_min: 0,
-            x_max: 0,
-            y_max: 0
-        };
-        let glyph = Glyph::Simple {
-            header: glyph_header,
+        let glyph_square = Glyph::Simple {
+            header: GlyphHeader::default(),
             end_pts_of_contours: vec![3],
             instruction_length: 0,
             instructions: Vec::new(),
@@ -216,7 +209,7 @@ mod test {
             x_coordinates: vec![0, 10, 10, 0],
             y_coordinates: vec![0, 0, -10, -10],
         };
-        let outline = create_outline(&glyph, &[]);
+        let outline = create_outline(&glyph_square, &[]);
         assert_eq!(outline.len(), 1);
         assert_eq!(outline[0].len(), 4);
         assert_eq!(
@@ -246,6 +239,51 @@ mod test {
                 Point { flags: ON_CURVE_POINT, x: 0, y: -10 }, 
                 Point { flags: ON_CURVE_POINT, x: 0, y: 0 }
             )
+        );
+        
+        let glyph_circle = Glyph::Simple {
+            header: GlyphHeader::default(),
+            end_pts_of_contours: vec![3],
+            instruction_length: 0,
+            instructions: Vec::new(),
+            flags: vec![0; 4],
+            x_coordinates: vec![0, 10, 10, 0],
+            y_coordinates: vec![0, 0, -10, -10],
+        };
+        let outline = create_outline(&glyph_circle, &[]);
+        assert_eq!(outline.len(), 1);
+        assert_eq!(outline[0].len(), 4);
+        assert_eq!(
+            outline[0][0],
+            Segment::Quad {
+                start: Point { flags: ON_CURVE_POINT, x: 0, y: -5 },
+                control: Point { flags: 0, x: 0, y: 0 },
+                end: Point { flags: ON_CURVE_POINT, x: 5, y: 0 }
+            }
+        );
+        assert_eq!(
+            outline[0][1],
+            Segment::Quad {
+                start: Point { flags: ON_CURVE_POINT, x: 5, y: 0 },
+                control: Point { flags: 0, x: 10, y: 0 },
+                end: Point { flags: ON_CURVE_POINT, x: 10, y: -5 }
+            }
+        );
+        assert_eq!(
+            outline[0][2],
+            Segment::Quad {
+                start: Point { flags: ON_CURVE_POINT, x: 10, y: -5 }, 
+                control: Point { flags: 0, x: 10, y: -10 },
+                end: Point { flags: ON_CURVE_POINT, x: 5, y: -10 }
+            }
+        );
+        assert_eq!(
+            outline[0][3],
+            Segment::Quad {
+                start: Point { flags: ON_CURVE_POINT, x: 5, y: -10 }, 
+                control: Point { flags: 0, x: 0, y: -10 },
+                end: Point { flags: ON_CURVE_POINT, x: 0, y: -5 }
+            }
         );
     }
 }
