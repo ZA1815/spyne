@@ -338,16 +338,17 @@ impl FontFile {
         Ok(indices)
     }
     
-    pub fn parse_glyf(&self, loca_offsets: Vec<u32>) -> Result<Vec<Glyph>, Error> {
+    pub fn parse_glyf(&self, loca_offsets: Vec<u32>) -> Result<Vec<Option<Glyph>>, Error> {
         let bytes = self.get_table(b"glyf")?;
         let mut loca_iter = loca_offsets.iter().peekable();
         
         // Could optimize by initializing with capacity based on offsets
-        let mut glyphs: Vec<Glyph> = Vec::new();
+        let mut glyphs: Vec<Option<Glyph>> = Vec::new();
         
         while let Some(offset) = loca_iter.next() {
             if let Some(next_offset) = loca_iter.peek() {
                 if *next_offset - offset == 0 {
+                    glyphs.push(None);
                     continue;
                 }
                 
@@ -435,7 +436,7 @@ impl FontFile {
                         y_coordinates.push(current_y);
                     }
                     
-                    glyphs.push(Glyph::Simple { header, end_pts_of_contours, instruction_length, instructions, flags, x_coordinates, y_coordinates });
+                    glyphs.push(Some(Glyph::Simple { header, end_pts_of_contours, instruction_length, instructions, flags, x_coordinates, y_coordinates }));
                 }
                 else if number_of_contours == -1 {
                     let mut components: Vec<Component> = Vec::new();
@@ -504,7 +505,10 @@ impl FontFile {
                         )
                     }
                     
-                    glyphs.push(Glyph::Composite { header, components, instruction_length, instructions });
+                    glyphs.push(Some(Glyph::Composite { header, components, instruction_length, instructions }));
+                }
+                else if number_of_contours == 0 {
+                    glyphs.push(None);
                 }
             }
         }
