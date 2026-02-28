@@ -1,11 +1,32 @@
-// REMEMBER TO ADD GETTERS
-
 pub struct FontFile {
-    pub file_type: FontFileType,
-    pub bytes: Vec<u8>,
-    pub table_records: Vec<TableRecord>
+    file_type: FontFileType,
+    bytes: Vec<u8>,
+    table_records: Vec<TableRecord>
 }
 
+impl FontFile {
+    pub(super) fn new(file_type: FontFileType, bytes: Vec<u8>, table_records: Vec<TableRecord>) -> Self {
+        Self {
+            file_type,
+            bytes,
+            table_records
+        }
+    }
+    
+    pub fn file_type(&self) -> FontFileType {
+        self.file_type
+    }
+    
+    pub fn bytes(&self) -> &[u8] {
+        &self.bytes
+    }
+    
+    pub fn table_records(&self) -> &[TableRecord] {
+        &self.table_records
+    }
+}
+
+#[derive(Clone, Copy)]
 pub enum FontFileType {
     TrueType,
     OpenType
@@ -13,55 +34,307 @@ pub enum FontFileType {
 
 #[derive(Clone, Copy)]
 pub struct TableRecord {
-    pub tag: [u8; 4],
-    pub checksum: u32,
-    pub offset: u32,
-    pub length: u32
+    tag: [u8; 4],
+    checksum: u32,
+    offset: u32,
+    length: u32
+}
+
+impl TableRecord {
+    pub(super) fn new(tag: [u8; 4], checksum: u32, offset: u32, length: u32) -> Self {
+        Self { tag, checksum, offset, length }
+    }
+    
+    pub fn tag(&self) -> &[u8; 4] {
+        &self.tag
+    }
+    
+    pub fn checksum(&self) -> u32 {
+        self.checksum
+    }
+    
+    pub fn offset(&self) -> u32 {
+        self.offset
+    }
+    
+    pub fn length(&self) -> u32 {
+        self.length
+    }
 }
 
 pub struct HeadTable {
-    pub units_per_em: u16,
-    pub created: i64,
-    pub modified: i64,
-    pub x_min: i16,
-    pub y_min: i16,
-    pub x_max: i16,
-    pub y_max: i16,
-    pub mac_style: u16,
-    pub lowest_rec_ppem: u16,
-    pub font_direction_hint: i16,
-    pub index_to_loc_format: i16
+    units_per_em: u16,
+    created: i64,
+    modified: i64,
+    x_min: i16,
+    y_min: i16,
+    x_max: i16,
+    y_max: i16,
+    mac_style: u16,
+    lowest_rec_ppem: u16,
+    font_direction_hint: i16,
+    index_to_loc_format: i16
+}
+
+impl HeadTable {
+    pub(super) fn new(
+        units_per_em: u16,
+        created: i64,
+        modified: i64,
+        x_min: i16,
+        y_min: i16,
+        x_max: i16,
+        y_max: i16,
+        mac_style: u16,
+        lowest_rec_ppem: u16,
+        font_direction_hint: i16,
+        index_to_loc_format: i16
+    ) -> Self {
+        Self {
+            units_per_em,
+            created,
+            modified,
+            x_min,
+            y_min,
+            x_max,
+            y_max,
+            mac_style,
+            lowest_rec_ppem,
+            font_direction_hint,
+            index_to_loc_format
+        }
+    }
+    
+    pub fn units_per_em(&self) -> u16 {
+        self.units_per_em
+    }
+    
+    pub fn created(&self) -> i64 {
+        self.created
+    }
+    
+    pub fn modified(&self) -> i64 {
+        self.modified
+    }
+    
+    pub fn x_min(&self) -> i16 {
+        self.x_min
+    }
+    
+    pub fn y_min(&self) -> i16 {
+        self.y_min
+    }
+    
+    pub fn x_max(&self) -> i16 {
+        self.x_max
+    }
+    
+    pub fn y_max(&self) -> i16 {
+        self.y_max
+    }
+    
+    pub fn mac_style(&self) -> u16 {
+        self.mac_style
+    }
+    
+    pub fn lowest_rec_ppem(&self) -> u16 {
+        self.lowest_rec_ppem
+    }
+    
+    pub fn font_direction_hint(&self) -> i16 {
+        self.font_direction_hint
+    }
+    
+    pub fn index_to_loc_format(&self) -> i16 {
+        self.index_to_loc_format
+    }
 }
 
 pub struct MaxpTable {
-    pub version: u32,
-    pub num_glyphs: u16,
-    pub max_points: Option<u16>,
-    pub max_contours: Option<u16>,
-    pub max_composite_points: Option<u16>,
-    pub max_composite_contours: Option<u16>,
-    pub max_zones: Option<u16>,
-    pub max_twilight_points: Option<u16>,
-    pub max_storage: Option<u16>,
-    pub max_function_defs: Option<u16>,
-    pub max_instruction_defs: Option<u16>,
-    pub max_stack_elements: Option<u16>,
-    pub max_size_of_instructions: Option<u16>,
-    pub max_components_elements: Option<u16>,
-    pub max_component_depth: Option<u16>
+    version: u32,
+    num_glyphs: u16,
+    max_points: Option<u16>,
+    max_contours: Option<u16>,
+    max_composite_points: Option<u16>,
+    max_composite_contours: Option<u16>,
+    max_zones: Option<u16>,
+    max_twilight_points: Option<u16>,
+    max_storage: Option<u16>,
+    max_function_defs: Option<u16>,
+    max_instruction_defs: Option<u16>,
+    max_stack_elements: Option<u16>,
+    max_size_of_instructions: Option<u16>,
+    max_components_elements: Option<u16>,
+    max_component_depth: Option<u16>
+}
+
+impl MaxpTable {
+    pub(super) fn new(
+        version: u32,
+        num_glyphs: u16,
+        max_points: Option<u16>,
+        max_contours: Option<u16>,
+        max_composite_points: Option<u16>,
+        max_composite_contours: Option<u16>,
+        max_zones: Option<u16>,
+        max_twilight_points: Option<u16>,
+        max_storage: Option<u16>,
+        max_function_defs: Option<u16>,
+        max_instruction_defs: Option<u16>,
+        max_stack_elements: Option<u16>,
+        max_size_of_instructions: Option<u16>,
+        max_components_elements: Option<u16>,
+        max_component_depth: Option<u16>
+    ) -> Self {
+        Self {
+            version,
+            num_glyphs,
+            max_points,
+            max_contours,
+            max_composite_points,
+            max_composite_contours,
+            max_zones,
+            max_twilight_points,
+            max_storage,
+            max_function_defs,
+            max_instruction_defs,
+            max_stack_elements,
+            max_size_of_instructions,
+            max_components_elements,
+            max_component_depth
+        }
+    }
+    
+    pub fn version(&self) -> u32 {
+        self.version
+    }
+    
+    pub fn num_glyphs(&self) -> u16 {
+        self.num_glyphs
+    }
+    
+    pub fn max_points(&self) -> Option<u16> {
+        self.max_points
+    }
+    
+    pub fn max_contours(&self) -> Option<u16> {
+        self.max_contours
+    }
+    
+    pub fn max_composite_points(&self) -> Option<u16> {
+        self.max_composite_points
+    }
+    
+    pub fn max_composite_contours(&self) -> Option<u16> {
+        self.max_composite_contours
+    }
+    
+    pub fn max_zones(&self) -> Option<u16> {
+        self.max_zones
+    }
+    
+    pub fn max_twilight_points(&self) -> Option<u16> {
+        self.max_twilight_points
+    }
+    
+    pub fn max_storage(&self) -> Option<u16> {
+        self.max_storage
+    }
+    
+    pub fn max_function_defs(&self) -> Option<u16> {
+        self.max_function_defs
+    }
+    
+    pub fn max_instruction_defs(&self) -> Option<u16> {
+        self.max_instruction_defs
+    }
+    
+    pub fn max_stack_elements(&self) -> Option<u16> {
+        self.max_stack_elements
+    }
+    
+    pub fn max_size_of_instructions(&self) -> Option<u16> {
+        self.max_size_of_instructions
+    }
+    
+    pub fn max_component_elements(&self) -> Option<u16> {
+        self.max_components_elements
+    }
+    
+    pub fn max_component_depth(&self) -> Option<u16> {
+        self.max_component_depth
+    }
 }
 
 pub struct CmapTable {
-    pub version: u16,
-    pub num_tables: u16,
-    pub encoding_records: Vec<EncodingRecord>,
-    pub subtables: Vec<CmapSubtable>
+    version: u16,
+    num_tables: u16,
+    encoding_records: Vec<EncodingRecord>,
+    subtables: Vec<CmapSubtable>
+}
+
+impl CmapTable {
+    pub(super) fn new(
+        version: u16,
+        num_tables: u16,
+        encoding_records: Vec<EncodingRecord>,
+        subtables: Vec<CmapSubtable>
+    ) -> Self {
+        Self {
+            version,
+            num_tables,
+            encoding_records,
+            subtables
+        }
+    }
+    
+    pub fn version(&self) -> u16 {
+        self.version
+    }
+    
+    pub fn num_tables(&self) -> u16 {
+        self.num_tables
+    }
+    
+    pub fn encoding_records(&self) -> &[EncodingRecord] {
+        &self.encoding_records
+    }
+    
+    pub fn subtables(&self) -> &[CmapSubtable] {
+        &self.subtables
+    }
 }
 
 pub struct EncodingRecord {
-    pub platform_id: u16,
-    pub encoding_id: u16,
-    pub offset: u32
+    platform_id: u16,
+    encoding_id: u16,
+    offset: u32
+}
+
+impl EncodingRecord {
+    pub(super) fn new(
+        platform_id: u16,
+        encoding_id: u16,
+        offset: u32
+    ) -> Self {
+        Self {
+            platform_id,
+            encoding_id,
+            offset
+        }
+    }
+    
+    pub fn platform_id(&self) -> u16 {
+        self.platform_id
+    }
+    
+    pub fn encoding_id(&self) -> u16 {
+        self.encoding_id
+    }
+    
+    pub fn offset(&self) -> u32 {
+        self.offset
+    }
 }
 
 #[derive(Clone, PartialEq, Eq)]
@@ -122,24 +395,108 @@ pub enum CmapSubtable {
 
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub struct SubHeader {
-    pub first_code: u16,
-    pub entry_count: u16,
-    pub id_delta: i16,
-    pub id_range_offset: u16
+    first_code: u16,
+    entry_count: u16,
+    id_delta: i16,
+    id_range_offset: u16
+}
+
+impl SubHeader {
+    pub(super) fn new(
+        first_code: u16,
+        entry_count: u16,
+        id_delta: i16,
+        id_range_offset: u16
+    ) -> Self {
+        Self {
+            first_code,
+            entry_count,
+            id_delta,
+            id_range_offset
+        }
+    }
+    
+    pub fn first_code(&self) -> u16 {
+        self.first_code
+    }
+    
+    pub fn entry_count(&self) -> u16 {
+        self.entry_count
+    }
+    
+    pub fn id_delta(&self) -> i16 {
+        self.id_delta
+    }
+    
+    pub fn id_range_offset(&self) -> u16 {
+        self.id_range_offset
+    }
 }
 
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub struct Group {
-    pub start_char_code: u32,
-    pub end_char_code: u32,
-    pub start_glyph_id: u32
+    start_char_code: u32,
+    end_char_code: u32,
+    start_glyph_id: u32
+}
+
+impl Group {
+    pub(super) fn new(
+        start_char_code: u32,
+        end_char_code: u32,
+        start_glyph_id: u32
+    ) -> Self {
+        Self {
+            start_char_code,
+            end_char_code,
+            start_glyph_id
+        }
+    }
+    
+    pub fn start_char_code(&self) -> u32 {
+        self.start_char_code
+    }
+    
+    pub fn end_char_code(&self) -> u32 {
+        self.end_char_code
+    }
+    
+    pub fn start_glyph_id(&self) -> u32 {
+        self.start_glyph_id
+    }
 }
 
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub struct VariationSelectorRecord {
-    pub var_selector: [u8; 3],
-    pub default_uvs_offset: u32,
-    pub non_default_uvs_offset: u32
+    var_selector: [u8; 3],
+    default_uvs_offset: u32,
+    non_default_uvs_offset: u32
+}
+
+impl VariationSelectorRecord {
+    pub(super) fn new(
+        var_selector: [u8; 3],
+        default_uvs_offset: u32,
+        non_default_uvs_offset: u32
+    ) -> Self {
+        Self {
+            var_selector,
+            default_uvs_offset,
+            non_default_uvs_offset
+        }
+    }
+    
+    pub fn var_selector(&self) -> &[u8; 3] {
+        &self.var_selector
+    }
+    
+    pub fn default_uvs_offset(&self) -> u32 {
+        self.default_uvs_offset
+    }
+    
+    pub fn non_default_uvs_offset(&self) -> u32 {
+        self.non_default_uvs_offset
+    }
 }
 
 #[derive(Clone)]
@@ -163,45 +520,235 @@ pub enum Glyph {
 
 #[derive(Clone, Copy, Default)]
 pub struct GlyphHeader {
-    pub number_of_contours: i16,
-    pub x_min: i16,
-    pub y_min: i16,
-    pub x_max: i16,
-    pub y_max: i16
+    number_of_contours: i16,
+    x_min: i16,
+    y_min: i16,
+    x_max: i16,
+    y_max: i16
+}
+
+impl GlyphHeader {
+    pub(super) fn new(
+        number_of_contours: i16,
+        x_min: i16,
+        y_min: i16,
+        x_max: i16,
+        y_max: i16
+    ) -> Self {
+        Self {
+            number_of_contours,
+            x_min,
+            y_min,
+            x_max,
+            y_max
+        }
+    }
+    
+    pub fn number_of_contours(&self) -> i16 {
+        self.number_of_contours
+    }
+    
+    pub fn x_min(&self) -> i16 {
+        self.x_min
+    }
+    
+    pub fn y_min(&self) -> i16 {
+        self.y_min
+    }
+    
+    pub fn x_max(&self) -> i16 {
+        self.x_max
+    }
+    
+    pub fn y_max(&self) -> i16 {
+        self.y_max
+    }
 }
 
 #[derive(Clone, Copy)]
 pub struct Component {
-    pub flags: u16,
-    pub glyph_index: u16,
-    pub argument_1: i16,
-    pub argument_2: i16,
-    pub transformation: [i16; 4]
+    flags: u16,
+    glyph_index: u16,
+    argument_1: i16,
+    argument_2: i16,
+    transformation: [i16; 4]
+}
+
+impl Component {
+    pub(super) fn new(
+        flags: u16,
+        glyph_index: u16,
+        argument_1: i16,
+        argument_2: i16,
+        transformation: [i16; 4]
+    ) -> Self {
+        Self {
+            flags,
+            glyph_index,
+            argument_1,
+            argument_2,
+            transformation
+        }
+    }
+    
+    pub fn flags(&self) -> u16 {
+        self.flags
+    }
+    
+    pub fn glyph_index(&self) -> u16 {
+        self.glyph_index
+    }
+    
+    pub fn argument_1(&self) -> i16 {
+        self.argument_1
+    }
+    
+    pub fn argument_2(&self) -> i16 {
+        self.argument_2
+    }
+    
+    pub fn transformation(&self) -> &[i16; 4] {
+        &self.transformation
+    }
 }
 
 pub struct HheaTable {
-    pub version: u32,
-    pub ascender: i16,
-    pub descender: i16,
-    pub line_gap: i16,
-    pub advance_width_max: u16,
-    pub min_left_side_bearing: i16,
-    pub min_right_side_bearing: i16,
-    pub x_max_extent: i16,
-    pub caret_slope_rise: i16,
-    pub caret_slope_run: i16,
-    pub caret_offset: i16,
-    pub _reserved1: i16,
-    pub _reserved2: i16,
-    pub _reserved3: i16,
-    pub _reserved4: i16,
-    pub metric_data_format: i16,
-    pub number_of_h_metrics: u16
+    version: u32,
+    ascender: i16,
+    descender: i16,
+    line_gap: i16,
+    advance_width_max: u16,
+    min_left_side_bearing: i16,
+    min_right_side_bearing: i16,
+    x_max_extent: i16,
+    caret_slope_rise: i16,
+    caret_slope_run: i16,
+    caret_offset: i16,
+    _reserved1: i16,
+    _reserved2: i16,
+    _reserved3: i16,
+    _reserved4: i16,
+    metric_data_format: i16,
+    number_of_h_metrics: u16
+}
+
+impl HheaTable {
+    pub(super) fn new(
+        version: u32,
+        ascender: i16,
+        descender: i16,
+        line_gap: i16,
+        advance_width_max: u16,
+        min_left_side_bearing: i16,
+        min_right_side_bearing: i16,
+        x_max_extent: i16,
+        caret_slope_rise: i16,
+        caret_slope_run: i16,
+        caret_offset: i16,
+        _reserved1: i16,
+        _reserved2: i16,
+        _reserved3: i16,
+        _reserved4: i16,
+        metric_data_format: i16,
+        number_of_h_metrics: u16
+    ) -> Self {
+        Self {
+            version,
+            ascender,
+            descender,
+            line_gap,
+            advance_width_max,
+            min_left_side_bearing,
+            min_right_side_bearing,
+            x_max_extent,
+            caret_slope_rise,
+            caret_slope_run,
+            caret_offset,
+            _reserved1,
+            _reserved2,
+            _reserved3,
+            _reserved4,
+            metric_data_format,
+            number_of_h_metrics
+        }
+    }
+    
+    pub fn version(&self) -> u32 {
+        self.version
+    }
+    
+    pub fn ascender(&self) -> i16 {
+        self.ascender
+    }
+    
+    pub fn descender(&self) -> i16 {
+        self.descender
+    }
+    
+    pub fn line_gap(&self) -> i16 {
+        self.line_gap
+    }
+    
+    pub fn advance_width_max(&self) -> u16 {
+        self.advance_width_max
+    }
+    
+    pub fn min_left_side_bearing(&self) -> i16 {
+        self.min_left_side_bearing
+    }
+    
+    pub fn min_right_side_bearing(&self) -> i16 {
+        self.min_right_side_bearing
+    }
+    
+    pub fn x_max_extent(&self) -> i16 {
+        self.x_max_extent
+    }
+    
+    pub fn caret_slope_rise(&self) -> i16 {
+        self.caret_slope_rise
+    }
+    
+    pub fn caret_slope_run(&self) -> i16 {
+        self.caret_slope_run
+    }
+    
+    pub fn caret_offset(&self) -> i16 {
+        self.caret_offset
+    }
+    
+    pub fn metric_data_format(&self) -> i16 {
+        self.metric_data_format
+    }
+    
+    pub fn number_of_h_metrics(&self) -> u16 {
+        self.number_of_h_metrics
+    }
 }
 
 pub struct HmtxTable {
-    pub entries: Vec<HmtxEntry>,
-    pub shared_advance_width: u16
+    entries: Vec<HmtxEntry>,
+    shared_advance_width: u16
+}
+
+impl HmtxTable {
+    pub(super) fn new(
+        entries: Vec<HmtxEntry>,
+        shared_advance_width: u16
+    ) -> Self {
+        Self {
+            entries,
+            shared_advance_width
+        }
+    }
+    
+    pub fn entries(&self) -> &[HmtxEntry] {
+        &self.entries
+    }
+    
+    pub fn shared_advance_width(&self) -> u16 {
+        self.shared_advance_width
+    }
 }
 
 pub enum HmtxEntry {
@@ -213,88 +760,486 @@ pub enum HmtxEntry {
 }
 
 pub struct NameTable {
-    pub version: u16,
-    pub count: u16,
-    pub storage_offset: u16,
-    pub records: Vec<NameRecord>,
-    pub lang_tag_count: Option<u16>,
-    pub lang_tag_records: Option<Vec<LangTagRecord>>
+    version: u16,
+    count: u16,
+    storage_offset: u16,
+    records: Vec<NameRecord>,
+    lang_tag_count: Option<u16>,
+    lang_tag_records: Option<Vec<LangTagRecord>>
+}
+
+impl NameTable {
+    pub(super) fn new(
+        version: u16,
+        count: u16,
+        storage_offset: u16,
+        records: Vec<NameRecord>,
+        lang_tag_count: Option<u16>,
+        lang_tag_records: Option<Vec<LangTagRecord>>
+    ) -> Self {
+        Self {
+            version,
+            count,
+            storage_offset,
+            records,
+            lang_tag_count,
+            lang_tag_records
+        }
+    }
+    
+    pub fn version(&self) -> u16 {
+        self.version
+    }
+    
+    pub fn count(&self) -> u16 {
+        self.count
+    }
+    
+    pub fn storage_offset(&self) -> u16 {
+        self.storage_offset
+    }
+    
+    pub fn records(&self) -> &[NameRecord] {
+        &self.records
+    }
+    
+    pub fn lang_tag_count(&self) -> Option<u16> {
+        self.lang_tag_count
+    }
+    
+    pub fn lang_tag_records(&self) -> Option<&[LangTagRecord]> {
+        self.lang_tag_records.as_deref()
+    }
 }
 
 pub struct NameRecord {
-    pub platform_id: u16,
-    pub encoding_id: u16,
-    pub language_id: u16,
-    pub name_id: u16,
-    pub length: u16,
-    pub string_offset: u16,
-    pub string: String
+    platform_id: u16,
+    encoding_id: u16,
+    language_id: u16,
+    name_id: u16,
+    length: u16,
+    string_offset: u16,
+    string: String
+}
+
+impl NameRecord {
+    pub(super) fn new(
+        platform_id: u16,
+        encoding_id: u16,
+        language_id: u16,
+        name_id: u16,
+        length: u16,
+        string_offset: u16,
+        string: String
+    ) -> Self {
+        Self {
+            platform_id,
+            encoding_id,
+            language_id,
+            name_id,
+            length,
+            string_offset,
+            string
+        }
+    }
+    
+    pub fn platform_id(&self) -> u16 {
+        self.platform_id
+    }
+    
+    pub fn encoding_id(&self) -> u16 {
+        self.encoding_id
+    }
+    
+    pub fn language_id(&self) -> u16 {
+        self.language_id
+    }
+    
+    pub fn name_id(&self) -> u16 {
+        self.name_id
+    }
+    
+    pub fn length(&self) -> u16 {
+        self.length
+    }
+    
+    pub fn string_offset(&self) -> u16 {
+        self.string_offset
+    }
+    
+    pub fn string(&self) -> &str {
+        &self.string
+    }
 }
 
 pub struct LangTagRecord {
-    pub length: u16,
-    pub lang_tag_offset: u16,
-    pub string: String
+    length: u16,
+    lang_tag_offset: u16,
+    string: String
+}
+
+impl LangTagRecord {
+    pub(super) fn new(
+        length: u16,
+        lang_tag_offset: u16,
+        string: String
+    ) -> Self {
+        Self {
+            length,
+            lang_tag_offset,
+            string
+        }
+    }
+    
+    pub fn length(&self) -> u16 {
+        self.length
+    }
+    
+    pub fn lang_tag_offset(&self) -> u16 {
+        self.lang_tag_offset
+    }
+    
+    pub fn string(&self) -> &str {
+        &self.string
+    }
 }
 
 pub struct OS2Table {
-    pub version: u16,
-    pub x_avg_char_width: i16,
-    pub us_weight_class: u16,
-    pub us_width_class: u16,
-    pub fs_type: u16,
-    pub y_subscript_x_size: i16,
-    pub y_subscript_y_size: i16,
-    pub y_subscript_x_offset: i16,
-    pub y_subscript_y_offset: i16,
-    pub y_superscript_x_size: i16,
-    pub y_superscript_y_size: i16,
-    pub y_superscript_x_offset: i16,
-    pub y_superscript_y_offset: i16,
-    pub y_strikeout_size: i16,
-    pub y_strikeout_position: i16,
-    pub s_family_class: i16,
-    pub panose: [u8; 10],
-    pub ul_unicode_range_1: u32,
-    pub ul_unicode_range_2: u32,
-    pub ul_unicode_range_3: u32,
-    pub ul_unicode_range_4: u32,
-    pub ach_vend_id: [u8; 4],
-    pub fs_selection: u16,
-    pub us_first_char_index: u16,
-    pub us_last_char_index: u16,
-    pub s_typo_ascender: i16,
-    pub s_typo_descender: i16,
-    pub s_typo_line_gap: i16,
-    pub us_win_ascent: u16,
-    pub us_win_descent: u16,
+    version: u16,
+    x_avg_char_width: i16,
+    us_weight_class: u16,
+    us_width_class: u16,
+    fs_type: u16,
+    y_subscript_x_size: i16,
+    y_subscript_y_size: i16,
+    y_subscript_x_offset: i16,
+    y_subscript_y_offset: i16,
+    y_superscript_x_size: i16,
+    y_superscript_y_size: i16,
+    y_superscript_x_offset: i16,
+    y_superscript_y_offset: i16,
+    y_strikeout_size: i16,
+    y_strikeout_position: i16,
+    s_family_class: i16,
+    panose: [u8; 10],
+    ul_unicode_range_1: u32,
+    ul_unicode_range_2: u32,
+    ul_unicode_range_3: u32,
+    ul_unicode_range_4: u32,
+    ach_vend_id: [u8; 4],
+    fs_selection: u16,
+    us_first_char_index: u16,
+    us_last_char_index: u16,
+    s_typo_ascender: i16,
+    s_typo_descender: i16,
+    s_typo_line_gap: i16,
+    us_win_ascent: u16,
+    us_win_descent: u16,
     // Version 1 Additions
-    pub ul_code_page_range_1: Option<u32>,
-    pub ul_code_page_range_2: Option<u32>,
+    ul_code_page_range_1: Option<u32>,
+    ul_code_page_range_2: Option<u32>,
     // Version 2 Additions
-    pub sx_height: Option<i16>,
-    pub s_cap_height: Option<i16>,
-    pub us_default_char: Option<u16>,
-    pub us_break_char: Option<u16>,
-    pub us_max_context: Option<u16>,
+    sx_height: Option<i16>,
+    s_cap_height: Option<i16>,
+    us_default_char: Option<u16>,
+    us_break_char: Option<u16>,
+    us_max_context: Option<u16>,
     // Version 5 Additions
-    pub us_lower_optical_point_size: Option<u16>,
-    pub us_upper_optical_point_size: Option<u16>
+    us_lower_optical_point_size: Option<u16>,
+    us_upper_optical_point_size: Option<u16>
+}
+
+impl OS2Table {
+    pub(super) fn new(
+        version: u16,
+        x_avg_char_width: i16,
+        us_weight_class: u16,
+        us_width_class: u16,
+        fs_type: u16,
+        y_subscript_x_size: i16,
+        y_subscript_y_size: i16,
+        y_subscript_x_offset: i16,
+        y_subscript_y_offset: i16,
+        y_superscript_x_size: i16,
+        y_superscript_y_size: i16,
+        y_superscript_x_offset: i16,
+        y_superscript_y_offset: i16,
+        y_strikeout_size: i16,
+        y_strikeout_position: i16,
+        s_family_class: i16,
+        panose: [u8; 10],
+        ul_unicode_range_1: u32,
+        ul_unicode_range_2: u32,
+        ul_unicode_range_3: u32,
+        ul_unicode_range_4: u32,
+        ach_vend_id: [u8; 4],
+        fs_selection: u16,
+        us_first_char_index: u16,
+        us_last_char_index: u16,
+        s_typo_ascender: i16,
+        s_typo_descender: i16,
+        s_typo_line_gap: i16,
+        us_win_ascent: u16,
+        us_win_descent: u16,
+        ul_code_page_range_1: Option<u32>,
+        ul_code_page_range_2: Option<u32>,
+        sx_height: Option<i16>,
+        s_cap_height: Option<i16>,
+        us_default_char: Option<u16>,
+        us_break_char: Option<u16>,
+        us_max_context: Option<u16>,
+        us_lower_optical_point_size: Option<u16>,
+        us_upper_optical_point_size: Option<u16>
+    ) -> Self {
+        Self {
+            version,
+            x_avg_char_width,
+            us_weight_class,
+            us_width_class,
+            fs_type,
+            y_subscript_x_size,
+            y_subscript_y_size,
+            y_subscript_x_offset,
+            y_subscript_y_offset,
+            y_superscript_x_size,
+            y_superscript_y_size,
+            y_superscript_x_offset,
+            y_superscript_y_offset,
+            y_strikeout_size,
+            y_strikeout_position,
+            s_family_class,
+            panose,
+            ul_unicode_range_1,
+            ul_unicode_range_2,
+            ul_unicode_range_3,
+            ul_unicode_range_4,
+            ach_vend_id,
+            fs_selection,
+            us_first_char_index,
+            us_last_char_index,
+            s_typo_ascender,
+            s_typo_descender,
+            s_typo_line_gap,
+            us_win_ascent,
+            us_win_descent,
+            ul_code_page_range_1,
+            ul_code_page_range_2,
+            sx_height,
+            s_cap_height,
+            us_default_char,
+            us_break_char,
+            us_max_context,
+            us_lower_optical_point_size,
+            us_upper_optical_point_size
+        }
+    }
+    
+    pub fn version(&self) -> u16 {
+        self.version
+    }
+    
+    pub fn x_avg_char_width(&self) -> i16 {
+        self.x_avg_char_width
+    }
+    
+    pub fn us_weight_class(&self) -> u16 {
+        self.us_weight_class
+    }
+    
+    pub fn us_width_class(&self) -> u16 {
+        self.us_width_class
+    }
+    
+    pub fn fs_type(&self) -> u16 {
+        self.fs_type
+    }
+    
+    pub fn y_subscript_x_size(&self) -> i16 {
+        self.y_subscript_x_size
+    }
+    
+    pub fn y_subscript_y_size(&self) -> i16 {
+        self.y_subscript_y_size
+    }
+    
+    pub fn y_subscript_x_offset(&self) -> i16 {
+        self.y_subscript_x_offset
+    }
+    
+    pub fn y_subscript_y_offset(&self) -> i16 {
+        self.y_subscript_y_offset
+    }
+    
+    pub fn y_superscript_x_size(&self) -> i16 {
+        self.y_superscript_x_size
+    }
+    
+    pub fn y_superscript_y_size(&self) -> i16 {
+        self.y_superscript_y_size
+    }
+    
+    pub fn y_superscript_x_offset(&self) -> i16 {
+        self.y_superscript_x_offset
+    }
+    
+    pub fn y_superscript_y_offset(&self) -> i16 {
+        self.y_superscript_y_offset
+    }
+    
+    pub fn y_strikeout_size(&self) -> i16 {
+        self.y_strikeout_size
+    }
+    
+    pub fn y_strikeout_position(&self) -> i16 {
+        self.y_strikeout_position
+    }
+    
+    pub fn s_family_class(&self) -> i16 {
+        self.s_family_class
+    }
+    
+    pub fn panose(&self) -> &[u8; 10] {
+        &self.panose
+    }
+    
+    pub fn ul_unicode_range_1(&self) -> u32 {
+        self.ul_unicode_range_1
+    }
+    
+    pub fn ul_unicode_range_2(&self) -> u32 {
+        self.ul_unicode_range_2
+    }
+    
+    pub fn ul_unicode_range_3(&self) -> u32 {
+        self.ul_unicode_range_3
+    }
+    
+    pub fn ul_unicode_range_4(&self) -> u32 {
+        self.ul_unicode_range_4
+    }
+    
+    pub fn ach_vend_id(&self) -> &[u8; 4] {
+        &self.ach_vend_id
+    }
+    
+    pub fn fs_selection(&self) -> u16 {
+        self.fs_selection
+    }
+    
+    pub fn us_first_char_index(&self) -> u16 {
+        self.us_first_char_index
+    }
+    
+    pub fn us_last_char_index(&self) -> u16 {
+        self.us_last_char_index
+    }
+    
+    pub fn s_typo_ascender(&self) -> i16 {
+        self.s_typo_ascender
+    }
+    
+    pub fn s_typo_descender(&self) -> i16 {
+        self.s_typo_descender
+    }
+    
+    pub fn s_typo_line_gap(&self) -> i16 {
+        self.s_typo_line_gap
+    }
+    
+    pub fn us_win_ascent(&self) -> u16 {
+        self.us_win_ascent
+    }
+    
+    pub fn us_win_descent(&self) -> u16 {
+        self.us_win_descent
+    }
+    
+    pub fn ul_code_page_range_1(&self) -> Option<u32> {
+        self.ul_code_page_range_1
+    }
+    
+    pub fn ul_code_page_range_2(&self) -> Option<u32> {
+        self.ul_code_page_range_2
+    }
+    
+    pub fn sx_height(&self) -> Option<i16> {
+        self.sx_height
+    }
+    
+    pub fn s_cap_height(&self) -> Option<i16> {
+        self.s_cap_height
+    }
+    
+    pub fn us_default_char(&self) -> Option<u16> {
+        self.us_default_char
+    }
+    
+    pub fn us_break_char(&self) -> Option<u16>  {
+        self.us_break_char
+    }
+    
+    pub fn us_max_context(&self) -> Option<u16> {
+        self.us_max_context
+    }
+    
+    pub fn us_lower_optical_point_size(&self) -> Option<u16> {
+        self.us_lower_optical_point_size
+    }
+    
+    pub fn us_upper_optical_point_size(&self) -> Option<u16> {
+        self.us_upper_optical_point_size
+    }
 }
 
 pub struct PostTable {
-    pub version: u32,
-    pub italic_angle: i32,
-    pub underline_position: i16,
-    pub underline_thickness: i16,
-    pub is_fixed_pitch: u32,
-    pub min_mem_type_42: u32,
-    pub max_mem_type_42: u32,
-    pub min_mem_type_1: u32,
-    pub max_mem_type_1: u32,
-    pub num_glyphs: Option<u16>,
-    pub glyph_name_index: Option<Vec<u16>>,
-    pub names: Option<Vec<String>>
+    version: u32,
+    italic_angle: i32,
+    underline_position: i16,
+    underline_thickness: i16,
+    is_fixed_pitch: u32,
+    min_mem_type_42: u32,
+    max_mem_type_42: u32,
+    min_mem_type_1: u32,
+    max_mem_type_1: u32,
+    num_glyphs: Option<u16>,
+    glyph_name_index: Option<Vec<u16>>,
+    names: Option<Vec<String>>
+}
+
+impl PostTable {
+    pub(super) fn new(
+        version: u32,
+        italic_angle: i32,
+        underline_position: i16,
+        underline_thickness: i16,
+        is_fixed_pitch: u32,
+        min_mem_type_42: u32,
+        max_mem_type_42: u32,
+        min_mem_type_1: u32,
+        max_mem_type_1: u32,
+        num_glyphs: Option<u16>,
+        glyph_name_index: Option<Vec<u16>>,
+        names: Option<Vec<String>>
+    ) -> Self {
+        Self {
+            version,
+            italic_angle,
+            underline_position,
+            underline_thickness,
+            is_fixed_pitch,
+            min_mem_type_42,
+            max_mem_type_42,
+            min_mem_type_1,
+            max_mem_type_1,
+            num_glyphs,
+            glyph_name_index,
+            names
+        }
+    }
+    
+    pub fn () {
+        
+    }
 }
 
 pub struct VheaTable {

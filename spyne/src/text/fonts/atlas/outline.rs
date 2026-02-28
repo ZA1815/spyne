@@ -19,7 +19,7 @@ pub struct Point {
 
 // UNOPTIMIZED, BENCHMARK LATER AND SEE IF IT NEEDS TO BE OPTIMIZED
 
-pub fn create_outline(glyph: &Glyph, lookup: &[Glyph]) -> Vec<Vec<Segment>> {
+pub fn create_outline(glyph: &Glyph, lookup: &[Option<Glyph>]) -> Vec<Vec<Segment>> {
     match glyph {
         Glyph::Simple {
             end_pts_of_contours,
@@ -135,7 +135,7 @@ pub fn create_outline(glyph: &Glyph, lookup: &[Glyph]) -> Vec<Vec<Segment>> {
             components.iter()
                 .flat_map(|comp| {
                     let glyph = &lookup[comp.glyph_index as usize];
-                    let mut glyph_base = create_outline(glyph, lookup);
+                    let mut glyph_base = create_outline(glyph.as_ref().unwrap(), lookup);
                     let a: f32;
                     let b: f32;
                     let c: f32;

@@ -1,19 +1,67 @@
-struct Atlas {
-    pub texture: Vec<u8>,
-    pub lookup_table: Vec<Option<GlyphRegion>>,
-    pub algorithm: AtlasAlgorithm,
-    pub width: usize,
-    pub height: usize,
-    pub current_x: usize,
-    pub current_y: usize
+pub struct Atlas {
+    texture: Vec<u8>,
+    lookup_table: Vec<Option<GlyphRegion>>,
+    algorithm: AtlasAlgorithm,
+    width: usize,
+    height: usize,
+    current_x: usize,
+    current_y: usize
 }
 
-#[derive(Clone, Copy)]
-struct GlyphRegion {
-    pub x: usize,
-    pub y: usize,
-    pub width: usize,
-    pub height: usize
+impl Atlas {
+    pub fn texture(&self) -> &[u8] {
+        &self.texture
+    }
+    
+    pub fn lookup_table(&self) -> &[Option<GlyphRegion>] {
+        &self.lookup_table
+    }
+    
+    pub fn algorithm(&self) -> AtlasAlgorithm {
+        self.algorithm
+    }
+    
+    pub fn width(&self) -> usize {
+        self.width
+    }
+    
+    pub fn height(&self) -> usize {
+        self.height
+    }
+    
+    pub fn current_x(&self) -> usize {
+        self.current_x
+    }
+    
+    pub fn current_y(&self) -> usize {
+        self.current_y
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct GlyphRegion {
+    x: usize,
+    y: usize,
+    width: usize,
+    height: usize
+}
+
+impl GlyphRegion {
+    pub fn x(&self) -> usize {
+        self.x
+    }
+    
+    pub fn y(&self) -> usize {
+        self.y
+    }
+    
+    pub fn width(&self) -> usize {
+        self.width
+    }
+    
+    pub fn height(&self) -> usize {
+        self.height
+    }
 }
 
 impl Atlas {
@@ -88,6 +136,7 @@ impl Atlas {
     }
 }
 
+#[derive(Clone, Copy)]
 pub enum AtlasAlgorithm {
     ShelfPacker
     // MaxRects

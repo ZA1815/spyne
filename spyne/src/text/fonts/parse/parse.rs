@@ -52,7 +52,7 @@ impl FontFile {
         
         table_records.sort_by_key(|rec| rec.tag);
         
-        Ok(Self { file_type, bytes, table_records })
+        Ok(FontFile::new(file_type, bytes, table_records))
     }
     
     pub fn get_table(&self, tag: &[u8; 4]) -> Result<&[u8], Error> {
