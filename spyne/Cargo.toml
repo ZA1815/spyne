@@ -1,18 +1,25 @@
 [package]
 name = "spyne"
-version = "0.5.0"
+version = "0.6.0"
 edition = "2024"
 description = "All-in-one toolkit"
 license = "MIT"
 
 [dependencies]
-spyne-encoding = { path = "../spyne-encoding" }
+spyne-encoding = "0.1.0"
 spyne-ffi = "0.3.0"
-spyne-macros = { path = "../spyne-macros" }
+spyne-macros = "0.2.1"
 spyne-quote = "0.1.6"
 spyne-syntax = "0.1.3"
 
 [features]
+encoding = []
+encoding-transfer = ["encoding"]
+encoding-transfer-base64 = ["encoding-transfer"]
+encoding-serialization = ["encoding"]
+encoding-serialization-binary = ["encoding-serialization"]
+encoding-serialization-json = ["encoding-serialization"]
+
 ffi = []
 ffi-c = ["ffi"]
 ffi-c-linux = ["ffi-c"]

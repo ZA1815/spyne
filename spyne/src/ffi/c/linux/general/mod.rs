@@ -1,5 +1,5 @@
-// #[cfg(feature = "ffi-c-linux-general-constants")]
+#[cfg(feature = "ffi-c-linux-general-constants")]
 pub mod constants;
 
-// #[cfg(feature = "ffi-c-linux-general-syscalls")]
+#[cfg(feature = "ffi-c-linux-general-syscalls")]
 pub mod syscalls;

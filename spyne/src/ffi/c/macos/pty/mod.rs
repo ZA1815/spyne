@@ -1,8 +1,8 @@
-// #[cfg(feature = "ffi-c-macos-pty-constants")]
+#[cfg(feature = "ffi-c-macos-pty-constants")]
 pub mod constants;
 
-// #[cfg(feature = "ffi-c-macos-pty-operations")]
+#[cfg(feature = "ffi-c-macos-pty-operations")]
 pub mod operations;
 
-// #[cfg(feature = "ffi-c-macos-pty-syscalls")]
+#[cfg(feature = "ffi-c-macos-pty-syscalls")]
 pub mod syscalls;

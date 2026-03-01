@@ -1,8 +1,8 @@
-// #[cfg(feature = "ffi-c-macos-general")]
+#[cfg(feature = "ffi-c-macos-general")]
 pub mod general;
 
-// #[cfg(feature = "ffi-c-macos-kqueue")]
+#[cfg(feature = "ffi-c-macos-kqueue")]
 pub mod kqueue;
 
-// #[cfg(feature = "ffi-c-macos-pty")]
+#[cfg(feature = "ffi-c-macos-pty")]
 pub mod pty;

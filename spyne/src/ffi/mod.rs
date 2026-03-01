@@ -1,2 +1,2 @@
-// #[cfg(feature = "ffi-c")]
+#[cfg(feature = "ffi-c")]
 pub mod c;

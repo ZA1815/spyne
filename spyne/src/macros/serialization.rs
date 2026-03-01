@@ -1,1 +1,0 @@
-pub use spyne_macros::{Serialize, Deserialize};

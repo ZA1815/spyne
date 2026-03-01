@@ -1,2 +1,2 @@
-// #[cfg(feature = "text-buffers")]
+#[cfg(feature = "text-buffers")]
 pub mod buffers;
