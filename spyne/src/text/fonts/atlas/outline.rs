@@ -134,29 +134,29 @@ pub fn create_outline(glyph: &Glyph, lookup: &[Option<Glyph>]) -> Vec<Vec<Segmen
         } => {
             components.iter()
                 .flat_map(|comp| {
-                    let glyph = &lookup[comp.glyph_index as usize];
+                    let glyph = &lookup[comp.glyph_index() as usize];
                     let mut glyph_base = create_outline(glyph.as_ref().unwrap(), lookup);
                     let a: f32;
                     let b: f32;
                     let c: f32;
                     let d: f32;
-                    if comp.flags & WE_HAVE_A_SCALE != 0 {
-                        a = comp.transformation[0] as f32 / 16384.0;
+                    if comp.flags() & WE_HAVE_A_SCALE != 0 {
+                        a = comp.transformation()[0] as f32 / 16384.0;
                         b = 0.0;
                         c = 0.0;
                         d = a;
                     }
-                    else if comp.flags & WE_HAVE_AN_X_AND_Y_SCALE != 0 {
-                        a = comp.transformation[0] as f32 / 16384.0;
+                    else if comp.flags() & WE_HAVE_AN_X_AND_Y_SCALE != 0 {
+                        a = comp.transformation()[0] as f32 / 16384.0;
                         b = 0.0;
                         c = 0.0;
-                        d = comp.transformation[1] as f32 / 16384.0;
+                        d = comp.transformation()[1] as f32 / 16384.0;
                     }
-                    else if comp.flags & WE_HAVE_A_TWO_BY_TWO != 0 {
-                        a = comp.transformation[0] as f32 / 16384.0;
-                        b = comp.transformation[1] as f32 / 16384.0;
-                        c = comp.transformation[2] as f32 / 16384.0;
-                        d = comp.transformation[3] as f32 / 16384.0;
+                    else if comp.flags() & WE_HAVE_A_TWO_BY_TWO != 0 {
+                        a = comp.transformation()[0] as f32 / 16384.0;
+                        b = comp.transformation()[1] as f32 / 16384.0;
+                        c = comp.transformation()[2] as f32 / 16384.0;
+                        d = comp.transformation()[3] as f32 / 16384.0;
                     }
                     else {
                         a = 1.0;
@@ -169,9 +169,9 @@ pub fn create_outline(glyph: &Glyph, lookup: &[Option<Glyph>]) -> Vec<Vec<Segmen
                         let orig_y = point.y;
                         point.x = (orig_x as f32 * a + orig_y as f32 * c).round() as isize;
                         point.y = (orig_x as f32 * b + orig_y as f32 * d).round() as isize;
-                        if comp.flags & ARGS_ARE_XY_VALUES != 0 {
-                            point.x += comp.argument_1 as isize;
-                            point.y += comp.argument_2 as isize;
+                        if comp.flags() & ARGS_ARE_XY_VALUES != 0 {
+                            point.x += comp.argument_1() as isize;
+                            point.y += comp.argument_2() as isize;
                         }
                     };
                     glyph_base.iter_mut().flatten().for_each(|seg| {

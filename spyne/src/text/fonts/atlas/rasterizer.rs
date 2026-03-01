@@ -3,13 +3,13 @@ use crate::text::fonts::{atlas::outline::Segment, parse::structures::GlyphHeader
 // UNOPTIMIZED, BENCHMARK LATER AND SEE IF IT NEEDS TO BE OPTIMIZED
 
 pub fn rasterize(outline: Vec<Vec<Segment>>, glyph_header: GlyphHeader) -> Vec<Vec<u8>> {
-    let x_diff = (glyph_header.x_max - glyph_header.x_min) as usize;
-    let y_diff = (glyph_header.y_max - glyph_header.y_min) as usize;
+    let x_diff = (glyph_header.x_max() - glyph_header.x_min()) as usize;
+    let y_diff = (glyph_header.y_max() - glyph_header.y_min()) as usize;
     let mut bitmap = vec![vec![0; x_diff]; y_diff];
     bitmap.iter_mut().enumerate().for_each(|(row, row_vec)| {
         row_vec.iter_mut().enumerate().for_each(|(col, pixel)| {
-            let x_coord = (col as i16 + glyph_header.x_min) as isize;
-            let y_coord = (row as i16 + glyph_header.y_min) as isize;
+            let x_coord = (col as i16 + glyph_header.x_min()) as isize;
+            let y_coord = (row as i16 + glyph_header.y_min()) as isize;
             let mut num_intersections: usize = 0;
             outline.iter().flatten().for_each(|seg| {
                 match seg {
@@ -88,13 +88,7 @@ mod test {
                 )
             ]
         ];
-        let glyph_header = GlyphHeader {
-            number_of_contours: 1,
-            x_min: 0,
-            y_min: -20,
-            x_max: 10,
-            y_max: 20
-        };
+        let glyph_header = GlyphHeader::new(1, 0, -20, 10, 20);
         let bitmap = rasterize(outline, glyph_header);
         assert_eq!(bitmap[17][4], 255);
         assert_eq!(bitmap[12][7], 255);

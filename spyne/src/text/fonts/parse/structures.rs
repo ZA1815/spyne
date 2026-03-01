@@ -45,8 +45,8 @@ impl TableRecord {
         Self { tag, checksum, offset, length }
     }
     
-    pub fn tag(&self) -> &[u8; 4] {
-        &self.tag
+    pub fn tag(&self) -> [u8; 4] {
+        self.tag
     }
     
     pub fn checksum(&self) -> u32 {
@@ -486,8 +486,8 @@ impl VariationSelectorRecord {
         }
     }
     
-    pub fn var_selector(&self) -> &[u8; 3] {
-        &self.var_selector
+    pub fn var_selector(&self) -> [u8; 3] {
+        self.var_selector
     }
     
     pub fn default_uvs_offset(&self) -> u32 {
@@ -528,7 +528,7 @@ pub struct GlyphHeader {
 }
 
 impl GlyphHeader {
-    pub(super) fn new(
+    pub(crate) fn new(
         number_of_contours: i16,
         x_min: i16,
         y_min: i16,
@@ -607,8 +607,8 @@ impl Component {
         self.argument_2
     }
     
-    pub fn transformation(&self) -> &[i16; 4] {
-        &self.transformation
+    pub fn transformation(&self) -> [i16; 4] {
+        self.transformation
     }
 }
 
@@ -1098,8 +1098,8 @@ impl OS2Table {
         self.s_family_class
     }
     
-    pub fn panose(&self) -> &[u8; 10] {
-        &self.panose
+    pub fn panose(&self) -> [u8; 10] {
+        self.panose
     }
     
     pub fn ul_unicode_range_1(&self) -> u32 {
@@ -1118,8 +1118,8 @@ impl OS2Table {
         self.ul_unicode_range_4
     }
     
-    pub fn ach_vend_id(&self) -> &[u8; 4] {
-        &self.ach_vend_id
+    pub fn ach_vend_id(&self) -> [u8; 4] {
+        self.ach_vend_id
     }
     
     pub fn fs_selection(&self) -> u16 {
@@ -1237,34 +1237,192 @@ impl PostTable {
         }
     }
     
-    pub fn () {
-        
+    pub fn version(&self) -> u32 {
+        self.version
+    }
+    
+    pub fn italic_angle(&self) -> i32 {
+        self.italic_angle
+    }
+    
+    pub fn underline_position(&self) -> i16 {
+        self.underline_position
+    }
+    
+    pub fn underline_thickness(&self) -> i16 {
+        self.underline_thickness
+    }
+    
+    pub fn is_fixed_pitch(&self) -> u32 {
+        self.is_fixed_pitch
+    }
+    
+    pub fn min_mem_type_42(&self) -> u32 {
+        self.min_mem_type_42
+    }
+    
+    pub fn max_mem_type_42(&self) -> u32 {
+        self.max_mem_type_42
+    }
+    
+    pub fn min_mem_type_1(&self) -> u32 {
+        self.min_mem_type_1
+    }
+    
+    pub fn max_mem_type_1(&self) -> u32 {
+        self.max_mem_type_1
+    }
+    
+    pub fn num_glyphs(&self) -> Option<u16> {
+        self.num_glyphs
+    }
+    
+    pub fn glyph_name_index(&self) -> Option<&[u16]> {
+        self.glyph_name_index.as_deref()
+    }
+    
+    pub fn names(&self) -> Option<&[String]> {
+        self.names.as_deref()
     }
 }
 
 pub struct VheaTable {
-    pub version: u32,
-    pub vert_typo_ascender: i16,
-    pub vert_typo_descender: i16,
-    pub vert_typo_line_gap: i16,
-    pub advance_height_max: u16,
-    pub min_top_side_bearing: i16,
-    pub min_bottom_side_bearing: i16,
-    pub y_max_extent: i16,
-    pub caret_slope_rise: i16,
-    pub caret_slope_run: i16,
-    pub caret_offset: i16,
-    pub _reserved1: i16,
-    pub _reserved2: i16,
-    pub _reserved3: i16,
-    pub _reserved4: i16,
-    pub metric_data_format: i16,
-    pub num_of_long_ver_metrics: u16
+    version: u32,
+    vert_typo_ascender: i16,
+    vert_typo_descender: i16,
+    vert_typo_line_gap: i16,
+    advance_height_max: u16,
+    min_top_side_bearing: i16,
+    min_bottom_side_bearing: i16,
+    y_max_extent: i16,
+    caret_slope_rise: i16,
+    caret_slope_run: i16,
+    caret_offset: i16,
+    _reserved1: i16,
+    _reserved2: i16,
+    _reserved3: i16,
+    _reserved4: i16,
+    metric_data_format: i16,
+    num_of_long_ver_metrics: u16
+}
+
+impl VheaTable {
+    pub(super) fn new(
+        version: u32,
+        vert_typo_ascender: i16,
+        vert_typo_descender: i16,
+        vert_typo_line_gap: i16,
+        advance_height_max: u16,
+        min_top_side_bearing: i16,
+        min_bottom_side_bearing: i16,
+        y_max_extent: i16,
+        caret_slope_rise: i16,
+        caret_slope_run: i16,
+        caret_offset: i16,
+        _reserved1: i16,
+        _reserved2: i16,
+        _reserved3: i16,
+        _reserved4: i16,
+        metric_data_format: i16,
+        num_of_long_ver_metrics: u16
+    ) -> Self {
+        Self {
+            version,
+            vert_typo_ascender,
+            vert_typo_descender,
+            vert_typo_line_gap,
+            advance_height_max,
+            min_top_side_bearing,
+            min_bottom_side_bearing,
+            y_max_extent,
+            caret_slope_rise,
+            caret_slope_run,
+            caret_offset,
+            _reserved1,
+            _reserved2,
+            _reserved3,
+            _reserved4,
+            metric_data_format,
+            num_of_long_ver_metrics
+        }
+    }
+    
+    pub fn version(&self) -> u32 {
+        self.version
+    }
+    
+    pub fn vert_typo_ascender(&self) -> i16 {
+        self.vert_typo_ascender
+    }
+    
+    pub fn vert_typo_descender(&self) -> i16 {
+        self.vert_typo_descender
+    }
+    
+    pub fn vert_typo_line_gap(&self) -> i16 {
+        self.vert_typo_line_gap
+    }
+    
+    pub fn advance_height_max(&self) -> u16 {
+        self.advance_height_max
+    }
+    
+    pub fn min_top_side_bearing(&self) -> i16 {
+        self.min_top_side_bearing
+    }
+    
+    pub fn min_bottom_side_bearing(&self) -> i16 {
+        self.min_bottom_side_bearing
+    }
+    
+    pub fn y_max_extent(&self) -> i16 {
+        self.y_max_extent
+    }
+    
+    pub fn caret_slope_rise(&self) -> i16 {
+        self.caret_slope_rise
+    }
+    
+    pub fn caret_slope_run(&self) -> i16 {
+        self.caret_slope_run
+    }
+    
+    pub fn caret_offset(&self) -> i16 {
+        self.caret_offset
+    }
+    
+    pub fn metric_data_format(&self) -> i16 {
+        self.metric_data_format
+    }
+    
+    pub fn num_of_long_ver_metrics(&self) -> u16 {
+        self.num_of_long_ver_metrics
+    }
 }
 
 pub struct VmtxTable {
-    pub entries: Vec<VmtxEntry>,
-    pub shared_advance_height: u16
+    entries: Vec<VmtxEntry>,
+    shared_advance_height: u16
+}
+
+impl VmtxTable {
+    pub(super) fn new(
+        entries: Vec<VmtxEntry>,
+        shared_advance_height: u16
+    ) -> Self {
+        Self {
+            entries,
+            shared_advance_height
+        }
+    }
+    
+    pub fn entries(&self) -> &[VmtxEntry] {
+        &self.entries
+    }
+    
+    pub fn shared_advance_height(&self) -> u16 {
+        self.shared_advance_height
+    }
 }
 
 pub enum VmtxEntry {
@@ -1289,17 +1447,81 @@ pub enum KernTable {
 }
 
 pub struct WindowsSubtable {
-    pub version: u16,
-    pub length: u16,
-    pub coverage: u16,
-    pub subtable: KernSubtable
+    version: u16,
+    length: u16,
+    coverage: u16,
+    subtable: KernSubtable
+}
+
+impl WindowsSubtable {
+    pub(super) fn new(
+        version: u16,
+        length: u16,
+        coverage: u16,
+        subtable: KernSubtable
+    ) -> Self {
+        Self {
+            version,
+            length,
+            coverage,
+            subtable
+        }
+    }
+    
+    pub fn version(&self) -> u16 {
+        self.version
+    }
+    
+    pub fn length(&self) -> u16 {
+        self.length
+    }
+    
+    pub fn coverage(&self) -> u16 {
+        self.coverage
+    }
+    
+    pub fn subtable(&self) -> &KernSubtable {
+        &self.subtable
+    }
 }
 
 pub struct MacSubtable {
-    pub length: u32,
-    pub coverage: u16,
-    pub tuple_index: u16,
-    pub subtable: KernSubtable
+    length: u32,
+    coverage: u16,
+    tuple_index: u16,
+    subtable: KernSubtable
+}
+
+impl MacSubtable {
+    pub(super) fn new(
+        length: u32,
+        coverage: u16,
+        tuple_index: u16,
+        subtable: KernSubtable
+    ) -> Self {
+        Self {
+            length,
+            coverage,
+            tuple_index,
+            subtable
+        }
+    }
+    
+    pub fn length(&self) -> u32 {
+        self.length
+    }
+    
+    pub fn coverage(&self) -> u16 {
+        self.coverage
+    }
+    
+    pub fn tuple_index(&self) -> u16 {
+        self.tuple_index
+    }
+    
+    pub fn subtable(&self) -> &KernSubtable {
+        &self.subtable
+    }
 }
 
 pub enum KernSubtable {
@@ -1322,9 +1544,35 @@ pub enum KernSubtable {
 }
 
 pub struct KernPair {
-    pub left: u16,
-    pub right: u16,
-    pub value: i16
+    left: u16,
+    right: u16,
+    value: i16
+}
+
+impl KernPair {
+    pub(super) fn new(
+        left: u16,
+        right: u16,
+        value: i16
+    ) -> Self {
+        Self {
+            left,
+            right,
+            value
+        }
+    }
+    
+    pub fn left(&self) -> u16 {
+        self.left
+    }
+    
+    pub fn right(&self) -> u16 {
+        self.right
+    }
+    
+    pub fn value(&self) -> i16 {
+        self.value
+    }
 }
 
 pub enum KernClassTable {
@@ -1340,100 +1588,503 @@ pub enum KernClassTable {
 }
 
 pub struct Range {
-    pub start_glyph: u16,
-    pub end_glyph: u16,
-    pub class: u16
+    start_glyph: u16,
+    end_glyph: u16,
+    class: u16
+}
+
+impl Range {
+    pub(super) fn new(
+        start_glyph: u16,
+        end_glyph: u16,
+        class: u16
+    ) -> Self {
+        Self {
+            start_glyph,
+            end_glyph,
+            class
+        }
+    }
+    
+    pub fn start_glyph(&self) -> u16 {
+        self.start_glyph
+    }
+    
+    pub fn end_glyph(&self) -> u16 {
+        self.end_glyph
+    }
+    
+    pub fn class(&self) -> u16 {
+        self.class
+    }
 }
 
 pub struct GaspTable {
-    pub version: u16,
-    pub num_ranges: u16,
-    pub range_records: Vec<GaspRangeRecord>
+    version: u16,
+    num_ranges: u16,
+    range_records: Vec<GaspRangeRecord>
+}
+
+impl GaspTable {
+    pub(super) fn new(
+        version: u16,
+        num_ranges: u16,
+        range_records: Vec<GaspRangeRecord>
+    ) -> Self {
+        Self {
+            version,
+            num_ranges,
+            range_records
+        }
+    }
+    
+    pub fn version(&self) -> u16 {
+        self.version
+    }
+    
+    pub fn num_ranges(&self) -> u16 {
+        self.num_ranges
+    }
+    
+    pub fn range_records(&self) -> &[GaspRangeRecord] {
+        &self.range_records
+    }
 }
 
 pub struct GaspRangeRecord {
-    pub range_max_ppem: u16,
-    pub range_gasp_behavior: u16
+    range_max_ppem: u16,
+    range_gasp_behavior: u16
+}
+
+impl GaspRangeRecord {
+    pub(super) fn new(
+        range_max_ppem: u16,
+        range_gasp_behavior: u16
+    ) -> Self {
+        Self {
+            range_max_ppem,
+            range_gasp_behavior
+        }
+    }
+    
+    pub fn range_max_ppem(&self) -> u16 {
+        self.range_max_ppem
+    }
+    
+    pub fn range_gasp_behavior(&self) -> u16 {
+        self.range_gasp_behavior
+    }
 }
 
 pub struct GposTable<GposSubtable> {
-    pub header: TableHeader,
-    pub script_list: ScriptList,
-    pub feature_list: FeatureList,
-    pub lookup_list: LookupList<GposSubtable>,
-    pub feature_variations: Option<FeatureVariations>
+    header: TableHeader,
+    script_list: ScriptList,
+    feature_list: FeatureList,
+    lookup_list: LookupList<GposSubtable>,
+    feature_variations: Option<FeatureVariations>
+}
+
+impl GposTable<GposSubtable> {
+    pub(super) fn new(
+        header: TableHeader,
+        script_list: ScriptList,
+        feature_list: FeatureList,
+        lookup_list: LookupList<GposSubtable>,
+        feature_variations: Option<FeatureVariations>
+    ) -> Self {
+        Self {
+            header,
+            script_list,
+            feature_list,
+            lookup_list,
+            feature_variations
+        }
+    }
+    
+    pub fn header(&self) -> TableHeader {
+        self.header
+    }
+    
+    pub fn script_list(&self) -> &ScriptList {
+        &self.script_list
+    }
+    
+    pub fn feature_list(&self) -> &FeatureList {
+        &self.feature_list
+    }
+    
+    pub fn lookup_list(&self) -> &LookupList<GposSubtable> {
+        &self.lookup_list
+    }
+    
+    pub fn feature_variations(&self) -> Option<&FeatureVariations> {
+        self.feature_variations.as_ref()
+    }
 }
 
 pub struct GsubTable<GsubSubtable> {
-    pub header: TableHeader,
-    pub script_list: ScriptList,
-    pub feature_list: FeatureList,
-    pub lookup_list: LookupList<GsubSubtable>,
-    pub feature_variations: Option<FeatureVariations>
+    header: TableHeader,
+    script_list: ScriptList,
+    feature_list: FeatureList,
+    lookup_list: LookupList<GsubSubtable>,
+    feature_variations: Option<FeatureVariations>
 }
 
+impl GsubTable<GsubSubtable> {
+    pub fn new(
+        header: TableHeader,
+        script_list: ScriptList,
+        feature_list: FeatureList,
+        lookup_list: LookupList<GsubSubtable>,
+        feature_variations: Option<FeatureVariations>
+    ) -> Self {
+        Self {
+            header,
+            script_list,
+            feature_list,
+            lookup_list,
+            feature_variations
+        }
+    }
+    
+    pub fn header(&self) -> &TableHeader {
+        &self.header
+    }
+    
+    pub fn script_list(&self) -> &ScriptList {
+        &self.script_list
+    }
+    
+    pub fn feature_list(&self) -> &FeatureList {
+        &self.feature_list
+    }
+    
+    pub fn lookup_list(&self) -> &LookupList<GsubSubtable> {
+        &self.lookup_list
+    }
+    
+    pub fn feature_variations(&self) -> Option<&FeatureVariations> {
+        self.feature_variations.as_ref()
+    }
+}
+
+#[derive(Clone, Copy)]
 pub struct TableHeader {
-    pub major_version: u16,
-    pub minor_version: u16,
-    pub script_list_offset: u16,
-    pub feature_list_offset: u16,
-    pub lookup_list_offset: u16,
-    pub feature_variations_offset: Option<u32>
+    major_version: u16,
+    minor_version: u16,
+    script_list_offset: u16,
+    feature_list_offset: u16,
+    lookup_list_offset: u16,
+    feature_variations_offset: Option<u32>
+}
+
+impl TableHeader {
+    pub fn new(
+        major_version: u16,
+        minor_version: u16,
+        script_list_offset: u16,
+        feature_list_offset: u16,
+        lookup_list_offset: u16,
+        feature_variations_offset: Option<u32>
+    ) -> Self {
+        TableHeader {
+            major_version,
+            minor_version,
+            script_list_offset,
+            feature_list_offset,
+            lookup_list_offset,
+            feature_variations_offset,
+        }
+    }
+    
+    pub fn major_version(&self) -> u16 {
+        self.major_version
+    }
+    
+    pub fn minor_version(&self) -> u16 {
+        self.minor_version
+    }
+    
+    pub fn script_list_offset(&self) -> u16 {
+        self.script_list_offset
+    }
+    
+    pub fn feature_list_offset(&self) -> u16 {
+        self.feature_list_offset
+    }
+    
+    pub fn lookup_list_offset(&self) -> u16 {
+        self.lookup_list_offset
+    }
+    
+    pub fn feature_variations_offset(&self) -> Option<u32> {
+        self.feature_variations_offset
+    }
 }
 
 pub struct ScriptList {
-    pub script_count: u16,
-    pub script_records: Vec<ScriptRecord>,
-    pub scripts: Vec<Script>
+    script_count: u16,
+    script_records: Vec<ScriptRecord>,
+    scripts: Vec<Script>
+}
+
+impl ScriptList {
+    pub fn new(
+        script_count: u16,
+        script_records: Vec<ScriptRecord>,
+        scripts: Vec<Script>
+    ) -> Self {
+        Self {
+            script_count,
+            script_records,
+            scripts,
+        }
+    }
+    
+    pub fn script_count(&self) -> u16 {
+        self.script_count
+    }
+    
+    pub fn script_records(&self) -> &[ScriptRecord] {
+        &self.script_records
+    }
+    
+    pub fn scripts(&self) -> &[Script] {
+        &self.scripts
+    }
 }
 
 pub struct ScriptRecord {
-    pub script_tag: [u8; 4],
-    pub script_offset: u16
+    script_tag: [u8; 4],
+    script_offset: u16
+}
+
+impl ScriptRecord {
+    pub fn new(
+        script_tag: [u8; 4],
+        script_offset: u16
+    ) -> Self {
+        Self {
+            script_tag,
+            script_offset,
+        }
+    }
+    
+    pub fn script_tag(&self) -> [u8; 4] {
+        self.script_tag
+    }
+    
+    pub fn script_offset(&self) -> u16 {
+        self.script_offset
+    }
 }
 
 pub struct Script {
-    pub default_lang_sys_offset: Option<u16>,
-    pub default_lang_sys: Option<LangSys>,
-    pub lang_sys_count: u16,
-    pub lang_sys_records: Vec<LangSysRecord>,
-    pub lang_syses: Vec<LangSys>
+    default_lang_sys_offset: Option<u16>,
+    default_lang_sys: Option<LangSys>,
+    lang_sys_count: u16,
+    lang_sys_records: Vec<LangSysRecord>,
+    lang_syses: Vec<LangSys>
+}
+
+impl Script {
+    pub fn new(
+        default_lang_sys_offset: Option<u16>,
+        default_lang_sys: Option<LangSys>,
+        lang_sys_count: u16,
+        lang_sys_records: Vec<LangSysRecord>,
+        lang_syses: Vec<LangSys>
+    ) -> Self {
+        Self {
+            default_lang_sys_offset,
+            default_lang_sys,
+            lang_sys_count,
+            lang_sys_records,
+            lang_syses,
+        }
+    }
+    
+    pub fn default_lang_sys_offset(&self) -> Option<u16> {
+        self.default_lang_sys_offset
+    }
+    
+    pub fn default_lang_sys(&self) -> Option<&LangSys> {
+        self.default_lang_sys.as_ref()
+    }
+    
+    pub fn lang_sys_count(&self) -> u16 {
+        self.lang_sys_count
+    }
+    
+    pub fn lang_sys_records(&self) -> &[LangSysRecord] {
+        &self.lang_sys_records
+    }
+    
+    pub fn lang_syses(&self) -> &[LangSys] {
+        &self.lang_syses
+    }
 }
 
 pub struct LangSysRecord {
-    pub lang_sys_tag: [u8; 4],
-    pub lang_sys_offset: u16,
+    lang_sys_tag: [u8; 4],
+    lang_sys_offset: u16,
+}
+
+impl LangSysRecord {
+    pub fn new(
+        lang_sys_tag: [u8; 4],
+        lang_sys_offset: u16
+    ) -> Self {
+        Self {
+            lang_sys_tag,
+            lang_sys_offset,
+        }
+    }
+    
+    pub fn lang_sys_tag(&self) -> [u8; 4] {
+        self.lang_sys_tag
+    }
+    
+    pub fn lang_sys_offset(&self) -> u16 {
+        self.lang_sys_offset
+    }
 }
 
 pub struct LangSys {
-    pub _lookup_order_offset: u16,
-    pub required_feature_index: u16,
-    pub feature_index_count: u16,
-    pub feature_indices: Vec<u16>
+    _lookup_order_offset: u16,
+    required_feature_index: u16,
+    feature_index_count: u16,
+    feature_indices: Vec<u16>
+}
+
+impl LangSys {
+    pub fn new(
+        _lookup_order_offset: u16,
+        required_feature_index: u16,
+        feature_index_count: u16,
+        feature_indices: Vec<u16>
+    ) -> Self {
+        Self {
+            _lookup_order_offset,
+            required_feature_index,
+            feature_index_count,
+            feature_indices,
+        }
+    }
+    
+    pub fn required_feature_index(&self) -> u16 {
+        self.required_feature_index
+    }
+    
+    pub fn feature_index_count(&self) -> u16 {
+        self.feature_index_count
+    }
+    
+    pub fn feature_indices(&self) -> &[u16] {
+        &self.feature_indices
+    }
 }
 
 #[derive(Clone)]
 pub struct FeatureList {
-    pub feature_count: u16,
-    pub feature_records: Vec<FeatureRecord>,
-    pub features: Vec<Feature>
+    feature_count: u16,
+    feature_records: Vec<FeatureRecord>,
+    features: Vec<Feature>
+}
+
+impl FeatureList {
+    pub fn new(
+        feature_count: u16,
+        feature_records: Vec<FeatureRecord>,
+        features: Vec<Feature>
+    ) -> Self {
+        Self {
+            feature_count,
+            feature_records,
+            features,
+        }
+    }
+    
+    pub fn feature_count(&self) -> u16 {
+        self.feature_count
+    }
+    
+    pub fn feature_records(&self) -> &[FeatureRecord] {
+        &self.feature_records
+    }
+    
+    pub fn features(&self) -> &[Feature] {
+        &self.features
+    }
 }
 
 #[derive(Clone)]
 pub struct FeatureRecord {
-    pub feature_tag: [u8; 4],
-    pub feature_offset: u16
+    feature_tag: [u8; 4],
+    feature_offset: u16
+}
+
+impl FeatureRecord {
+    pub fn new(
+        feature_tag: [u8; 4],
+        feature_offset: u16
+    ) -> Self {
+        Self {
+            feature_tag,
+            feature_offset,
+        }
+    }
+    
+    pub fn feature_tag(&self) -> [u8; 4] {
+        self.feature_tag
+    }
+    
+    pub fn feature_offset(&self) -> u16 {
+        self.feature_offset
+    }
 }
 
 #[derive(Clone)]
 pub struct Feature {
-    pub feature_params_offset: Option<u16>,
-    pub feature_params: Option<FeatureParams>,
-    pub lookup_index_count: u16,
-    pub lookup_list_indices: Vec<u16>
+    feature_params_offset: Option<u16>,
+    feature_params: Option<FeatureParams>,
+    lookup_index_count: u16,
+    lookup_list_indices: Vec<u16>
 }
 
-#[derive(Clone)]
+impl Feature {
+    pub fn new(
+        feature_params_offset: Option<u16>,
+        feature_params: Option<FeatureParams>,
+        lookup_index_count: u16,
+        lookup_list_indices: Vec<u16>
+    ) -> Self {
+        Self {
+            feature_params_offset,
+            feature_params,
+            lookup_index_count,
+            lookup_list_indices,
+        }
+    }
+    
+    pub fn feature_params_offset(&self) -> Option<u16> {
+        self.feature_params_offset
+    }
+    
+    pub fn feature_params(&self) -> Option<FeatureParams> {
+        self.feature_params
+    }
+    
+    pub fn lookup_index_count(&self) -> u16 {
+        self.lookup_index_count
+    }
+    
+    pub fn lookup_list_indices(&self) -> &[u16] {
+        &self.lookup_list_indices
+    }
+}
+
+#[derive(Clone, Copy)]
 pub enum FeatureParams {
     Size {
         design_size: u16,
@@ -1459,38 +2110,198 @@ pub enum FeatureParams {
 }
 
 pub struct LookupList<T> {
-    pub lookup_count: u16,
-    pub lookup_offsets: Vec<u16>,
-    pub lookups: Vec<Lookup<T>>
+    lookup_count: u16,
+    lookup_offsets: Vec<u16>,
+    lookups: Vec<Lookup<T>>
+}
+
+impl<T> LookupList<T> {
+    pub fn new(
+        lookup_count: u16,
+        lookup_offsets: Vec<u16>,
+        lookups: Vec<Lookup<T>>
+    ) -> Self {
+        Self {
+            lookup_count,
+            lookup_offsets,
+            lookups,
+        }
+    }
+    
+    pub fn lookup_count(&self) -> u16 {
+        self.lookup_count
+    }
+    
+    pub fn lookup_offsets(&self) -> &[u16] {
+        &self.lookup_offsets
+    }
+    
+    pub fn lookups(&self) -> &[Lookup<T>] {
+        &self.lookups
+    }
 }
 
 pub struct Lookup<T> {
-    pub lookup_type: u16,
-    pub lookup_flag: u16,
-    pub subtable_count: u16,
-    pub subtable_offsets: Vec<u16>,
-    pub subtables: Vec<T>,
-    pub mark_filtering_set: Option<u16>
+    lookup_type: u16,
+    lookup_flag: u16,
+    subtable_count: u16,
+    subtable_offsets: Vec<u16>,
+    subtables: Vec<T>,
+    mark_filtering_set: Option<u16>
+}
+
+impl<T> Lookup<T> {
+    pub fn new(
+        lookup_type: u16,
+        lookup_flag: u16,
+        subtable_count: u16,
+        subtable_offsets: Vec<u16>,
+        subtables: Vec<T>,
+        mark_filtering_set: Option<u16>
+    ) -> Self {
+        Self {
+            lookup_type,
+            lookup_flag,
+            subtable_count,
+            subtable_offsets,
+            subtables,
+            mark_filtering_set
+        }
+    }
+    
+    pub fn lookup_type(&self) -> u16 {
+        self.lookup_type
+    }
+    
+    pub fn lookup_flag(&self) -> u16 {
+        self.lookup_flag
+    }
+    
+    pub fn subtable_count(&self) -> u16 {
+        self.subtable_count
+    }
+    
+    pub fn subtable_offsets(&self) -> &[u16] {
+        &self.subtable_offsets
+    }
+    
+    pub fn subtables(&self) -> &[T] {
+        &self.subtables
+    }
+    
+    pub fn mark_filtering_set(&self) -> Option<u16> {
+        self.mark_filtering_set
+    }
 }
 
 pub struct FeatureVariations {
-    pub major_version: u16,
-    pub minor_version: u16,
-    pub feature_variation_record_count: u32,
-    pub feature_variation_records: Vec<FeatureVariationRecord>
+    major_version: u16,
+    minor_version: u16,
+    feature_variation_record_count: u32,
+    feature_variation_records: Vec<FeatureVariationRecord>
+}
+
+impl FeatureVariations {
+    pub fn new(
+        major_version: u16,
+        minor_version: u16,
+        feature_variation_record_count: u32,
+        feature_variation_records: Vec<FeatureVariationRecord>
+    ) -> Self {
+        Self {
+            major_version,
+            minor_version,
+            feature_variation_record_count,
+            feature_variation_records
+        }
+    }
+    
+    pub fn major_version(&self) -> u16 {
+        self.major_version
+    }
+    
+    pub fn minor_version(&self) -> u16 {
+        self.minor_version
+    }
+    
+    pub fn feature_variation_record_count(&self) -> u32 {
+        self.feature_variation_record_count
+    }
+    
+    pub fn feature_variation_records(&self) -> &[FeatureVariationRecord] {
+        &self.feature_variation_records
+    }
 }
 
 pub struct FeatureVariationRecord {
-    pub condition_set_offset: u32,
-    pub condition_set: ConditionSet,
-    pub feature_table_substitution_offset: u32,
-    pub feature_table_substitution: FeatureTableSubstitution
+    condition_set_offset: u32,
+    condition_set: ConditionSet,
+    feature_table_substitution_offset: u32,
+    feature_table_substitution: FeatureTableSubstitution
+}
+
+impl FeatureVariationRecord {
+    pub(super) fn new(
+        condition_set_offset: u32,
+        condition_set: ConditionSet,
+        feature_table_substitution_offset: u32,
+        feature_table_substitution: FeatureTableSubstitution
+    ) -> Self {
+        Self {
+            condition_set_offset,
+            condition_set,
+            feature_table_substitution_offset,
+            feature_table_substitution
+        }
+    }
+    
+    pub fn condition_set_offset(&self) -> u32 {
+        self.condition_set_offset
+    }
+    
+    pub fn condition_set(&self) -> &ConditionSet {
+        &self.condition_set
+    }
+    
+    pub fn feature_table_substitution_offset(&self) -> u32 {
+        self.feature_table_substitution_offset
+    }
+    
+    pub fn feature_table_substitution(&self) -> &FeatureTableSubstitution {
+        &self.feature_table_substitution
+    }
 }
 
 pub struct ConditionSet {
-    pub condition_count: u16,
-    pub condition_offsets: Vec<u32>,
-    pub conditions: Vec<Condition>
+    condition_count: u16,
+    condition_offsets: Vec<u32>,
+    conditions: Vec<Condition>
+}
+
+impl ConditionSet {
+    pub(super) fn new(
+        condition_count: u16,
+        condition_offsets: Vec<u32>,
+        conditions: Vec<Condition>
+    ) -> Self {
+        Self {
+            condition_count,
+            condition_offsets,
+            conditions
+        }
+    }
+    
+    pub fn condition_count(&self) -> u16 {
+        self.condition_count
+    }
+    
+    pub fn condition_offsets(&self) -> &[u32] {
+        &self.condition_offsets
+    }
+    
+    pub fn conditions(&self) -> &[Condition] {
+        &self.conditions
+    }
 }
 
 pub enum Condition {
@@ -1502,16 +2313,74 @@ pub enum Condition {
 }
 
 pub struct FeatureTableSubstitution {
-    pub major_version: u16,
-    pub minor_version: u16,
-    pub substitution_count: u16,
-    pub substitution_records: Vec<FeatureTableSubstitutionRecord>
+    major_version: u16,
+    minor_version: u16,
+    substitution_count: u16,
+    substitution_records: Vec<FeatureTableSubstitutionRecord>
+}
+
+impl FeatureTableSubstitution {
+    pub(super) fn new(
+        major_version: u16,
+        minor_version: u16,
+        substitution_count: u16,
+        substitution_records: Vec<FeatureTableSubstitutionRecord>
+    ) -> Self {
+        Self {
+            major_version,
+            minor_version,
+            substitution_count,
+            substitution_records
+        }
+    }
+    
+    pub fn major_version(&self) -> u16 {
+        self.major_version
+    }
+    
+    pub fn minor_version(&self) -> u16 {
+        self.minor_version
+    }
+    
+    pub fn substitution_count(&self) -> u16 {
+        self.substitution_count
+    }
+    
+    pub fn substitution_records(&self) -> &[FeatureTableSubstitutionRecord] {
+        &self.substitution_records
+    }
 }
 
 pub struct FeatureTableSubstitutionRecord {
-    pub feature_index: u16,
-    pub alternate_feature_table_offset: u32,
-    pub alternate_feature_table: Feature
+    feature_index: u16,
+    alternate_feature_table_offset: u32,
+    alternate_feature_table: Feature
+}
+
+impl FeatureTableSubstitutionRecord {
+    pub(super) fn new(
+        feature_index: u16,
+        alternate_feature_table_offset: u32,
+        alternate_feature_table: Feature
+    ) -> Self {
+        Self {
+            feature_index,
+            alternate_feature_table_offset,
+            alternate_feature_table
+        }
+    }
+    
+    pub fn feature_index(&self) -> u16 {
+        self.feature_index
+    }
+    
+    pub fn alternate_feature_table_offset(&self) -> u32 {
+        self.alternate_feature_table_offset
+    }
+    
+    pub fn alternate_feature_table(&self) -> &Feature {
+        &self.alternate_feature_table
+    }
 }
 
 pub enum Coverage {
@@ -1526,9 +2395,35 @@ pub enum Coverage {
 }
 
 pub struct CoverageRangeRecord {
-    pub start_glyph_id: u16,
-    pub end_glyph_id: u16,
-    pub start_coverage_index: u16
+    start_glyph_id: u16,
+    end_glyph_id: u16,
+    start_coverage_index: u16
+}
+
+impl CoverageRangeRecord {
+    pub(super) fn new(
+        start_glyph_id: u16,
+        end_glyph_id: u16,
+        start_coverage_index: u16
+    ) -> Self {
+        Self {
+            start_glyph_id,
+            end_glyph_id,
+            start_coverage_index
+        }
+    }
+    
+    pub fn start_glyph_id(&self) -> u16 {
+        self.start_glyph_id
+    }
+    
+    pub fn end_glyph_id(&self) -> u16 {
+        self.end_glyph_id
+    }
+    
+    pub fn start_coverage_index(&self) -> u16 {
+        self.start_coverage_index
+    }
 }
 
 pub enum ClassDef {
@@ -1544,37 +2439,206 @@ pub enum ClassDef {
 }
 
 pub struct ClassRangeRecord {
-    pub start_glyph_id: u16,
-    pub end_glyph_id: u16,
-    pub class: u16
+    start_glyph_id: u16,
+    end_glyph_id: u16,
+    class: u16
+}
+
+impl ClassRangeRecord {
+    pub(super) fn new(
+        start_glyph_id: u16,
+        end_glyph_id: u16,
+        class: u16
+    ) -> Self {
+        Self {
+            start_glyph_id,
+            end_glyph_id,
+            class
+        }
+    }
+    
+    pub fn start_glyph_id(&self) -> u16 {
+        self.start_glyph_id
+    }
+    
+    pub fn end_glyph_id(&self) -> u16 {
+        self.end_glyph_id
+    }
+    
+    pub fn class(&self) -> u16 {
+        self.class
+    }
+}
+
+pub enum DeviceOrVariationIndex {
+    Device(Device),
+    VariationIndex(VariationIndex)
 }
 
 pub struct Device {
-    pub start_size: u16,
-    pub end_size: u16,
-    pub delta_format: u16,
-    pub delta_values: Vec<u16>
+    start_size: u16,
+    end_size: u16,
+    delta_format: u16,
+    delta_values: Vec<u16>
 }
 
-pub struct VariationIndexTable {
-    pub delta_set_outer_index: u16,
-    pub delta_set_inner_index: u16,
-    pub delta_format: u16
+impl Device {
+    pub(super) fn new(
+        start_size: u16,
+        end_size: u16,
+        delta_format: u16,
+        delta_values: Vec<u16>
+    ) -> Self {
+        Self {
+            start_size,
+            end_size,
+            delta_format,
+            delta_values
+        }
+    }
+    
+    pub fn start_size(&self) -> u16 {
+        self.start_size
+    }
+    
+    pub fn end_size(&self) -> u16 {
+        self.end_size
+    }
+    
+    pub fn delta_format(&self) -> u16 {
+        self.delta_format
+    }
+    
+    pub fn delta_values(&self) -> &[u16] {
+        &self.delta_values
+    }
+}
+
+pub struct VariationIndex {
+    delta_set_outer_index: u16,
+    delta_set_inner_index: u16,
+    delta_format: u16
+}
+
+impl VariationIndex {
+    pub(super) fn new(
+        delta_set_outer_index: u16,
+        delta_set_inner_index: u16,
+        delta_format: u16
+    ) -> Self {
+        Self {
+            delta_set_outer_index,
+            delta_set_inner_index,
+            delta_format
+        }
+    }
+    
+    pub fn delta_set_outer_index(&self) -> u16 {
+        self.delta_set_outer_index
+    }
+    
+    pub fn delta_set_inner_index(&self) -> u16 {
+        self.delta_set_inner_index
+    }
+    
+    pub fn delta_format(&self) -> u16 {
+        self.delta_format
+    } 
 }
 
 pub struct ValueRecord {
-    pub x_placement: Option<i16>,
-    pub y_placement: Option<i16>,
-    pub x_advance: Option<i16>,
-    pub y_advance: Option<i16>,
-    pub x_pla_device_offset: Option<u16>,
-    pub x_pla_device: Option<Device>,
-    pub y_pla_device_offset: Option<u16>,
-    pub y_pla_device: Option<Device>,
-    pub x_adv_device_offset: Option<u16>,
-    pub x_adv_device: Option<Device>,
-    pub y_adv_device_offset: Option<u16>,
-    pub y_adv_device: Option<Device>
+    x_placement: Option<i16>,
+    y_placement: Option<i16>,
+    x_advance: Option<i16>,
+    y_advance: Option<i16>,
+    x_pla_device_offset: Option<u16>,
+    x_pla_device: Option<DeviceOrVariationIndex>,
+    y_pla_device_offset: Option<u16>,
+    y_pla_device: Option<DeviceOrVariationIndex>,
+    x_adv_device_offset: Option<u16>,
+    x_adv_device: Option<DeviceOrVariationIndex>,
+    y_adv_device_offset: Option<u16>,
+    y_adv_device: Option<DeviceOrVariationIndex>
+}
+
+impl ValueRecord {
+    pub(super) fn new(
+        x_placement: Option<i16>,
+        y_placement: Option<i16>,
+        x_advance: Option<i16>,
+        y_advance: Option<i16>,
+        x_pla_device_offset: Option<u16>,
+        x_pla_device: Option<DeviceOrVariationIndex>,
+        y_pla_device_offset: Option<u16>,
+        y_pla_device: Option<DeviceOrVariationIndex>,
+        x_adv_device_offset: Option<u16>,
+        x_adv_device: Option<DeviceOrVariationIndex>,
+        y_adv_device_offset: Option<u16>,
+        y_adv_device: Option<DeviceOrVariationIndex>
+    ) -> Self {
+        Self {
+            x_placement,
+            y_placement,
+            x_advance,
+            y_advance,
+            x_pla_device_offset,
+            x_pla_device,
+            y_pla_device_offset,
+            y_pla_device,
+            x_adv_device_offset,
+            x_adv_device,
+            y_adv_device_offset,
+            y_adv_device
+        }
+    }
+    
+    pub fn x_placement(&self) -> Option<i16> {
+        self.x_placement
+    }
+    
+    pub fn y_placement(&self) -> Option<i16> {
+        self.y_placement
+    }
+    
+    pub fn x_advance(&self) -> Option<i16> {
+        self.x_advance
+    }
+    
+    pub fn y_advance(&self) -> Option<i16> {
+        self.y_advance
+    }
+    
+    pub fn x_pla_device_offset(&self) -> Option<u16> {
+        self.x_pla_device_offset
+    }
+    
+    pub fn x_pla_device(&self) -> Option<&DeviceOrVariationIndex> {
+        self.x_pla_device.as_ref()
+    }
+    
+    pub fn y_pla_device_offset(&self) -> Option<u16> {
+        self.y_pla_device_offset
+    }
+    
+    pub fn y_pla_device(&self) -> Option<&DeviceOrVariationIndex> {
+        self.y_pla_device.as_ref()
+    }
+    
+    pub fn x_adv_device_offset(&self) -> Option<u16> {
+        self.x_adv_device_offset
+    }
+    
+    pub fn x_adv_device(&self) -> Option<&DeviceOrVariationIndex> {
+        self.x_adv_device.as_ref()
+    }
+    
+    pub fn y_adv_device_offset(&self) -> Option<u16> {
+        self.y_adv_device_offset
+    }
+    
+    pub fn y_adv_device(&self) -> Option<&DeviceOrVariationIndex> {
+        self.y_adv_device.as_ref()
+    } 
 }
 
 pub enum Anchor {
@@ -1591,21 +2655,67 @@ pub enum Anchor {
         x_coordinate: i16,
         y_coordinate: i16,
         x_device_offset: u16,
-        x_device: Device,
+        x_device: DeviceOrVariationIndex,
         y_device_offset: u16,
-        y_device: Device
+        y_device: DeviceOrVariationIndex
     }
 }
 
 pub struct MarkArray {
-    pub mark_count: u16,
-    pub mark_records: Vec<MarkRecord>
+    mark_count: u16,
+    mark_records: Vec<MarkRecord>
+}
+
+impl MarkArray {
+    pub(super) fn new(
+        mark_count: u16,
+        mark_records: Vec<MarkRecord>
+    ) -> Self {
+        Self {
+            mark_count,
+            mark_records
+        }
+    }
+    
+    pub fn mark_count(&self) -> u16 {
+        self.mark_count
+    }
+    
+    pub fn mark_records(&self) -> &[MarkRecord] {
+        &self.mark_records
+    } 
 }
 
 pub struct MarkRecord {
-    pub mark_class: u16,
-    pub mark_anchor_offset: u16,
-    pub mark_anchor: Anchor
+    mark_class: u16,
+    mark_anchor_offset: u16,
+    mark_anchor: Anchor
+}
+
+impl MarkRecord {
+    pub(super) fn new(
+        mark_class: u16,
+        mark_anchor_offset: u16,
+        mark_anchor: Anchor
+    ) -> Self {
+        Self {
+            mark_class,
+            mark_anchor_offset,
+            mark_anchor
+        }
+    }
+    
+    pub fn mark_class(&self) -> u16 {
+        self.mark_class
+    }
+    
+    pub fn mark_anchor_offset(&self) -> u16 {
+        self.mark_anchor_offset
+    }
+    
+    pub fn mark_anchor(&self) -> &Anchor {
+        &self.mark_anchor
+    }
 }
 
 pub enum GposSubtable {
@@ -1662,23 +2772,103 @@ pub enum GposType2Format {
 }
 
 pub struct PairSet {
-    pub pair_value_count: u16,
-    pub pair_value_records: Vec<PairValueRecord>
+    pair_value_count: u16,
+    pair_value_records: Vec<PairValueRecord>
+}
+
+impl PairSet {
+    pub(super) fn new(
+        pair_value_count: u16,
+        pair_value_records: Vec<PairValueRecord>
+    ) -> Self {
+        Self {
+            pair_value_count,
+            pair_value_records
+        }
+    }
+    
+    pub fn pair_value_count(&self) -> u16 {
+        self.pair_value_count
+    }
+    
+    pub fn pair_value_records(&self) -> &[PairValueRecord] {
+        &self.pair_value_records
+    } 
 }
 
 pub struct PairValueRecord {
-    pub second_glyph: u16,
-    pub value_record1: ValueRecord,
-    pub value_record2: ValueRecord
+    second_glyph: u16,
+    value_record1: ValueRecord,
+    value_record2: ValueRecord
+}
+
+impl PairValueRecord {
+    pub(super) fn new(
+        second_glyph: u16,
+        value_record1: ValueRecord,
+        value_record2: ValueRecord
+    ) -> Self {
+        Self {
+            second_glyph,
+            value_record1,
+            value_record2
+        }
+    }
+    
+    pub fn second_glyph(&self) -> u16 {
+        self.second_glyph
+    }
+    
+    pub fn value_record1(&self) -> &ValueRecord {
+        &self.value_record1
+    }
+    
+    pub fn value_record2(&self) -> &ValueRecord {
+        &self.value_record2
+    } 
 }
 
 pub struct Class1Record {
-    pub class2_records: Vec<Class2Record>
+    class2_records: Vec<Class2Record>
+}
+
+impl Class1Record {
+    pub(super) fn new(
+        class2_records: Vec<Class2Record>
+    ) -> Self {
+        Self {
+            class2_records
+        }
+    }
+    
+    pub fn class2_records(&self) -> &[Class2Record] {
+        &self.class2_records
+    } 
 }
 
 pub struct Class2Record {
-    pub value_record1: ValueRecord,
-    pub value_record2: ValueRecord
+    value_record1: ValueRecord,
+    value_record2: ValueRecord
+}
+
+impl Class2Record {
+    pub(super) fn new(
+        value_record1: ValueRecord,
+        value_record2: ValueRecord
+    ) -> Self {
+        Self {
+            value_record1,
+            value_record2
+        }
+    }
+    
+    pub fn value_record1(&self) -> &ValueRecord {
+        &self.value_record1
+    }
+    
+    pub fn value_record2(&self) -> &ValueRecord {
+        &self.value_record2
+    } 
 }
 
 pub enum GposType3Format {
@@ -1691,10 +2881,42 @@ pub enum GposType3Format {
 }
 
 pub struct EntryExitRecord {
-    pub entry_anchor_offset: Option<u16>,
-    pub entry_anchor: Option<Anchor>,
-    pub exit_anchor_offset: Option<u16>,
-    pub exit_anchor: Option<Anchor>
+    entry_anchor_offset: Option<u16>,
+    entry_anchor: Option<Anchor>,
+    exit_anchor_offset: Option<u16>,
+    exit_anchor: Option<Anchor>
+}
+
+impl EntryExitRecord {
+    pub(super) fn new(
+        entry_anchor_offset: Option<u16>,
+        entry_anchor: Option<Anchor>,
+        exit_anchor_offset: Option<u16>,
+        exit_anchor: Option<Anchor>
+    ) -> Self {
+        Self {
+            entry_anchor_offset,
+            entry_anchor,
+            exit_anchor_offset,
+            exit_anchor
+        }
+    }
+    
+    pub fn entry_anchor_offset(&self) -> Option<u16> {
+        self.entry_anchor_offset
+    }
+    
+    pub fn entry_anchor(&self) -> Option<&Anchor> {
+        self.entry_anchor.as_ref()
+    }
+    
+    pub fn exit_anchor_offset(&self) -> Option<u16> {
+        self.exit_anchor_offset
+    }
+    
+    pub fn exit_anchor(&self) -> Option<&Anchor> {
+        self.exit_anchor.as_ref()
+    } 
 }
 
 pub enum GposType4Format {
@@ -1712,13 +2934,53 @@ pub enum GposType4Format {
 }
 
 pub struct BaseArray {
-    pub base_count: u16,
-    pub base_records: Vec<BaseRecord>
+    base_count: u16,
+    base_records: Vec<BaseRecord>
+}
+
+impl BaseArray {
+    pub(super) fn new(
+        base_count: u16,
+        base_records: Vec<BaseRecord>
+    ) -> Self {
+        Self {
+            base_count,
+            base_records
+        }
+    }
+    
+    pub fn base_count(&self) -> u16 {
+        self.base_count
+    }
+    
+    pub fn base_records(&self) -> &[BaseRecord] {
+        &self.base_records
+    } 
 }
 
 pub struct BaseRecord {
-    pub base_anchor_offsets: Vec<u16>,
-    pub base_anchors: Vec<Anchor>
+    base_anchor_offsets: Vec<u16>,
+    base_anchors: Vec<Anchor>
+}
+
+impl BaseRecord {
+    pub(super) fn new(
+        base_anchor_offsets: Vec<u16>,
+        base_anchors: Vec<Anchor>
+    ) -> Self {
+        Self {
+            base_anchor_offsets,
+            base_anchors
+        }
+    }
+    
+    pub fn base_anchor_offsets(&self) -> &[u16] {
+        &self.base_anchor_offsets
+    }
+    
+    pub fn base_anchors(&self) -> &[Anchor] {
+        &self.base_anchors
+    } 
 }
 
 pub enum GposType5Format {
@@ -1736,19 +2998,85 @@ pub enum GposType5Format {
 }
 
 pub struct LigatureArray {
-    pub ligature_count: u16,
-    pub ligature_attach_offsets: Vec<u16>,
-    pub ligature_attaches: Vec<LigatureAttach>
+    ligature_count: u16,
+    ligature_attach_offsets: Vec<u16>,
+    ligature_attaches: Vec<LigatureAttach>
+}
+
+impl LigatureArray {
+    pub(super) fn new(
+        ligature_count: u16,
+        ligature_attach_offsets: Vec<u16>,
+        ligature_attaches: Vec<LigatureAttach>
+    ) -> Self {
+        Self {
+            ligature_count,
+            ligature_attach_offsets,
+            ligature_attaches
+        }
+    }
+    
+    pub fn ligature_count(&self) -> u16 {
+        self.ligature_count
+    }
+    
+    pub fn ligature_attach_offsets(&self) -> &[u16] {
+        &self.ligature_attach_offsets
+    }
+    
+    pub fn ligature_attaches(&self) -> &[LigatureAttach] {
+        &self.ligature_attaches
+    } 
 }
 
 pub struct LigatureAttach {
-    pub component_count: u16,
-    pub component_records: Vec<ComponentRecord>
+    component_count: u16,
+    component_records: Vec<ComponentRecord>
+}
+
+impl LigatureAttach {
+    pub(super) fn new(
+        component_count: u16,
+        component_records: Vec<ComponentRecord>
+    ) -> Self {
+        Self {
+            component_count,
+            component_records
+        }
+    }
+    
+    pub fn component_count(&self) -> u16 {
+        self.component_count
+    }
+    
+    pub fn component_records(&self) -> &[ComponentRecord] {
+        &self.component_records
+    } 
 }
 
 pub struct ComponentRecord {
-    pub ligature_anchor_offsets: Vec<u16>,
-    pub ligature_anchors: Vec<Anchor>
+    ligature_anchor_offsets: Vec<u16>,
+    ligature_anchors: Vec<Anchor>
+}
+
+impl ComponentRecord {
+    pub(super) fn new(
+        ligature_anchor_offsets: Vec<u16>,
+        ligature_anchors: Vec<Anchor>
+    ) -> Self {
+        Self {
+            ligature_anchor_offsets,
+            ligature_anchors
+        }
+    }
+    
+    pub fn ligature_anchor_offsets(&self) -> &[u16] {
+        &self.ligature_anchor_offsets
+    }
+    
+    pub fn ligature_anchors(&self) -> &[Anchor] {
+        &self.ligature_anchors
+    } 
 }
 
 pub enum GposType6Format {
@@ -1766,13 +3094,53 @@ pub enum GposType6Format {
 }
 
 pub struct Mark2Array {
-    pub mark2_count: u16,
-    pub mark2_records: Vec<Mark2Record>
+    mark2_count: u16,
+    mark2_records: Vec<Mark2Record>
+}
+
+impl Mark2Array {
+    pub(super) fn new(
+        mark2_count: u16,
+        mark2_records: Vec<Mark2Record>
+    ) -> Self {
+        Self {
+            mark2_count,
+            mark2_records
+        }
+    }
+    
+    pub fn mark2_count(&self) -> u16 {
+        self.mark2_count
+    }
+    
+    pub fn mark2_records(&self) -> &[Mark2Record] {
+        &self.mark2_records
+    } 
 }
 
 pub struct Mark2Record {
-    pub mark2_anchor_offsets: Vec<u16>,
-    pub mark2_anchors: Vec<Anchor>
+    mark2_anchor_offsets: Vec<u16>,
+    mark2_anchors: Vec<Anchor>
+}
+
+impl Mark2Record {
+    pub(super) fn new(
+        mark2_anchor_offsets: Vec<u16>,
+        mark2_anchors: Vec<Anchor>
+    ) -> Self {
+        Self {
+            mark2_anchor_offsets,
+            mark2_anchors
+        }
+    }
+    
+    pub fn mark2_anchor_offsets(&self) -> &[u16] {
+        &self.mark2_anchor_offsets
+    }
+    
+    pub fn mark2_anchors(&self) -> &[Anchor] {
+        &self.mark2_anchors
+    } 
 }
 
 pub enum GposType7Format {
@@ -1802,34 +3170,170 @@ pub enum GposType7Format {
 }
 
 pub struct GposSubRuleSet {
-    pub sub_rule_count: u16,
-    pub sub_rule_offsets: Vec<u16>,
-    pub sub_rules: Vec<GposSubRule>
+    sub_rule_count: u16,
+    sub_rule_offsets: Vec<u16>,
+    sub_rules: Vec<GposSubRule>
+}
+
+impl GposSubRuleSet {
+    pub(super) fn new(
+        sub_rule_count: u16,
+        sub_rule_offsets: Vec<u16>,
+        sub_rules: Vec<GposSubRule>
+    ) -> Self {
+        Self {
+            sub_rule_count,
+            sub_rule_offsets,
+            sub_rules
+        }
+    }
+    
+    pub fn sub_rule_count(&self) -> u16 {
+        self.sub_rule_count
+    }
+    
+    pub fn sub_rule_offsets(&self) -> &[u16] {
+        &self.sub_rule_offsets
+    }
+    
+    pub fn sub_rules(&self) -> &[GposSubRule] {
+        &self.sub_rules
+    } 
 }
 
 pub struct GposSubRule {
-    pub glyph_count: u16,
-    pub sub_count: u16,
-    pub input_glyph_ids: Vec<u16>,
-    pub pos_lookup_records: Vec<PosLookupRecord>
+    glyph_count: u16,
+    sub_count: u16,
+    input_glyph_ids: Vec<u16>,
+    pos_lookup_records: Vec<PosLookupRecord>
+}
+
+impl GposSubRule {
+    pub(super) fn new(
+        glyph_count: u16,
+        sub_count: u16,
+        input_glyph_ids: Vec<u16>,
+        pos_lookup_records: Vec<PosLookupRecord>
+    ) -> Self {
+        Self {
+            glyph_count,
+            sub_count,
+            input_glyph_ids,
+            pos_lookup_records
+        }
+    }
+    
+    pub fn glyph_count(&self) -> u16 {
+        self.glyph_count
+    }
+    
+    pub fn sub_count(&self) -> u16 {
+        self.sub_count
+    }
+    
+    pub fn input_glyph_ids(&self) -> &[u16] {
+        &self.input_glyph_ids
+    }
+    
+    pub fn pos_lookup_records(&self) -> &[PosLookupRecord] {
+        &self.pos_lookup_records
+    } 
 }
 
 pub struct PosLookupRecord {
-    pub glyph_sequence_index: u16,
-    pub lookup_list_index: u16
+    glyph_sequence_index: u16,
+    lookup_list_index: u16
+}
+
+impl PosLookupRecord {
+    pub(super) fn new(
+        glyph_sequence_index: u16,
+        lookup_list_index: u16
+    ) -> Self {
+        Self {
+            glyph_sequence_index,
+            lookup_list_index
+        }
+    }
+    
+    pub fn glyph_sequence_index(&self) -> u16 {
+        self.glyph_sequence_index
+    }
+    
+    pub fn lookup_list_index(&self) -> u16 {
+        self.lookup_list_index
+    } 
 }
 
 pub struct GposSubClassSet {
-    pub sub_class_rule_count: u16,
-    pub sub_class_rule_offsets: Vec<u16>,
-    pub sub_class_rules: Vec<GposSubClassRule>
+    sub_class_rule_count: u16,
+    sub_class_rule_offsets: Vec<u16>,
+    sub_class_rules: Vec<GposSubClassRule>
+}
+
+impl GposSubClassSet {
+    pub(super) fn new(
+        sub_class_rule_count: u16,
+        sub_class_rule_offsets: Vec<u16>,
+        sub_class_rules: Vec<GposSubClassRule>
+    ) -> Self {
+        Self {
+            sub_class_rule_count,
+            sub_class_rule_offsets,
+            sub_class_rules
+        }
+    }
+    
+    pub fn sub_class_rule_count(&self) -> u16 {
+        self.sub_class_rule_count
+    }
+    
+    pub fn sub_class_rule_offsets(&self) -> &[u16] {
+        &self.sub_class_rule_offsets
+    }
+    
+    pub fn sub_class_rules(&self) -> &[GposSubClassRule] {
+        &self.sub_class_rules
+    } 
 }
 
 pub struct GposSubClassRule {
-    pub glyph_count: u16,
-    pub sub_count: u16,
-    pub class_ids: Vec<u16>,
-    pub pos_lookup_records: Vec<PosLookupRecord>
+    glyph_count: u16,
+    sub_count: u16,
+    class_ids: Vec<u16>,
+    pos_lookup_records: Vec<PosLookupRecord>
+}
+
+impl GposSubClassRule {
+    pub(super) fn new(
+        glyph_count: u16,
+        sub_count: u16,
+        class_ids: Vec<u16>,
+        pos_lookup_records: Vec<PosLookupRecord>
+    ) -> Self {
+        Self {
+            glyph_count,
+            sub_count,
+            class_ids,
+            pos_lookup_records
+        }
+    }
+    
+    pub fn glyph_count(&self) -> u16 {
+        self.glyph_count
+    }
+    
+    pub fn sub_count(&self) -> u16 {
+        self.sub_count
+    }
+    
+    pub fn class_ids(&self) -> &[u16] {
+        &self.class_ids
+    }
+    
+    pub fn pos_lookup_records(&self) -> &[PosLookupRecord] {
+        &self.pos_lookup_records
+    } 
 }
 
 pub enum GposType8Format {
@@ -1869,37 +3373,201 @@ pub enum GposType8Format {
 }
 
 pub struct GposChainSubRuleSet {
-    pub chain_sub_rule_count: u16,
-    pub chain_sub_rule_offsets: Vec<u16>,
-    pub chain_sub_rules: Vec<GposChainSubRule>
+    chain_sub_rule_count: u16,
+    chain_sub_rule_offsets: Vec<u16>,
+    chain_sub_rules: Vec<GposChainSubRule>
+}
+
+impl GposChainSubRuleSet {
+    pub(super) fn new(
+        chain_sub_rule_count: u16,
+        chain_sub_rule_offsets: Vec<u16>,
+        chain_sub_rules: Vec<GposChainSubRule>
+    ) -> Self {
+        Self {
+            chain_sub_rule_count,
+            chain_sub_rule_offsets,
+            chain_sub_rules
+        }
+    }
+    
+    pub fn chain_sub_rule_count(&self) -> u16 {
+        self.chain_sub_rule_count
+    }
+    
+    pub fn chain_sub_rule_offsets(&self) -> &[u16] {
+        &self.chain_sub_rule_offsets
+    }
+    
+    pub fn chain_sub_rules(&self) -> &[GposChainSubRule] {
+        &self.chain_sub_rules
+    } 
 }
 
 pub struct GposChainSubRule {
-    pub backtrack_glyph_count: u16,
-    pub backtrack_glyph_ids: Vec<u16>,
-    pub input_glyph_count: u16,
-    pub input_glyph_ids: Vec<u16>,
-    pub lookahead_glyph_count: u16,
-    pub lookahead_glyph_ids: Vec<u16>,
-    pub sub_count: u16,
-    pub pos_lookup_records: Vec<PosLookupRecord>
+    backtrack_glyph_count: u16,
+    backtrack_glyph_ids: Vec<u16>,
+    input_glyph_count: u16,
+    input_glyph_ids: Vec<u16>,
+    lookahead_glyph_count: u16,
+    lookahead_glyph_ids: Vec<u16>,
+    sub_count: u16,
+    pos_lookup_records: Vec<PosLookupRecord>
+}
+
+impl GposChainSubRule {
+    pub(super) fn new(
+        backtrack_glyph_count: u16,
+        backtrack_glyph_ids: Vec<u16>,
+        input_glyph_count: u16,
+        input_glyph_ids: Vec<u16>,
+        lookahead_glyph_count: u16,
+        lookahead_glyph_ids: Vec<u16>,
+        sub_count: u16,
+        pos_lookup_records: Vec<PosLookupRecord>
+    ) -> Self {
+        Self {
+            backtrack_glyph_count,
+            backtrack_glyph_ids,
+            input_glyph_count,
+            input_glyph_ids,
+            lookahead_glyph_count,
+            lookahead_glyph_ids,
+            sub_count,
+            pos_lookup_records
+        }
+    }
+    
+    pub fn backtrack_glyph_count(&self) -> u16 {
+        self.backtrack_glyph_count
+    }
+    
+    pub fn backtrack_glyph_ids(&self) -> &[u16] {
+        &self.backtrack_glyph_ids
+    }
+    
+    pub fn input_glyph_count(&self) -> u16 {
+        self.input_glyph_count
+    }
+    
+    pub fn input_glyph_ids(&self) -> &[u16] {
+        &self.input_glyph_ids
+    }
+    
+    pub fn lookahead_glyph_count(&self) -> u16 {
+        self.lookahead_glyph_count
+    }
+    
+    pub fn lookahead_glyph_ids(&self) -> &[u16] {
+        &self.lookahead_glyph_ids
+    }
+    
+    pub fn sub_count(&self) -> u16 {
+        self.sub_count
+    }
+    
+    pub fn pos_lookup_records(&self) -> &[PosLookupRecord] {
+        &self.pos_lookup_records
+    } 
 }
 
 pub struct GposChainSubClassSet {
-    pub chain_sub_class_rule_count: u16,
-    pub chain_sub_class_rule_offsets: Vec<u16>,
-    pub chain_sub_class_rules: Vec<GposChainSubClassRule>
+    chain_sub_class_rule_count: u16,
+    chain_sub_class_rule_offsets: Vec<u16>,
+    chain_sub_class_rules: Vec<GposChainSubClassRule>
+}
+
+impl GposChainSubClassSet {
+    pub(super) fn new(
+        chain_sub_class_rule_count: u16,
+        chain_sub_class_rule_offsets: Vec<u16>,
+        chain_sub_class_rules: Vec<GposChainSubClassRule>
+    ) -> Self {
+        Self {
+            chain_sub_class_rule_count,
+            chain_sub_class_rule_offsets,
+            chain_sub_class_rules
+        }
+    }
+    
+    pub fn chain_sub_class_rule_count(&self) -> u16 {
+        self.chain_sub_class_rule_count
+    }
+    
+    pub fn chain_sub_class_rule_offsets(&self) -> &[u16] {
+        &self.chain_sub_class_rule_offsets
+    }
+    
+    pub fn chain_sub_class_rules(&self) -> &[GposChainSubClassRule] {
+        &self.chain_sub_class_rules
+    } 
 }
 
 pub struct GposChainSubClassRule {
-    pub backtrack_glyph_count: u16,
-    pub backtrack_class_ids: Vec<u16>,
-    pub input_glyph_count: u16,
-    pub input_class_ids: Vec<u16>,
-    pub lookahead_glyph_count: u16,
-    pub lookahead_class_ids: Vec<u16>,
-    pub sub_count: u16,
-    pub pos_lookup_records: Vec<PosLookupRecord>
+    backtrack_glyph_count: u16,
+    backtrack_class_ids: Vec<u16>,
+    input_glyph_count: u16,
+    input_class_ids: Vec<u16>,
+    lookahead_glyph_count: u16,
+    lookahead_class_ids: Vec<u16>,
+    sub_count: u16,
+    pos_lookup_records: Vec<PosLookupRecord>
+}
+
+impl GposChainSubClassRule {
+    pub(super) fn new(
+        backtrack_glyph_count: u16,
+        backtrack_class_ids: Vec<u16>,
+        input_glyph_count: u16,
+        input_class_ids: Vec<u16>,
+        lookahead_glyph_count: u16,
+        lookahead_class_ids: Vec<u16>,
+        sub_count: u16,
+        pos_lookup_records: Vec<PosLookupRecord>
+    ) -> Self {
+        Self {
+            backtrack_glyph_count,
+            backtrack_class_ids,
+            input_glyph_count,
+            input_class_ids,
+            lookahead_glyph_count,
+            lookahead_class_ids,
+            sub_count,
+            pos_lookup_records
+        }
+    }
+    
+    pub fn backtrack_glyph_count(&self) -> u16 {
+        self.backtrack_glyph_count
+    }
+    
+    pub fn backtrack_class_ids(&self) -> &[u16] {
+        &self.backtrack_class_ids
+    }
+    
+    pub fn input_glyph_count(&self) -> u16 {
+        self.input_glyph_count
+    }
+    
+    pub fn input_class_ids(&self) -> &[u16] {
+        &self.input_class_ids
+    }
+    
+    pub fn lookahead_glyph_count(&self) -> u16 {
+        self.lookahead_glyph_count
+    }
+    
+    pub fn lookahead_class_ids(&self) -> &[u16] {
+        &self.lookahead_class_ids
+    }
+    
+    pub fn sub_count(&self) -> u16 {
+        self.sub_count
+    }
+    
+    pub fn pos_lookup_records(&self) -> &[PosLookupRecord] {
+        &self.pos_lookup_records
+    } 
 }
 
 pub enum GposType9Format {
@@ -1946,8 +3614,28 @@ pub enum GsubType2Format {
 }
 
 pub struct Sequence {
-    pub glyph_count: u16,
-    pub substitute_glyph_ids: Vec<u16>
+    glyph_count: u16,
+    substitute_glyph_ids: Vec<u16>
+}
+
+impl Sequence {
+    pub(super) fn new(
+        glyph_count: u16,
+        substitute_glyph_ids: Vec<u16>
+    ) -> Self {
+        Self {
+            glyph_count,
+            substitute_glyph_ids
+        }
+    }
+    
+    pub fn glyph_count(&self) -> u16 {
+        self.glyph_count
+    }
+    
+    pub fn substitute_glyph_ids(&self) -> &[u16] {
+        &self.substitute_glyph_ids
+    } 
 }
 
 pub enum GsubType3Format {
@@ -1961,8 +3649,28 @@ pub enum GsubType3Format {
 }
 
 pub struct AlternateSet {
-    pub glyph_count: u16,
-    pub alternate_glyph_ids: Vec<u16>
+    glyph_count: u16,
+    alternate_glyph_ids: Vec<u16>
+}
+
+impl AlternateSet {
+    pub(super) fn new(
+        glyph_count: u16,
+        alternate_glyph_ids: Vec<u16>
+    ) -> Self {
+        Self {
+            glyph_count,
+            alternate_glyph_ids
+        }
+    }
+    
+    pub fn glyph_count(&self) -> u16 {
+        self.glyph_count
+    }
+    
+    pub fn alternate_glyph_ids(&self) -> &[u16] {
+        &self.alternate_glyph_ids
+    } 
 }
 
 pub enum GsubType4Format {
@@ -1976,14 +3684,67 @@ pub enum GsubType4Format {
 }
 
 pub struct LigatureSet {
-    pub ligature_count: u16,
-    pub ligature_offsets: Vec<u16>
+    ligature_count: u16,
+    ligature_offsets: Vec<u16>,
+    ligatures: Vec<Ligature>
+}
+
+impl LigatureSet {
+    pub(super) fn new(
+        ligature_count: u16,
+        ligature_offsets: Vec<u16>,
+        ligatures: Vec<Ligature>
+    ) -> Self {
+        Self {
+            ligature_count,
+            ligature_offsets,
+            ligatures
+        }
+    }
+    
+    pub fn ligature_count(&self) -> u16 {
+        self.ligature_count
+    }
+    
+    pub fn ligature_offsets(&self) -> &[u16] {
+        &self.ligature_offsets
+    }
+    
+    pub fn ligatures(&self) -> &[Ligature] {
+        &self.ligatures
+    }
 }
 
 pub struct Ligature {
-    pub ligature_glyph: u16,
-    pub component_count: u16,
-    pub component_glyph_ids: Vec<u16>
+    ligature_glyph: u16,
+    component_count: u16,
+    component_glyph_ids: Vec<u16>
+}
+
+impl Ligature {
+    pub(super) fn new(
+        ligature_glyph: u16,
+        component_count: u16,
+        component_glyph_ids: Vec<u16>
+    ) -> Self {
+        Self {
+            ligature_glyph,
+            component_count,
+            component_glyph_ids
+        }
+    }
+    
+    pub fn ligature_glyph(&self) -> u16 {
+        self.ligature_glyph
+    }
+    
+    pub fn component_count(&self) -> u16 {
+        self.component_count
+    }
+    
+    pub fn component_glyph_ids(&self) -> &[u16] {
+        &self.component_glyph_ids
+    } 
 }
 
 pub enum GsubType5Format {
@@ -2013,34 +3774,170 @@ pub enum GsubType5Format {
 }
 
 pub struct GsubSubRuleSet {
-    pub sub_rule_count: u16,
-    pub sub_rule_offsets: Vec<u16>,
-    pub sub_rules: Vec<GsubSubRule>
+    sub_rule_count: u16,
+    sub_rule_offsets: Vec<u16>,
+    sub_rules: Vec<GsubSubRule>
+}
+
+impl GsubSubRuleSet {
+    pub(super) fn new(
+        sub_rule_count: u16,
+        sub_rule_offsets: Vec<u16>,
+        sub_rules: Vec<GsubSubRule>
+    ) -> Self {
+        Self {
+            sub_rule_count,
+            sub_rule_offsets,
+            sub_rules
+        }
+    }
+    
+    pub fn sub_rule_count(&self) -> u16 {
+        self.sub_rule_count
+    }
+    
+    pub fn sub_rule_offsets(&self) -> &[u16] {
+        &self.sub_rule_offsets
+    }
+    
+    pub fn sub_rules(&self) -> &[GsubSubRule] {
+        &self.sub_rules
+    } 
 }
 
 pub struct GsubSubRule {
-    pub glyph_count: u16,
-    pub sub_count: u16,
-    pub input_glyph_ids: Vec<u16>,
-    pub subst_lookup_records: Vec<SubstLookupRecord>
+    glyph_count: u16,
+    sub_count: u16,
+    input_glyph_ids: Vec<u16>,
+    subst_lookup_records: Vec<SubstLookupRecord>
+}
+
+impl GsubSubRule {
+    pub(super) fn new(
+        glyph_count: u16,
+        sub_count: u16,
+        input_glyph_ids: Vec<u16>,
+        subst_lookup_records: Vec<SubstLookupRecord>
+    ) -> Self {
+        Self {
+            glyph_count,
+            sub_count,
+            input_glyph_ids,
+            subst_lookup_records
+        }
+    }
+    
+    pub fn glyph_count(&self) -> u16 {
+        self.glyph_count
+    }
+    
+    pub fn sub_count(&self) -> u16 {
+        self.sub_count
+    }
+    
+    pub fn input_glyph_ids(&self) -> &[u16] {
+        &self.input_glyph_ids
+    }
+    
+    pub fn subst_lookup_records(&self) -> &[SubstLookupRecord] {
+        &self.subst_lookup_records
+    } 
 }
 
 pub struct SubstLookupRecord {
-    pub glyph_sequence_index: u16,
-    pub lookup_list_index: u16
+    glyph_sequence_index: u16,
+    lookup_list_index: u16
+}
+
+impl SubstLookupRecord {
+    pub(super) fn new(
+        glyph_sequence_index: u16,
+        lookup_list_index: u16
+    ) -> Self {
+        Self {
+            glyph_sequence_index,
+            lookup_list_index
+        }
+    }
+    
+    pub fn glyph_sequence_index(&self) -> u16 {
+        self.glyph_sequence_index
+    }
+    
+    pub fn lookup_list_index(&self) -> u16 {
+        self.lookup_list_index
+    } 
 }
 
 pub struct GsubSubClassSet {
-    pub sub_class_rule_count: u16,
-    pub sub_class_rule_offsets: Vec<u16>,
-    pub sub_class_rules: Vec<GsubSubClassRule>
+    sub_class_rule_count: u16,
+    sub_class_rule_offsets: Vec<u16>,
+    sub_class_rules: Vec<GsubSubClassRule>
+}
+
+impl GsubSubClassSet {
+    pub(super) fn new(
+        sub_class_rule_count: u16,
+        sub_class_rule_offsets: Vec<u16>,
+        sub_class_rules: Vec<GsubSubClassRule>
+    ) -> Self {
+        Self {
+            sub_class_rule_count,
+            sub_class_rule_offsets,
+            sub_class_rules
+        }
+    }
+    
+    pub fn sub_class_rule_count(&self) -> u16 {
+        self.sub_class_rule_count
+    }
+    
+    pub fn sub_class_rule_offsets(&self) -> &[u16] {
+        &self.sub_class_rule_offsets
+    }
+    
+    pub fn sub_class_rules(&self) -> &[GsubSubClassRule] {
+        &self.sub_class_rules
+    } 
 }
 
 pub struct GsubSubClassRule {
-    pub glyph_count: u16,
-    pub sub_count: u16,
-    pub class_ids: Vec<u16>,
-    pub subst_lookup_records: Vec<SubstLookupRecord>
+    glyph_count: u16,
+    sub_count: u16,
+    class_ids: Vec<u16>,
+    subst_lookup_records: Vec<SubstLookupRecord>
+}
+
+impl GsubSubClassRule {
+    pub(super) fn new(
+        glyph_count: u16,
+        sub_count: u16,
+        class_ids: Vec<u16>,
+        subst_lookup_records: Vec<SubstLookupRecord>
+    ) -> Self {
+        Self {
+            glyph_count,
+            sub_count,
+            class_ids,
+            subst_lookup_records
+        }
+    }
+    
+    pub fn glyph_count(&self) -> u16 {
+        self.glyph_count
+    }
+    
+    pub fn sub_count(&self) -> u16 {
+        self.sub_count
+    }
+    
+    pub fn class_ids(&self) -> &[u16] {
+        &self.class_ids
+    }
+    
+    pub fn subst_lookup_records(&self) -> &[SubstLookupRecord] {
+        &self.subst_lookup_records
+    } 
 }
 
 pub enum GsubType6Format {
@@ -2080,37 +3977,201 @@ pub enum GsubType6Format {
 }
 
 pub struct GsubChainSubRuleSet {
-    pub chain_sub_rule_count: u16,
-    pub chain_sub_rule_offsets: Vec<u16>,
-    pub chain_sub_rules: Vec<GsubChainSubRule>
+    chain_sub_rule_count: u16,
+    chain_sub_rule_offsets: Vec<u16>,
+    chain_sub_rules: Vec<GsubChainSubRule>
+}
+
+impl GsubChainSubRuleSet {
+    pub(super) fn new(
+        chain_sub_rule_count: u16,
+        chain_sub_rule_offsets: Vec<u16>,
+        chain_sub_rules: Vec<GsubChainSubRule>
+    ) -> Self {
+        Self {
+            chain_sub_rule_count,
+            chain_sub_rule_offsets,
+            chain_sub_rules
+        }
+    }
+    
+    pub fn chain_sub_rule_count(&self) -> u16 {
+        self.chain_sub_rule_count
+    }
+    
+    pub fn chain_sub_rule_offsets(&self) -> &[u16] {
+        &self.chain_sub_rule_offsets
+    }
+    
+    pub fn chain_sub_rules(&self) -> &[GsubChainSubRule] {
+        &self.chain_sub_rules
+    } 
 }
 
 pub struct GsubChainSubRule {
-    pub backtrack_glyph_count: u16,
-    pub backtrack_glyph_ids: Vec<u16>,
-    pub input_glyph_count: u16,
-    pub input_glyph_ids: Vec<u16>,
-    pub lookahead_glyph_count: u16,
-    pub lookahead_glyph_ids: Vec<u16>,
-    pub sub_count: u16,
-    pub subst_lookup_records: Vec<SubstLookupRecord>
+    backtrack_glyph_count: u16,
+    backtrack_glyph_ids: Vec<u16>,
+    input_glyph_count: u16,
+    input_glyph_ids: Vec<u16>,
+    lookahead_glyph_count: u16,
+    lookahead_glyph_ids: Vec<u16>,
+    sub_count: u16,
+    subst_lookup_records: Vec<SubstLookupRecord>
+}
+
+impl GsubChainSubRule {
+    pub(super) fn new(
+        backtrack_glyph_count: u16,
+        backtrack_glyph_ids: Vec<u16>,
+        input_glyph_count: u16,
+        input_glyph_ids: Vec<u16>,
+        lookahead_glyph_count: u16,
+        lookahead_glyph_ids: Vec<u16>,
+        sub_count: u16,
+        subst_lookup_records: Vec<SubstLookupRecord>
+    ) -> Self {
+        Self {
+            backtrack_glyph_count,
+            backtrack_glyph_ids,
+            input_glyph_count,
+            input_glyph_ids,
+            lookahead_glyph_count,
+            lookahead_glyph_ids,
+            sub_count,
+            subst_lookup_records
+        }
+    }
+    
+    pub fn backtrack_glyph_count(&self) -> u16 {
+        self.backtrack_glyph_count
+    }
+    
+    pub fn backtrack_glyph_ids(&self) -> &[u16] {
+        &self.backtrack_glyph_ids
+    }
+    
+    pub fn input_glyph_count(&self) -> u16 {
+        self.input_glyph_count
+    }
+    
+    pub fn input_glyph_ids(&self) -> &[u16] {
+        &self.input_glyph_ids
+    }
+    
+    pub fn lookahead_glyph_count(&self) -> u16 {
+        self.lookahead_glyph_count
+    }
+    
+    pub fn lookahead_glyph_ids(&self) -> &[u16] {
+        &self.lookahead_glyph_ids
+    }
+    
+    pub fn sub_count(&self) -> u16 {
+        self.sub_count
+    }
+    
+    pub fn subst_lookup_records(&self) -> &[SubstLookupRecord] {
+        &self.subst_lookup_records
+    } 
 }
 
 pub struct GsubChainSubClassSet {
-    pub chain_sub_class_rule_count: u16,
-    pub chain_sub_class_rule_offsets: Vec<u16>,
-    pub chain_sub_class_rules: Vec<GsubChainSubClassRule>
+    chain_sub_class_rule_count: u16,
+    chain_sub_class_rule_offsets: Vec<u16>,
+    chain_sub_class_rules: Vec<GsubChainSubClassRule>
+}
+
+impl GsubChainSubClassSet {
+    pub(super) fn new(
+        chain_sub_class_rule_count: u16,
+        chain_sub_class_rule_offsets: Vec<u16>,
+        chain_sub_class_rules: Vec<GsubChainSubClassRule>
+    ) -> Self {
+        Self {
+            chain_sub_class_rule_count,
+            chain_sub_class_rule_offsets,
+            chain_sub_class_rules
+        }
+    }
+    
+    pub fn chain_sub_class_rule_count(&self) -> u16 {
+        self.chain_sub_class_rule_count
+    }
+    
+    pub fn chain_sub_class_rule_offsets(&self) -> &[u16] {
+        &self.chain_sub_class_rule_offsets
+    }
+    
+    pub fn chain_sub_class_rules(&self) -> &[GsubChainSubClassRule] {
+        &self.chain_sub_class_rules
+    } 
 }
 
 pub struct GsubChainSubClassRule {
-    pub backtrack_glyph_count: u16,
-    pub backtrack_class_ids: Vec<u16>,
-    pub input_glyph_count: u16,
-    pub input_class_ids: Vec<u16>,
-    pub lookahead_glyph_count: u16,
-    pub lookahead_class_ids: Vec<u16>,
-    pub sub_count: u16,
-    pub subst_lookup_records: Vec<SubstLookupRecord>
+    backtrack_glyph_count: u16,
+    backtrack_class_ids: Vec<u16>,
+    input_glyph_count: u16,
+    input_class_ids: Vec<u16>,
+    lookahead_glyph_count: u16,
+    lookahead_class_ids: Vec<u16>,
+    sub_count: u16,
+    subst_lookup_records: Vec<SubstLookupRecord>
+}
+
+impl GsubChainSubClassRule {
+    pub(super) fn new(
+        backtrack_glyph_count: u16,
+        backtrack_class_ids: Vec<u16>,
+        input_glyph_count: u16,
+        input_class_ids: Vec<u16>,
+        lookahead_glyph_count: u16,
+        lookahead_class_ids: Vec<u16>,
+        sub_count: u16,
+        subst_lookup_records: Vec<SubstLookupRecord>
+    ) -> Self {
+        Self {
+            backtrack_glyph_count,
+            backtrack_class_ids,
+            input_glyph_count,
+            input_class_ids,
+            lookahead_glyph_count,
+            lookahead_class_ids,
+            sub_count,
+            subst_lookup_records
+        }
+    }
+    
+    pub fn backtrack_glyph_count(&self) -> u16 {
+        self.backtrack_glyph_count
+    }
+    
+    pub fn backtrack_class_ids(&self) -> &[u16] {
+        &self.backtrack_class_ids
+    }
+    
+    pub fn input_glyph_count(&self) -> u16 {
+        self.input_glyph_count
+    }
+    
+    pub fn input_class_ids(&self) -> &[u16] {
+        &self.input_class_ids
+    }
+    
+    pub fn lookahead_glyph_count(&self) -> u16 {
+        self.lookahead_glyph_count
+    }
+    
+    pub fn lookahead_class_ids(&self) -> &[u16] {
+        &self.lookahead_class_ids
+    }
+    
+    pub fn sub_count(&self) -> u16 {
+        self.sub_count
+    }
+    
+    pub fn subst_lookup_records(&self) -> &[SubstLookupRecord] {
+        &self.subst_lookup_records
+    } 
 }
 
 pub enum GsubType7Format {

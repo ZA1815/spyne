@@ -1,6 +1,6 @@
 use std::{fs::read, io::{Error, ErrorKind}, path::Path};
 
-use crate::text::fonts::parse::{constants::{ARG_1_AND_2_ARE_WORDS, MAC_ROMAN_LOOKUP, MAC_STANDARD_NAMES, MORE_COMPONENTS, REPEAT_FLAG, USE_MARK_FILTERING_SET, WE_HAVE_A_SCALE, WE_HAVE_A_TWO_BY_TWO, WE_HAVE_AN_X_AND_Y_SCALE, WE_HAVE_INSTRUCTIONS, X_ADVANCE, X_ADVANCE_DEVICE, X_IS_SAME_OR_POSITIVE_X_SHORT_VECTOR, X_PLACEMENT, X_PLACEMENT_DEVICE, X_SHORT_VECTOR, Y_ADVANCE, Y_ADVANCE_DEVICE, Y_IS_SAME_OR_POSITIVE_Y_SHORT_VECTOR, Y_PLACEMENT, Y_PLACEMENT_DEVICE, Y_SHORT_VECTOR}, structures::{AlternateSet, Anchor, BaseArray, BaseRecord, Class1Record, Class2Record, ClassDef, ClassRangeRecord, CmapSubtable, CmapTable, Component, ComponentRecord, Condition, ConditionSet, Coverage, CoverageRangeRecord, Device, EncodingRecord, EntryExitRecord, Feature, FeatureList, FeatureParams, FeatureRecord, FeatureTableSubstitution, FeatureTableSubstitutionRecord, FeatureVariationRecord, FeatureVariations, FontFile, FontFileType, GaspRangeRecord, GaspTable, Glyph, GlyphHeader, GposChainSubClassRule, GposChainSubClassSet, GposChainSubRule, GposChainSubRuleSet, GposSubClassRule, GposSubClassSet, GposSubRule, GposSubRuleSet, GposSubtable, GposTable, GposType1Format, GposType2Format, GposType3Format, GposType4Format, GposType5Format, GposType6Format, GposType7Format, GposType8Format, GposType9Format, Group, GsubChainSubClassRule, GsubChainSubClassSet, GsubChainSubRule, GsubChainSubRuleSet, GsubSubClassRule, GsubSubClassSet, GsubSubRule, GsubSubRuleSet, GsubSubtable, GsubTable, GsubType1Format, GsubType2Format, GsubType3Format, GsubType4Format, GsubType5Format, GsubType6Format, GsubType7Format, GsubType8Format, HeadTable, HheaTable, HmtxEntry, HmtxTable, KernClassTable, KernPair, KernSubtable, KernTable, LangSys, LangSysRecord, LangTagRecord, LigatureArray, LigatureAttach, LigatureSet, Lookup, LookupList, MacSubtable, Mark2Array, Mark2Record, MarkArray, MarkRecord, MaxpTable, NameRecord, NameTable, OS2Table, PairSet, PairValueRecord, PosLookupRecord, PostTable, Range, Script, ScriptList, ScriptRecord, Sequence, SubHeader, SubstLookupRecord, TableHeader, TableRecord, ValueRecord, VariationSelectorRecord, VheaTable, VmtxEntry, VmtxTable, WindowsSubtable}};
+use crate::text::fonts::parse::{constants::{ARG_1_AND_2_ARE_WORDS, MAC_ROMAN_LOOKUP, MAC_STANDARD_NAMES, MORE_COMPONENTS, REPEAT_FLAG, USE_MARK_FILTERING_SET, WE_HAVE_A_SCALE, WE_HAVE_A_TWO_BY_TWO, WE_HAVE_AN_X_AND_Y_SCALE, WE_HAVE_INSTRUCTIONS, X_ADVANCE, X_ADVANCE_DEVICE, X_IS_SAME_OR_POSITIVE_X_SHORT_VECTOR, X_PLACEMENT, X_PLACEMENT_DEVICE, X_SHORT_VECTOR, Y_ADVANCE, Y_ADVANCE_DEVICE, Y_IS_SAME_OR_POSITIVE_Y_SHORT_VECTOR, Y_PLACEMENT, Y_PLACEMENT_DEVICE, Y_SHORT_VECTOR}, structures::{AlternateSet, Anchor, BaseArray, BaseRecord, Class1Record, Class2Record, ClassDef, ClassRangeRecord, CmapSubtable, CmapTable, Component, ComponentRecord, Condition, ConditionSet, Coverage, CoverageRangeRecord, Device, DeviceOrVariationIndex, EncodingRecord, EntryExitRecord, Feature, FeatureList, FeatureParams, FeatureRecord, FeatureTableSubstitution, FeatureTableSubstitutionRecord, FeatureVariationRecord, FeatureVariations, FontFile, FontFileType, GaspRangeRecord, GaspTable, Glyph, GlyphHeader, GposChainSubClassRule, GposChainSubClassSet, GposChainSubRule, GposChainSubRuleSet, GposSubClassRule, GposSubClassSet, GposSubRule, GposSubRuleSet, GposSubtable, GposTable, GposType1Format, GposType2Format, GposType3Format, GposType4Format, GposType5Format, GposType6Format, GposType7Format, GposType8Format, GposType9Format, Group, GsubChainSubClassRule, GsubChainSubClassSet, GsubChainSubRule, GsubChainSubRuleSet, GsubSubClassRule, GsubSubClassSet, GsubSubRule, GsubSubRuleSet, GsubSubtable, GsubTable, GsubType1Format, GsubType2Format, GsubType3Format, GsubType4Format, GsubType5Format, GsubType6Format, GsubType7Format, GsubType8Format, HeadTable, HheaTable, HmtxEntry, HmtxTable, KernClassTable, KernPair, KernSubtable, KernTable, LangSys, LangSysRecord, LangTagRecord, Ligature, LigatureArray, LigatureAttach, LigatureSet, Lookup, LookupList, MacSubtable, Mark2Array, Mark2Record, MarkArray, MarkRecord, MaxpTable, NameRecord, NameTable, OS2Table, PairSet, PairValueRecord, PosLookupRecord, PostTable, Range, Script, ScriptList, ScriptRecord, Sequence, SubHeader, SubstLookupRecord, TableHeader, TableRecord, ValueRecord, VariationIndex, VariationSelectorRecord, VheaTable, VmtxEntry, VmtxTable, WindowsSubtable}};
 
 impl FontFile {
     pub fn parse_font_file<P: AsRef<Path>>(path: P) -> Result<Self, Error> {
@@ -46,23 +46,23 @@ impl FontFile {
                     .unwrap()
             );
             
-            table_records.push(TableRecord { tag, checksum, offset, length });
+            table_records.push(TableRecord::new(tag, checksum, offset, length));
             current_offset += 16;
         }
         
-        table_records.sort_by_key(|rec| rec.tag);
+        table_records.sort_by_key(|rec| rec.tag());
         
         Ok(FontFile::new(file_type, bytes, table_records))
     }
     
     pub fn get_table(&self, tag: &[u8; 4]) -> Result<&[u8], Error> {
-        match self.table_records.binary_search_by_key(tag, |rec| rec.tag) {
+        match self.table_records().binary_search_by_key(tag, |rec| rec.tag()) {
             Ok(idx) => {
-                let table = self.table_records[idx];
-                let offset = table.offset as usize;
-                let length = table.length as usize;
+                let table = self.table_records()[idx];
+                let offset = table.offset() as usize;
+                let length = table.length() as usize;
                 
-                Ok(&self.bytes.get(offset..offset + length).ok_or(ErrorKind::UnexpectedEof)?)
+                Ok(&self.bytes().get(offset..offset + length).ok_or(ErrorKind::UnexpectedEof)?)
             },
             Err(_) => Err(Error::new(ErrorKind::NotFound, "Given tag was not found in table records"))
         }
@@ -87,7 +87,7 @@ impl FontFile {
         let font_direction_hint = get_i16(bytes, 48)?;
         let index_to_loc_format = get_i16(bytes, 50)?;
         
-        Ok(HeadTable {
+        Ok(HeadTable::new(
             units_per_em,
             created,
             modified,
@@ -99,7 +99,7 @@ impl FontFile {
             lowest_rec_ppem,
             font_direction_hint,
             index_to_loc_format
-        })
+        ))
     }
     
     pub fn parse_maxp(&self) -> Result<MaxpTable, Error> {
@@ -109,24 +109,37 @@ impl FontFile {
         match version {
             0x5000 => {
                 let num_glyphs = get_u16(bytes, 4)?;
+                let max_points = None;
+                let max_contours = None;
+                let max_composite_points = None;
+                let max_composite_contours = None;
+                let max_zones = None;
+                let max_twilight_points = None;
+                let max_storage = None;
+                let max_function_defs = None;
+                let max_instruction_defs = None;
+                let max_stack_elements = None;
+                let max_size_of_instructions = None;
+                let max_components_elements = None;
+                let max_component_depth = None;
                 
-                Ok(MaxpTable {
+                Ok(MaxpTable::new(
                     version,
                     num_glyphs,
-                    max_points: None,
-                    max_contours: None,
-                    max_composite_points: None,
-                    max_composite_contours: None,
-                    max_zones: None,
-                    max_twilight_points: None,
-                    max_storage: None,
-                    max_function_defs: None,
-                    max_instruction_defs: None,
-                    max_stack_elements: None,
-                    max_size_of_instructions: None,
-                    max_components_elements: None,
-                    max_component_depth: None
-                })
+                    max_points,
+                    max_contours,
+                    max_composite_points,
+                    max_composite_contours,
+                    max_zones,
+                    max_twilight_points,
+                    max_storage,
+                    max_function_defs,
+                    max_instruction_defs,
+                    max_stack_elements,
+                    max_size_of_instructions,
+                    max_components_elements,
+                    max_component_depth
+                ))
             }
             0x10000 => {
                 let num_glyphs = get_u16(bytes, 4)?;
@@ -144,23 +157,23 @@ impl FontFile {
                 let max_component_elements = get_u16(bytes, 28)?;
                 let max_component_depth = get_u16(bytes, 30)?;
                 
-                Ok(MaxpTable {
+                Ok(MaxpTable::new(
                     version,
                     num_glyphs,
-                    max_points: Some(max_points),
-                    max_contours: Some(max_contours),
-                    max_composite_points: Some(max_composite_points),
-                    max_composite_contours: Some(max_composite_contours),
-                    max_zones: Some(max_zones),
-                    max_twilight_points: Some(max_twilight_points),
-                    max_storage: Some(max_storage),
-                    max_function_defs: Some(max_function_defs),
-                    max_instruction_defs: Some(max_instruction_defs),
-                    max_stack_elements: Some(max_stack_elements),
-                    max_size_of_instructions: Some(max_size_of_instructions),
-                    max_components_elements: Some(max_component_elements),
-                    max_component_depth: Some(max_component_depth)
-                })
+                    Some(max_points),
+                    Some(max_contours),
+                    Some(max_composite_points),
+                    Some(max_composite_contours),
+                    Some(max_zones),
+                    Some(max_twilight_points),
+                    Some(max_storage),
+                    Some(max_function_defs),
+                    Some(max_instruction_defs),
+                    Some(max_stack_elements),
+                    Some(max_size_of_instructions),
+                    Some(max_component_elements),
+                    Some(max_component_depth)
+                ))
             }
             _ => Err(Error::new(ErrorKind::InvalidData, "Version number invalid"))
         }
@@ -180,13 +193,13 @@ impl FontFile {
             let platform_id = get_u16(bytes, count)?;
             let encoding_id = get_u16(bytes, count + 2)?;
             let offset = get_u32(bytes, count + 4)?;
-            encoding_records.push(EncodingRecord { platform_id, encoding_id, offset });
+            encoding_records.push(EncodingRecord::new(platform_id, encoding_id, offset));
             count += 8;
         }
         
         let mut subtables: Vec<CmapSubtable> = Vec::new();
         for rec in encoding_records.iter() {
-            let mut offset = rec.offset as usize;
+            let mut offset = rec.offset() as usize;
             let format = get_u16(bytes, offset)?;
             offset += 2;
             match format {
@@ -211,7 +224,7 @@ impl FontFile {
                         let id_delta = i16::from_be_bytes(ch[4..6].try_into().unwrap());
                         let id_range_offset = u16::from_be_bytes(ch[6..8].try_into().unwrap());
                         
-                        SubHeader { first_code, entry_count, id_delta, id_range_offset }
+                        SubHeader::new(first_code, entry_count, id_delta, id_range_offset)
                     }).collect();
                     offset += sub_headers_num as usize * 8;
                     let glyph_id_array: Vec<u16> = bytes.get(offset..).ok_or(ErrorKind::UnexpectedEof)?.chunks_exact(2).map(|ch| {
@@ -274,7 +287,7 @@ impl FontFile {
                         let end_char_code = u32::from_be_bytes(ch[4..8].try_into().unwrap());
                         let start_glyph_id = u32::from_be_bytes(ch[8..].try_into().unwrap());
                         
-                        Group { start_char_code, end_char_code, start_glyph_id }
+                        Group::new(start_char_code, end_char_code, start_glyph_id)
                     }).collect();
                     
                     subtables.push(CmapSubtable::Format12 { _reserved, length, language, num_groups, groups });
@@ -289,7 +302,7 @@ impl FontFile {
                         let end_char_code = u32::from_be_bytes(ch[4..8].try_into().unwrap());
                         let start_glyph_id = u32::from_be_bytes(ch[8..].try_into().unwrap());
                         
-                        Group { start_char_code, end_char_code, start_glyph_id }
+                        Group::new(start_char_code, end_char_code, start_glyph_id)
                     }).collect();
                     
                     subtables.push(CmapSubtable::Format13 { _reserved, length, language, num_groups, groups });
@@ -302,7 +315,7 @@ impl FontFile {
                         let default_uvs_offset = u32::from_be_bytes(ch[3..7].try_into().unwrap());
                         let non_default_uvs_offset = u32::from_be_bytes(ch[7..11].try_into().unwrap());
                         
-                        VariationSelectorRecord { var_selector, default_uvs_offset, non_default_uvs_offset }
+                        VariationSelectorRecord::new(var_selector, default_uvs_offset, non_default_uvs_offset)
                     }).collect();
                     
                     subtables.push(CmapSubtable::Format14 { length, num_var_selector_records, var_selector });
@@ -312,7 +325,7 @@ impl FontFile {
             }
         }
         
-        Ok(CmapTable { version, num_tables, encoding_records, subtables })
+        Ok(CmapTable::new(version, num_tables, encoding_records, subtables))
     }
     
     pub fn parse_loca(&self, num_glyphs: u16, index_to_loc_format: i16) -> Result<Vec<u32>, Error> {
@@ -360,9 +373,8 @@ impl FontFile {
                 let x_max = get_i16(current_glyph_bytes, 6)?;
                 let y_max = get_i16(current_glyph_bytes, 8)?;
                 current_offset += 10;
-                let header = GlyphHeader { number_of_contours, x_min, y_min, x_max, y_max };
-                
-                let mut are_instructions = false;
+                let header = GlyphHeader::new(number_of_contours, x_min, y_min, x_max, y_max);
+                let mut are_instructions;
                 if number_of_contours > 0 {
                     let end_pts_of_contours: Vec<u16> = current_glyph_bytes
                         .get(current_offset..current_offset + number_of_contours as usize * 2)
@@ -486,7 +498,7 @@ impl FontFile {
                             transformation = [0, 0, 0, 0];
                         }
                         
-                        components.push(Component { flags, glyph_index, argument_1, argument_2, transformation });
+                        components.push(Component::new(flags, glyph_index, argument_1, argument_2, transformation));
                         
                         are_instructions = flags & WE_HAVE_INSTRUCTIONS != 0;
                         
@@ -540,7 +552,7 @@ impl FontFile {
         let metric_data_format = get_i16(bytes, 32)?;
         let number_of_h_metrics = get_u16(bytes, 34)?;
         
-        Ok(HheaTable {
+        Ok(HheaTable::new(
             version,
             ascender,
             descender,
@@ -558,7 +570,7 @@ impl FontFile {
             _reserved4,
             metric_data_format,
             number_of_h_metrics
-        })
+        ))
     }
     
     pub fn parse_hmtx(&self, num_glyphs: u16, number_of_h_metrics: u16) -> Result<HmtxTable, Error> {
@@ -593,7 +605,7 @@ impl FontFile {
                 })
         );
         
-        Ok(HmtxTable { entries, shared_advance_width })
+        Ok(HmtxTable::new(entries, shared_advance_width))
     }
     
     pub fn parse_name(&self) -> Result<NameTable, Error> {
@@ -621,7 +633,7 @@ impl FontFile {
                     .ok_or(ErrorKind::UnexpectedEof)?;
                 let string = decode_name_bytes(string_bytes, platform_id, encoding_id)?;
                 
-                Ok(NameRecord { platform_id, encoding_id, language_id, name_id, length, string_offset, string })
+                Ok(NameRecord::new(platform_id, encoding_id, language_id, name_id, length, string_offset, string))
             }).collect::<Result<Vec<_>, Error>>()?;
         offset += count as usize * 12;
         let mut lang_tag_count: Option<u16> = None;
@@ -644,12 +656,12 @@ impl FontFile {
                             }).collect();
                         let string = String::from_utf16(&string_bytes).map_err(|e| Error::new(ErrorKind::InvalidData, e))?;
                         
-                        Ok(LangTagRecord { length, lang_tag_offset, string })
+                        Ok(LangTagRecord::new(length, lang_tag_offset, string))
                     }).collect::<Result<Vec<_>, Error>>()?
             );
         }
         
-        Ok(NameTable { version, count, storage_offset, records, lang_tag_count, lang_tag_records })
+        Ok(NameTable::new(version, count, storage_offset, records, lang_tag_count, lang_tag_records))
     }
     
     pub fn parse_os2(&self) -> Result<OS2Table, Error> {
@@ -716,7 +728,7 @@ impl FontFile {
             us_upper_optical_point_size = Some(get_u16(bytes, 98)?);
         }
         
-        Ok(OS2Table {
+        Ok(OS2Table::new(
             version,
             x_avg_char_width,
             us_weight_class,
@@ -756,7 +768,7 @@ impl FontFile {
             us_max_context,
             us_lower_optical_point_size,
             us_upper_optical_point_size
-        })
+        ))
     }
     
     pub fn parse_post(&self) -> Result<PostTable, Error> {
@@ -815,7 +827,7 @@ impl FontFile {
             return Err(Error::new(ErrorKind::InvalidData, format!("Version {} is not valid", version)))
         }
         
-        Ok(PostTable {
+        Ok(PostTable::new(
             version,
             italic_angle,
             underline_position,
@@ -828,7 +840,7 @@ impl FontFile {
             num_glyphs,
             glyph_name_index,
             names
-        })
+        ))
     }
     
     pub fn parse_vhea(&self) -> Result<VheaTable, Error> {
@@ -855,7 +867,7 @@ impl FontFile {
         let metric_data_format = get_i16(vhea_bytes, 32)?;
         let num_of_long_ver_metrics = get_u16(vhea_bytes, 34)?;
         
-        Ok(VheaTable {
+        Ok(VheaTable::new(
             version,
             vert_typo_ascender,
             vert_typo_descender,
@@ -873,7 +885,7 @@ impl FontFile {
             _reserved4,
             metric_data_format,
             num_of_long_ver_metrics
-        })
+        ))
     }
     
     pub fn parse_vmtx(&self, num_glyphs: u16, number_of_v_metrics: u16) -> Result<VmtxTable, Error> {
@@ -908,7 +920,7 @@ impl FontFile {
                 })
         );
         
-        Ok(VmtxTable { entries, shared_advance_height })
+        Ok(VmtxTable::new(entries, shared_advance_height))
     }
     
     pub fn parse_kern(&self) -> Result<KernTable, Error> {
@@ -937,12 +949,7 @@ impl FontFile {
                         }
                     }?;
                     
-                    subtables.push(WindowsSubtable {
-                        version,
-                        length,
-                        coverage,
-                        subtable
-                    });
+                    subtables.push(WindowsSubtable::new(version, length, coverage, subtable));
                 }
                 
                 Ok(KernTable::Windows {
@@ -972,12 +979,7 @@ impl FontFile {
                         }
                     }?;
                     
-                    subtables.push(MacSubtable {
-                        length,
-                        coverage,
-                        tuple_index,
-                        subtable
-                    });
+                    subtables.push(MacSubtable::new(length, coverage, tuple_index, subtable));
                 }
                 
                 Ok(KernTable::Mac {
@@ -1005,10 +1007,10 @@ impl FontFile {
                 let range_max_ppem = get_u16(ch, 0)?;
                 let range_gasp_behavior = get_u16(ch, 2)?;
                 
-                Ok(GaspRangeRecord { range_max_ppem, range_gasp_behavior })
+                Ok(GaspRangeRecord::new(range_max_ppem, range_gasp_behavior))
             }).collect::<Result<Vec<_>, Error>>()?;
         
-        Ok(GaspTable { version, num_ranges, range_records })
+        Ok(GaspTable::new(version, num_ranges, range_records))
     }
     
     pub fn parse_cvt(&self) -> Result<Vec<i16>, Error> {
@@ -1047,14 +1049,14 @@ impl FontFile {
         else {
             feature_variations_offset = None;
         }
-        let header = TableHeader {
+        let header = TableHeader::new(
             major_version,
             minor_version,
             script_list_offset,
             feature_list_offset,
             lookup_list_offset,
             feature_variations_offset
-        };
+        );
         let script_list = parse_script_list(bytes, script_list_offset)?;
         let feature_list = parse_feature_list(bytes, feature_list_offset)?;
         let lookup_list = parse_lookup_list(bytes, lookup_list_offset)?;
@@ -1066,13 +1068,13 @@ impl FontFile {
             feature_variations = None;
         }
         
-        Ok(GposTable {
+        Ok(GposTable::new(
             header,
             script_list,
             feature_list,
             lookup_list,
             feature_variations
-        })
+        ))
     }
     
     pub fn parse_gsub(&self) -> Result<GsubTable<GsubSubtable>, Error> {
@@ -1092,14 +1094,14 @@ impl FontFile {
         else {
             feature_variations_offset = None;
         }
-        let header = TableHeader {
+        let header = TableHeader::new(
             major_version,
             minor_version,
             script_list_offset,
             feature_list_offset,
             lookup_list_offset,
             feature_variations_offset
-        };
+        );
         let script_list = parse_script_list(bytes, script_list_offset)?;
         let feature_list = parse_feature_list(bytes, feature_list_offset)?;
         let lookup_list = parse_lookup_list(bytes, lookup_list_offset)?;
@@ -1111,13 +1113,13 @@ impl FontFile {
             feature_variations = None;
         }
         
-        Ok(GsubTable {
+        Ok(GsubTable::new(
             header,
             script_list,
             feature_list,
             lookup_list,
             feature_variations
-        })
+        ))
     }
 }
 
@@ -1134,7 +1136,7 @@ fn parse_kern_format0(bytes: &[u8]) -> Result<KernSubtable, Error> {
             let right = get_u16(ch, 2)?;
             let value = get_i16(ch, 4)?;
             
-            Ok(KernPair { left, right, value })
+            Ok(KernPair::new(left, right, value))
         }).collect::<Result<Vec<_>, Error>>()?;
     
     Ok(KernSubtable::Format0 {
@@ -1202,7 +1204,7 @@ fn parse_kern_class(bytes: &[u8], class_format: u16, offset: usize) -> Result<Ke
                     let end_glyph = get_u16(ch, 2)?;
                     let class = get_u16(ch, 4)?;
                     
-                    Ok(Range { start_glyph, end_glyph, class })
+                    Ok(Range::new(start_glyph, end_glyph, class))
                 }).collect::<Result<Vec<_>, Error>>()?;
             
             Ok(KernClassTable::Format2 { range_count, ranges })
@@ -1223,11 +1225,11 @@ fn parse_script_list(bytes: &[u8], script_list_offset: u16) -> Result<ScriptList
             let script_tag: [u8; 4] = ch[0..4].try_into().unwrap();
             let script_offset = get_u16(ch, 4)?;
             
-            Ok(ScriptRecord { script_tag, script_offset })
+            Ok(ScriptRecord::new(script_tag, script_offset))
         }).collect::<Result<Vec<_>, Error>>()?;
     let scripts: Vec<Script> = script_records.iter()
         .map(|sr| {
-            let mut offset = (script_list_offset + sr.script_offset) as usize;
+            let mut offset = (script_list_offset + sr.script_offset()) as usize;
             let test_offset = get_u16(bytes, offset)?;
             offset += 2;
             let default_lang_sys_offset = if test_offset != 0 {
@@ -1237,7 +1239,7 @@ fn parse_script_list(bytes: &[u8], script_list_offset: u16) -> Result<ScriptList
                 None
             };
             let default_lang_sys = if default_lang_sys_offset != None {
-                let mut offset = (script_list_offset + sr.script_offset + default_lang_sys_offset.unwrap()) as usize;
+                let mut offset = (script_list_offset + sr.script_offset() + default_lang_sys_offset.unwrap()) as usize;
                 let _lookup_order_offset = get_u16(bytes, offset)?;
                 let required_feature_index = get_u16(bytes, offset + 2)?;
                 let feature_index_count = get_u16(bytes, offset + 4)?;
@@ -1249,12 +1251,12 @@ fn parse_script_list(bytes: &[u8], script_list_offset: u16) -> Result<ScriptList
                         Ok(get_u16(ch, 0)?)
                     }).collect::<Result<Vec<_>, Error>>()?;
                 
-                Some(LangSys {
+                Some(LangSys::new(
                     _lookup_order_offset,
                     required_feature_index,
                     feature_index_count,
                     feature_indices
-                })
+                ))
             }
             else {
                 None
@@ -1271,11 +1273,11 @@ fn parse_script_list(bytes: &[u8], script_list_offset: u16) -> Result<ScriptList
                         .unwrap();
                     let lang_sys_offset = get_u16(ch, 4)?;
                     
-                    Ok(LangSysRecord { lang_sys_tag, lang_sys_offset })
+                    Ok(LangSysRecord::new(lang_sys_tag, lang_sys_offset))
                 }).collect::<Result<Vec<_>, Error>>()?;
             let lang_syses: Vec<LangSys> = lang_sys_records.iter()
                 .map(|lsr| {
-                    let mut offset = (script_list_offset + sr.script_offset + lsr.lang_sys_offset) as usize;
+                    let mut offset = (script_list_offset + sr.script_offset() + lsr.lang_sys_offset()) as usize;
                     let _lookup_order_offset = get_u16(bytes, offset)?;
                     let required_feature_index = get_u16(bytes, offset + 2)?;
                     let feature_index_count = get_u16(bytes, offset + 4)?;
@@ -1287,28 +1289,28 @@ fn parse_script_list(bytes: &[u8], script_list_offset: u16) -> Result<ScriptList
                             Ok(get_u16(ch, 0)?)
                         }).collect::<Result<Vec<_>, Error>>()?;
                     
-                    Ok(LangSys {
+                    Ok(LangSys::new(
                         _lookup_order_offset,
                         required_feature_index,
                         feature_index_count,
                         feature_indices
-                    })
+                    ))
                 }).collect::<Result<Vec<_>, Error>>()?;
             
-            Ok(Script {
+            Ok(Script::new(
                 default_lang_sys_offset,
                 default_lang_sys,
                 lang_sys_count,
                 lang_sys_records,
                 lang_syses
-            })
+            ))
         }).collect::<Result<Vec<_>, Error>>()?;
     
-    Ok(ScriptList {
+    Ok(ScriptList::new(
         script_count,
         script_records,
         scripts
-    })
+    ))
 }
 
 fn parse_feature_list(bytes: &[u8], feature_list_offset: u16) -> Result<FeatureList, Error> {
@@ -1323,11 +1325,11 @@ fn parse_feature_list(bytes: &[u8], feature_list_offset: u16) -> Result<FeatureL
             let feature_tag: [u8; 4] = ch[0..4].try_into().unwrap();
             let feature_offset = get_u16(ch, 4)?;
             
-            Ok(FeatureRecord { feature_tag, feature_offset })
+            Ok(FeatureRecord::new(feature_tag, feature_offset))
         }).collect::<Result<Vec<_>, Error>>()?;
     let features: Vec<Feature> = feature_records.iter()
         .map(|fr| {
-            let mut offset = (feature_list_offset + fr.feature_offset) as usize;
+            let mut offset = (feature_list_offset + fr.feature_offset()) as usize;
             let test_offset = get_u16(bytes, offset)?;
             offset += 2;
             let feature_params_offset: Option<u16> = if test_offset != 0 {
@@ -1337,8 +1339,8 @@ fn parse_feature_list(bytes: &[u8], feature_list_offset: u16) -> Result<FeatureL
                 None
             };
             let feature_params: Option<FeatureParams> = if feature_params_offset != None {
-                let offset = (feature_list_offset + fr.feature_offset + feature_params_offset.unwrap()) as usize;
-                match &fr.feature_tag {
+                let offset = (feature_list_offset + fr.feature_offset() + feature_params_offset.unwrap()) as usize;
+                match &fr.feature_tag() {
                     b"size" => {
                         let design_size = get_u16(bytes, offset)?;
                         let subfamily_id = get_u16(bytes, offset + 2)?;
@@ -1387,7 +1389,7 @@ fn parse_feature_list(bytes: &[u8], feature_list_offset: u16) -> Result<FeatureL
                             character
                         })
                     }
-                    _ => return Err(Error::new(ErrorKind::InvalidData, format!("Feature tag is invalid: {:#?}", fr.feature_tag)))
+                    _ => return Err(Error::new(ErrorKind::InvalidData, format!("Feature tag is invalid: {:#?}", fr.feature_tag())))
                 }
             }
             else {
@@ -1402,15 +1404,15 @@ fn parse_feature_list(bytes: &[u8], feature_list_offset: u16) -> Result<FeatureL
                     u16::from_be_bytes(ch.try_into().unwrap())
                 }).collect();
             
-            Ok(Feature {
+            Ok(Feature::new(
                 feature_params_offset,
                 feature_params,
                 lookup_index_count,
                 lookup_list_indices
-            })
+            ))
         }).collect::<Result<Vec<_>, Error>>()?;
     
-    Ok(FeatureList { feature_count, feature_records, features })
+    Ok(FeatureList::new(feature_count, feature_records, features))
 }
 
 fn parse_lookup_list<T: SubtableParser>(bytes: &[u8], lookup_list_offset: u16) -> Result<LookupList<T>, Error> {
@@ -1450,21 +1452,21 @@ fn parse_lookup_list<T: SubtableParser>(bytes: &[u8], lookup_list_offset: u16) -
             None
         };
         
-        lookups.push(Lookup {
+        lookups.push(Lookup::new(
             lookup_type,
             lookup_flag,
             subtable_count,
             subtable_offsets,
             subtables,
             mark_filtering_set
-        });
+        ));
     }
     
-    Ok(LookupList {
+    Ok(LookupList::new(
         lookup_count,
         lookup_offsets,
         lookups
-    })
+    ))
 }
 
 trait SubtableParser: Sized {
@@ -1542,17 +1544,17 @@ impl SubtableParser for GposSubtable {
                                     let value_record1 = parse_value_record(bytes, value_format1, &mut offset, subtable_offset)?;
                                     let value_record2 = parse_value_record(bytes, value_format2, &mut offset, subtable_offset)?;
                                     
-                                    Ok(PairValueRecord {
+                                    Ok(PairValueRecord::new(
                                         second_glyph,
                                         value_record1,
                                         value_record2
-                                    })
+                                    ))
                                 }).collect::<Result<Vec<_>, Error>>()?;
                                 
-                                Ok(PairSet {
+                                Ok(PairSet::new(
                                     pair_value_count,
                                     pair_value_records
-                                })
+                                ))
                             }).collect::<Result<Vec<_>, Error>>()?;
                         
                         Ok(GposSubtable::Type2(GposType2Format::Format1 {
@@ -2388,11 +2390,11 @@ fn parse_feature_variations(bytes: &[u8], feature_variations_offset: u32, featur
                     }
                 }).collect::<Result<Vec<_>, Error>>()?;
             
-            ConditionSet {
+            ConditionSet::new(
                 condition_count,
                 condition_offsets,
                 conditions
-            }
+            )
         };
         let feature_table_substitution_offset = get_u32(bytes, offset)?;
         let feature_table_substitution: FeatureTableSubstitution = {
@@ -2417,10 +2419,10 @@ fn parse_feature_variations(bytes: &[u8], feature_variations_offset: u32, featur
                         None
                     };
                     let feature_params = if feature_params_offset != None {
-                        let feature_tag = feature_list.feature_records
+                        let feature_tag = feature_list.feature_records()
                             .get(feature_index as usize)
                             .ok_or(ErrorKind::NotFound)?
-                            .feature_tag;
+                            .feature_tag();
                         match &feature_tag {
                             b"size" => {
                                 let design_size = get_u16(bytes, offset)?;
@@ -2485,43 +2487,43 @@ fn parse_feature_variations(bytes: &[u8], feature_variations_offset: u32, featur
                             u16::from_be_bytes(ch.try_into().unwrap())
                         }).collect();
                     
-                    Feature {
+                    Feature::new(
                         feature_params_offset,
                         feature_params,
                         lookup_index_count,
                         lookup_list_indices
-                    }
+                    )
                 };
                 
-                substitution_records.push(FeatureTableSubstitutionRecord {
+                substitution_records.push(FeatureTableSubstitutionRecord::new(
                     feature_index,
                     alternate_feature_table_offset,
                     alternate_feature_table
-                })
+                ))
             }
             
-            FeatureTableSubstitution {
+            FeatureTableSubstitution::new(
                 major_version,
                 minor_version,
                 substitution_count,
                 substitution_records
-            }
+            )
         };
         
-        feature_variation_records.push(FeatureVariationRecord {
+        feature_variation_records.push(FeatureVariationRecord::new(
             condition_set_offset,
             condition_set,
             feature_table_substitution_offset,
             feature_table_substitution
-        });
+        ));
     }
     
-    Ok(FeatureVariations {
+    Ok(FeatureVariations::new(
         major_version,
         minor_version,
         feature_variation_record_count,
         feature_variation_records
-    })
+    ))
 }
 
 fn parse_coverage(bytes: &[u8], subtable_offset: usize, coverage_offset: u16) -> Result<Coverage, Error> {
@@ -2555,11 +2557,11 @@ fn parse_coverage(bytes: &[u8], subtable_offset: usize, coverage_offset: u16) ->
                     let end_glyph_id = u16::from_be_bytes(ch[2..4].try_into().unwrap());
                     let start_coverage_index = u16::from_be_bytes(ch[4..6].try_into().unwrap());
                     
-                    CoverageRangeRecord {
+                    CoverageRangeRecord::new(
                         start_glyph_id,
                         end_glyph_id,
                         start_coverage_index
-                    }
+                    )
                 }).collect();
             
             Ok(Coverage::Format2 {
@@ -2598,7 +2600,7 @@ fn parse_value_record(bytes: &[u8], value_format: u16, offset: &mut usize, subta
     }
     else { None };
     let x_pla_device = if x_pla_device_offset != None {
-        Some(parse_device(bytes, subtable_offset, x_pla_device_offset.unwrap())?)
+        Some(parse_device_or_variation_index(bytes, subtable_offset, x_pla_device_offset.unwrap())?)
     }
     else { None };
     let y_pla_device_offset = if value_format & Y_PLACEMENT_DEVICE != 0 {
@@ -2607,7 +2609,7 @@ fn parse_value_record(bytes: &[u8], value_format: u16, offset: &mut usize, subta
     }
     else { None };
     let y_pla_device = if y_pla_device_offset != None {
-        Some(parse_device(bytes, subtable_offset, y_pla_device_offset.unwrap())?)
+        Some(parse_device_or_variation_index(bytes, subtable_offset, y_pla_device_offset.unwrap())?)
     }
     else { None };
     let x_adv_device_offset = if value_format & X_ADVANCE_DEVICE != 0 {
@@ -2616,7 +2618,7 @@ fn parse_value_record(bytes: &[u8], value_format: u16, offset: &mut usize, subta
     }
     else { None };
     let x_adv_device = if x_adv_device_offset != None {
-        Some(parse_device(bytes, subtable_offset, x_adv_device_offset.unwrap())?)
+        Some(parse_device_or_variation_index(bytes, subtable_offset, x_adv_device_offset.unwrap())?)
     }
     else { None };
     let y_adv_device_offset = if value_format & Y_ADVANCE_DEVICE != 0 {
@@ -2625,11 +2627,11 @@ fn parse_value_record(bytes: &[u8], value_format: u16, offset: &mut usize, subta
     }
     else { None };
     let y_adv_device = if y_adv_device_offset != None {
-        Some(parse_device(bytes, subtable_offset, y_adv_device_offset.unwrap())?)
+        Some(parse_device_or_variation_index(bytes, subtable_offset, y_adv_device_offset.unwrap())?)
     }
     else { None };
     
-    Ok(ValueRecord {
+    Ok(ValueRecord::new(
         x_placement,
         y_placement,
         x_advance,
@@ -2642,15 +2644,28 @@ fn parse_value_record(bytes: &[u8], value_format: u16, offset: &mut usize, subta
         x_adv_device,
         y_adv_device_offset,
         y_adv_device
-    })
+    ))
 }
 
-fn parse_device(bytes: &[u8], subtable_offset: usize, device_offset: u16) -> Result<Device, Error> {
-    let mut offset = subtable_offset + device_offset as usize;
+fn parse_device_or_variation_index(bytes: &[u8], subtable_offset: usize, device_offset: u16) -> Result<DeviceOrVariationIndex, Error> {
+    let offset = subtable_offset + device_offset as usize;
+    let delta_format = get_u16(bytes, offset + 4)?;
+    if delta_format == 1 || delta_format == 2 || delta_format == 3 {
+        Ok(parse_device(bytes, subtable_offset, device_offset)?)
+    }
+    else if delta_format == 0x8000 {
+        Ok(parse_variation_index(bytes, subtable_offset, device_offset)?)
+    }
+    else {
+        Err(Error::new(ErrorKind::InvalidData, "DeltaFormat value invalid: {}".to_string()))
+    }
+}
+
+fn parse_device(bytes: &[u8], subtable_offset: usize, device_offset: u16) -> Result<DeviceOrVariationIndex, Error> {
+    let offset = subtable_offset + device_offset as usize;
     let start_size = get_u16(bytes, offset)?;
     let end_size = get_u16(bytes, offset + 2)?;
     let delta_format = get_u16(bytes, offset + 4)?;
-    offset += 6;
     let count = end_size - start_size + 1;
     let length = match delta_format {
         1 => (count * 2).div_ceil(16),
@@ -2665,12 +2680,29 @@ fn parse_device(bytes: &[u8], subtable_offset: usize, device_offset: u16) -> Res
             u16::from_be_bytes(ch.try_into().unwrap())
         }).collect();
     
-    Ok(Device {
-        start_size,
-        end_size,
-        delta_format,
-        delta_values
-    })
+    Ok(DeviceOrVariationIndex::Device(
+        Device::new(
+            start_size,
+            end_size,
+            delta_format,
+            delta_values
+        )
+    ))
+}
+
+fn parse_variation_index(bytes: &[u8], subtable_offset: usize, device_offset: u16) -> Result<DeviceOrVariationIndex, Error> {
+    let offset = subtable_offset + device_offset as usize;
+    let delta_set_outer_index = get_u16(bytes, offset)?;
+    let delta_set_inner_index = get_u16(bytes, offset + 2)?;
+    let delta_format = get_u16(bytes, offset + 4)?;
+    
+    Ok(DeviceOrVariationIndex::VariationIndex(
+        VariationIndex::new(
+            delta_set_outer_index,
+            delta_set_inner_index,
+            delta_format
+        )
+    ))
 }
 
 fn parse_class_def(bytes: &[u8], subtable_offset: usize, class_def_offset: u16) -> Result<ClassDef, Error> {
@@ -2706,11 +2738,11 @@ fn parse_class_def(bytes: &[u8], subtable_offset: usize, class_def_offset: u16) 
                     let end_glyph_id = u16::from_be_bytes(ch[2..4].try_into().unwrap());
                     let class = u16::from_be_bytes(ch[4..6].try_into().unwrap());
                     
-                    ClassRangeRecord {
+                    ClassRangeRecord::new(
                         start_glyph_id,
                         end_glyph_id,
                         class
-                    }
+                    )
                 }).collect();
             
             Ok(ClassDef::Format2 {
@@ -2734,10 +2766,10 @@ fn parse_class1_record(
         let value_record1 = parse_value_record(bytes, value_format1, offset, subtable_offset)?;
         let value_record2 = parse_value_record(bytes, value_format2, offset, subtable_offset)?;
         
-        Ok(Class2Record { value_record1, value_record2 })
+        Ok(Class2Record::new(value_record1, value_record2))
     }).collect::<Result<Vec<_>, Error>>()?;
     
-    Ok(Class1Record { class2_records })
+    Ok(Class1Record::new(class2_records))
 }
 
 fn parse_entry_exit_record(bytes: &[u8], subtable_offset: usize, offset: &mut usize) -> Result<EntryExitRecord, Error> {
@@ -2761,12 +2793,12 @@ fn parse_entry_exit_record(bytes: &[u8], subtable_offset: usize, offset: &mut us
     else { None };
     *offset += 4;
     
-    Ok(EntryExitRecord {
+    Ok(EntryExitRecord::new(
         entry_anchor_offset,
         entry_anchor,
         exit_anchor_offset,
         exit_anchor
-    })
+    ))
 }
 
 fn parse_anchor(bytes: &[u8], subtable_offset: usize, anchor_offset: u16) -> Result<Anchor, Error> {
@@ -2798,9 +2830,9 @@ fn parse_anchor(bytes: &[u8], subtable_offset: usize, anchor_offset: u16) -> Res
             let x_coordinate = get_i16(bytes, offset)?;
             let y_coordinate = get_i16(bytes, offset + 2)?;
             let x_device_offset = get_u16(bytes, offset + 4)?;
-            let x_device = parse_device(bytes, subtable_offset, x_device_offset)?;
+            let x_device = parse_device_or_variation_index(bytes, subtable_offset, x_device_offset)?;
             let y_device_offset = get_u16(bytes, offset + 6)?;
-            let y_device = parse_device(bytes, subtable_offset, y_device_offset)?;
+            let y_device = parse_device_or_variation_index(bytes, subtable_offset, y_device_offset)?;
             
             Ok(Anchor::Format3 {
                 x_coordinate,
@@ -2825,17 +2857,17 @@ fn parse_mark_array(bytes: &[u8], subtable_offset: usize, mark_array_offset: u16
         offset += 4;
         let mark_anchor = parse_anchor(bytes, subtable_offset, mark_anchor_offset)?;
         
-        Ok(MarkRecord {
+        Ok(MarkRecord::new(
             mark_class,
             mark_anchor_offset,
             mark_anchor
-        })
+        ))
     }).collect::<Result<Vec<_>, Error>>()?;
     
-    Ok(MarkArray {
+    Ok(MarkArray::new(
         mark_count,
         mark_records
-    })
+    ))
 }
 
 fn parse_base_array(bytes: &[u8], subtable_offset: usize, base_array_offset: u16) -> Result<BaseArray, Error> {
@@ -2855,13 +2887,13 @@ fn parse_base_array(bytes: &[u8], subtable_offset: usize, base_array_offset: u16
                 Ok(parse_anchor(bytes, subtable_offset, *offset)?)
             }).collect::<Result<Vec<_>, Error>>()?;
         
-        Ok(BaseRecord { base_anchor_offsets, base_anchors })
+        Ok(BaseRecord::new(base_anchor_offsets, base_anchors))
     }).collect::<Result<Vec<_>, Error>>()?;
     
-    Ok(BaseArray {
+    Ok(BaseArray::new(
         base_count,
         base_records
-    })
+    ))
 }
 
 fn parse_ligature_array(bytes: &[u8], subtable_offset: usize, ligature_array_offset: u16, mark_class_count: u16) -> Result<LigatureArray, Error> {
@@ -2879,11 +2911,11 @@ fn parse_ligature_array(bytes: &[u8], subtable_offset: usize, ligature_array_off
             Ok(parse_ligature_attach(bytes, subtable_offset, *offset, mark_class_count)?)
         }).collect::<Result<Vec<_>, Error>>()?;
     
-    Ok(LigatureArray {
+    Ok(LigatureArray::new(
         ligature_count,
         ligature_attach_offsets,
         ligature_attaches
-    })
+    ))
 }
 
 fn parse_ligature_attach(
@@ -2899,10 +2931,10 @@ fn parse_ligature_attach(
         Ok(parse_component_record(bytes, subtable_offset, offset, mark_class_count)?)
     }).collect::<Result<Vec<_>, Error>>()?;
     
-    Ok(LigatureAttach {
+    Ok(LigatureAttach::new(
         component_count,
         component_records
-    })
+    ))
 }
 
 fn parse_component_record(
@@ -2922,10 +2954,10 @@ fn parse_component_record(
             Ok(parse_anchor(bytes, subtable_offset, *offset)?)
         }).collect::<Result<Vec<_>, Error>>()?;
     
-    Ok(ComponentRecord {
+    Ok(ComponentRecord::new(
         ligature_anchor_offsets,
         ligature_anchors
-    })
+    ))
 }
 
 fn parse_mark2_array(bytes: &[u8], subtable_offset: usize, mark2_array_offset: u16, mark_class_count: u16) -> Result<Mark2Array, Error> {
@@ -2936,10 +2968,10 @@ fn parse_mark2_array(bytes: &[u8], subtable_offset: usize, mark2_array_offset: u
         Ok(parse_mark2_record(bytes, subtable_offset, &mut offset, mark_class_count)?)
     }).collect::<Result<Vec<_>, Error>>()?;
     
-    Ok(Mark2Array {
+    Ok(Mark2Array::new(
         mark2_count,
         mark2_records
-    })
+    ))
 }
 
 fn parse_mark2_record(bytes: &[u8], subtable_offset: usize, offset: &mut usize, mark_class_count: u16) -> Result<Mark2Record, Error> {
@@ -2955,10 +2987,10 @@ fn parse_mark2_record(bytes: &[u8], subtable_offset: usize, offset: &mut usize, 
             Ok(parse_anchor(bytes, subtable_offset, *offset)?)
         }).collect::<Result<Vec<_>, Error>>()?;
     
-    Ok(Mark2Record {
+    Ok(Mark2Record::new(
         mark2_anchor_offsets,
         mark2_anchors
-    })
+    ))
 }
 
 fn parse_gpos_sub_rule_set(bytes: &[u8], subtable_offset: usize, sub_rule_set_offset: u16) -> Result<GposSubRuleSet, Error> {
@@ -2976,11 +3008,11 @@ fn parse_gpos_sub_rule_set(bytes: &[u8], subtable_offset: usize, sub_rule_set_of
             Ok(parse_gpos_sub_rule(bytes, subtable_offset, *offset)?)
         }).collect::<Result<Vec<_>, Error>>()?;
     
-    Ok(GposSubRuleSet {
+    Ok(GposSubRuleSet::new(
         sub_rule_count,
         sub_rule_offsets,
         sub_rules
-    })
+    ))
 }
 
 fn parse_gpos_sub_rule(bytes: &[u8], subtable_offset: usize, sub_rule_offset: u16) -> Result<GposSubRule, Error> {
@@ -2999,12 +3031,12 @@ fn parse_gpos_sub_rule(bytes: &[u8], subtable_offset: usize, sub_rule_offset: u1
         Ok(parse_pos_lookup_record(bytes, &mut offset)?)
     }).collect::<Result<Vec<_>, Error>>()?;
     
-    Ok(GposSubRule {
+    Ok(GposSubRule::new(
         glyph_count,
         sub_count,
         input_glyph_ids,
         pos_lookup_records
-    })
+    ))
 }
 
 fn parse_pos_lookup_record(bytes: &[u8], offset: &mut usize) -> Result<PosLookupRecord, Error> {
@@ -3012,10 +3044,10 @@ fn parse_pos_lookup_record(bytes: &[u8], offset: &mut usize) -> Result<PosLookup
     let lookup_list_index = get_u16(bytes, *offset + 2)?;
     *offset += 4;
     
-    Ok(PosLookupRecord {
+    Ok(PosLookupRecord::new(
         glyph_sequence_index,
         lookup_list_index
-    })
+    ))
 }
 
 fn parse_gpos_sub_class_set(bytes: &[u8], subtable_offset: usize, sub_class_set_offset: u16) -> Result<GposSubClassSet, Error> {
@@ -3033,11 +3065,11 @@ fn parse_gpos_sub_class_set(bytes: &[u8], subtable_offset: usize, sub_class_set_
             Ok(parse_gpos_sub_class_rule(bytes, subtable_offset, *offset)?)
         }).collect::<Result<Vec<_>, Error>>()?;
     
-    Ok(GposSubClassSet {
+    Ok(GposSubClassSet::new(
         sub_class_rule_count,
         sub_class_rule_offsets,
         sub_class_rules
-    })
+    ))
 }
 
 fn parse_gpos_sub_class_rule(bytes: &[u8], subtable_offset: usize, sub_class_rule_offset: u16) -> Result<GposSubClassRule, Error> {
@@ -3056,12 +3088,12 @@ fn parse_gpos_sub_class_rule(bytes: &[u8], subtable_offset: usize, sub_class_rul
         Ok(parse_pos_lookup_record(bytes, &mut offset)?)
     }).collect::<Result<Vec<_>, Error>>()?;
     
-    Ok(GposSubClassRule {
+    Ok(GposSubClassRule::new(
         glyph_count,
         sub_count,
         class_ids,
         pos_lookup_records
-    })
+    ))
 }
 
 fn parse_gpos_chain_sub_rule_set(bytes: &[u8], subtable_offset: usize, chain_sub_rule_set_offset: u16) -> Result<GposChainSubRuleSet, Error> {
@@ -3079,11 +3111,11 @@ fn parse_gpos_chain_sub_rule_set(bytes: &[u8], subtable_offset: usize, chain_sub
             Ok(parse_gpos_chain_sub_rule(bytes, subtable_offset, *offset)?)
         }).collect::<Result<Vec<_>, Error>>()?;
     
-    Ok(GposChainSubRuleSet {
+    Ok(GposChainSubRuleSet::new(
         chain_sub_rule_count,
         chain_sub_rule_offsets,
         chain_sub_rules
-    })
+    ))
 }
 
 fn parse_gpos_chain_sub_class_set(bytes: &[u8], subtable_offset: usize, chain_sub_class_set_offset: u16) -> Result<GposChainSubClassSet, Error> {
@@ -3101,11 +3133,11 @@ fn parse_gpos_chain_sub_class_set(bytes: &[u8], subtable_offset: usize, chain_su
             Ok(parse_gpos_chain_sub_class_rule(bytes, subtable_offset, *offset)?)
         }).collect::<Result<Vec<_>, Error>>()?;
     
-    Ok(GposChainSubClassSet {
+    Ok(GposChainSubClassSet::new(
         chain_sub_class_rule_count,
         chain_sub_class_rule_offsets,
         chain_sub_class_rules
-    })
+    ))
 }
 
 fn parse_gpos_chain_sub_class_rule(bytes: &[u8], subtable_offset: usize, chain_sub_class_rule_offset: u16) -> Result<GposChainSubClassRule, Error> {
@@ -3143,7 +3175,7 @@ fn parse_gpos_chain_sub_class_rule(bytes: &[u8], subtable_offset: usize, chain_s
         Ok(parse_pos_lookup_record(bytes, &mut offset)?)
     }).collect::<Result<Vec<_>, Error>>()?;
     
-    Ok(GposChainSubClassRule {
+    Ok(GposChainSubClassRule::new(
         backtrack_glyph_count,
         backtrack_class_ids,
         input_glyph_count,
@@ -3152,7 +3184,7 @@ fn parse_gpos_chain_sub_class_rule(bytes: &[u8], subtable_offset: usize, chain_s
         lookahead_class_ids,
         sub_count,
         pos_lookup_records
-    })
+    ))
 }
 
 fn parse_gpos_chain_sub_rule(bytes: &[u8], subtable_offset: usize, chain_sub_rule_offset: u16) -> Result<GposChainSubRule, Error> {
@@ -3190,7 +3222,7 @@ fn parse_gpos_chain_sub_rule(bytes: &[u8], subtable_offset: usize, chain_sub_rul
         Ok(parse_pos_lookup_record(bytes, &mut offset)?)
     }).collect::<Result<Vec<_>, Error>>()?;
     
-    Ok(GposChainSubRule {
+    Ok(GposChainSubRule::new(
         backtrack_glyph_count,
         backtrack_glyph_ids,
         input_glyph_count,
@@ -3199,7 +3231,7 @@ fn parse_gpos_chain_sub_rule(bytes: &[u8], subtable_offset: usize, chain_sub_rul
         lookahead_glyph_ids,
         sub_count,
         pos_lookup_records
-    })
+    ))
 }
 
 fn parse_sequence(bytes: &[u8], subtable_offset: usize, sequence_offset: u16) -> Result<Sequence, Error> {
@@ -3213,10 +3245,10 @@ fn parse_sequence(bytes: &[u8], subtable_offset: usize, sequence_offset: u16) ->
             u16::from_be_bytes(ch.try_into().unwrap())
         }).collect();
     
-    Ok(Sequence {
+    Ok(Sequence::new(
         glyph_count,
         substitute_glyph_ids
-    })
+    ))
 }
 
 fn parse_alternate_set(bytes: &[u8], subtable_offset: usize, alternate_set_offset: u16) -> Result<AlternateSet, Error> {
@@ -3230,27 +3262,51 @@ fn parse_alternate_set(bytes: &[u8], subtable_offset: usize, alternate_set_offse
             u16::from_be_bytes(ch.try_into().unwrap())
         }).collect();
     
-    Ok(AlternateSet {
+    Ok(AlternateSet::new(
         glyph_count,
         alternate_glyph_ids
-    })
+    ))
 }
 
 fn parse_ligature_set(bytes: &[u8], subtable_offset: usize, ligature_set_offset: u16) -> Result<LigatureSet, Error> {
     let mut offset = subtable_offset + ligature_set_offset as usize;
     let ligature_count = get_u16(bytes, offset)?;
     offset += 2;
-    let ligature_offsets = bytes.get(offset..offset + ligature_count as usize * 2)
+    let ligature_offsets: Vec<u16> = bytes.get(offset..offset + ligature_count as usize * 2)
+        .ok_or(ErrorKind::UnexpectedEof)?
+        .chunks_exact(2)
+        .map(|ch| {
+            u16::from_be_bytes(ch.try_into().unwrap())
+        }).collect();
+    let ligatures: Vec<Ligature> = ligature_offsets.iter()
+        .map(|offset| {
+            Ok(parse_ligature(bytes, subtable_offset, *offset)?)
+        }).collect::<Result<Vec<_>, Error>>()?;
+    
+    Ok(LigatureSet::new(
+        ligature_count,
+        ligature_offsets,
+        ligatures
+    ))
+}
+
+fn parse_ligature(bytes: &[u8], subtable_offset: usize, ligature_offset: u16) -> Result<Ligature, Error> {
+    let mut offset = subtable_offset + ligature_offset as usize;
+    let ligature_glyph_id = get_u16(bytes, offset)?;
+    let component_count = get_u16(bytes, offset + 2)?;
+    offset += 4;
+    let component_glyph_ids: Vec<u16> = bytes.get(offset..offset + component_count as usize * 2)
         .ok_or(ErrorKind::UnexpectedEof)?
         .chunks_exact(2)
         .map(|ch| {
             u16::from_be_bytes(ch.try_into().unwrap())
         }).collect();
     
-    Ok(LigatureSet {
-        ligature_count,
-        ligature_offsets
-    })
+    Ok(Ligature::new(
+        ligature_glyph_id,
+        component_count,
+        component_glyph_ids
+    ))
 }
 
 fn parse_gsub_sub_rule_set(bytes: &[u8], subtable_offset: usize, sub_rule_set_offset: u16) -> Result<GsubSubRuleSet, Error> {
@@ -3268,11 +3324,11 @@ fn parse_gsub_sub_rule_set(bytes: &[u8], subtable_offset: usize, sub_rule_set_of
             Ok(parse_gsub_sub_rule(bytes, subtable_offset, *offset)?)
         }).collect::<Result<Vec<_>, Error>>()?;
     
-    Ok(GsubSubRuleSet {
+    Ok(GsubSubRuleSet::new(
         sub_rule_count,
         sub_rule_offsets,
         sub_rules
-    })
+    ))
 }
 
 fn parse_gsub_sub_rule(bytes: &[u8], subtable_offset: usize, sub_rule_offset: u16) -> Result<GsubSubRule, Error> {
@@ -3291,12 +3347,12 @@ fn parse_gsub_sub_rule(bytes: &[u8], subtable_offset: usize, sub_rule_offset: u1
         Ok(parse_subst_lookup_record(bytes, &mut offset)?)
     }).collect::<Result<Vec<_>, Error>>()?;
     
-    Ok(GsubSubRule {
+    Ok(GsubSubRule::new(
         glyph_count,
         sub_count,
         input_glyph_ids,
         subst_lookup_records
-    })
+    ))
 }
 
 fn parse_subst_lookup_record(bytes: &[u8], offset: &mut usize) -> Result<SubstLookupRecord, Error> {
@@ -3304,10 +3360,10 @@ fn parse_subst_lookup_record(bytes: &[u8], offset: &mut usize) -> Result<SubstLo
     let lookup_list_index = get_u16(bytes, *offset + 2)?;
     *offset += 4;
     
-    Ok(SubstLookupRecord {
+    Ok(SubstLookupRecord::new(
         glyph_sequence_index,
         lookup_list_index
-    })
+    ))
 }
 
 fn parse_gsub_sub_class_set(bytes: &[u8], subtable_offset: usize, sub_class_set_offset: u16) -> Result<GsubSubClassSet, Error> {
@@ -3325,11 +3381,11 @@ fn parse_gsub_sub_class_set(bytes: &[u8], subtable_offset: usize, sub_class_set_
             Ok(parse_gsub_sub_class_rule(bytes, subtable_offset, *offset)?)
         }).collect::<Result<Vec<_>, Error>>()?;
     
-    Ok(GsubSubClassSet {
+    Ok(GsubSubClassSet::new(
         sub_class_rule_count,
         sub_class_rule_offsets,
         sub_class_rules
-    })
+    ))
 }
 
 fn parse_gsub_sub_class_rule(bytes: &[u8], subtable_offset: usize, sub_class_rule_offset: u16) -> Result<GsubSubClassRule, Error> {
@@ -3348,12 +3404,12 @@ fn parse_gsub_sub_class_rule(bytes: &[u8], subtable_offset: usize, sub_class_rul
         Ok(parse_subst_lookup_record(bytes, &mut offset)?)
     }).collect::<Result<Vec<_>, Error>>()?;
     
-    Ok(GsubSubClassRule {
+    Ok(GsubSubClassRule::new(
         glyph_count,
         sub_count,
         class_ids,
         subst_lookup_records
-    })
+    ))
 }
 
 fn parse_gsub_chain_sub_rule_set(bytes: &[u8], subtable_offset: usize, chain_sub_rule_set_offset: u16) -> Result<GsubChainSubRuleSet, Error> {
@@ -3371,11 +3427,11 @@ fn parse_gsub_chain_sub_rule_set(bytes: &[u8], subtable_offset: usize, chain_sub
             Ok(parse_gsub_chain_sub_rule(bytes, subtable_offset, *offset)?)
         }).collect::<Result<Vec<_>, Error>>()?;
     
-    Ok(GsubChainSubRuleSet {
+    Ok(GsubChainSubRuleSet::new(
         chain_sub_rule_count,
         chain_sub_rule_offsets,
         chain_sub_rules
-    })
+    ))
 }
 
 fn parse_gsub_chain_sub_class_set(bytes: &[u8], subtable_offset: usize, chain_sub_class_set_offset: u16) -> Result<GsubChainSubClassSet, Error> {
@@ -3393,11 +3449,11 @@ fn parse_gsub_chain_sub_class_set(bytes: &[u8], subtable_offset: usize, chain_su
             Ok(parse_gsub_chain_sub_class_rule(bytes, subtable_offset, *offset)?)
         }).collect::<Result<Vec<_>, Error>>()?;
     
-    Ok(GsubChainSubClassSet {
+    Ok(GsubChainSubClassSet::new(
         chain_sub_class_rule_count,
         chain_sub_class_rule_offsets,
         chain_sub_class_rules
-    })
+    ))
 }
 
 fn parse_gsub_chain_sub_class_rule(bytes: &[u8], subtable_offset: usize, chain_sub_class_rule_offset: u16) -> Result<GsubChainSubClassRule, Error> {
@@ -3435,7 +3491,7 @@ fn parse_gsub_chain_sub_class_rule(bytes: &[u8], subtable_offset: usize, chain_s
         Ok(parse_subst_lookup_record(bytes, &mut offset)?)
     }).collect::<Result<Vec<_>, Error>>()?;
     
-    Ok(GsubChainSubClassRule {
+    Ok(GsubChainSubClassRule::new(
         backtrack_glyph_count,
         backtrack_class_ids,
         input_glyph_count,
@@ -3444,7 +3500,7 @@ fn parse_gsub_chain_sub_class_rule(bytes: &[u8], subtable_offset: usize, chain_s
         lookahead_class_ids,
         sub_count,
         subst_lookup_records
-    })
+    ))
 }
 
 fn parse_gsub_chain_sub_rule(bytes: &[u8], subtable_offset: usize, chain_sub_rule_offset: u16) -> Result<GsubChainSubRule, Error> {
@@ -3482,7 +3538,7 @@ fn parse_gsub_chain_sub_rule(bytes: &[u8], subtable_offset: usize, chain_sub_rul
         Ok(parse_subst_lookup_record(bytes, &mut offset)?)
     }).collect::<Result<Vec<_>, Error>>()?;
     
-    Ok(GsubChainSubRule {
+    Ok(GsubChainSubRule::new(
         backtrack_glyph_count,
         backtrack_glyph_ids,
         input_glyph_count,
@@ -3491,7 +3547,7 @@ fn parse_gsub_chain_sub_rule(bytes: &[u8], subtable_offset: usize, chain_sub_rul
         lookahead_glyph_ids,
         sub_count,
         subst_lookup_records
-    })
+    ))
 }
 
 fn get_u16(bytes: &[u8], start: usize) -> Result<u16, Error> {
@@ -3509,17 +3565,6 @@ fn get_u32(bytes: &[u8], start: usize) -> Result<u32, Error> {
     Ok(
         u32::from_be_bytes(
             bytes.get(start..start + 4)
-                .ok_or(ErrorKind::UnexpectedEof)?
-                .try_into()
-                .unwrap()
-        )
-    )
-}
-
-fn get_u64(bytes: &[u8], start: usize) -> Result<u64, Error> {
-    Ok(
-        u64::from_be_bytes(
-            bytes.get(start..start + 8)
                 .ok_or(ErrorKind::UnexpectedEof)?
                 .try_into()
                 .unwrap()

@@ -1,4 +1,4 @@
-use spyne::text::fonts::{atlas::{generator::{Atlas, AtlasAlgorithm, GlyphRegion}, outline::{Segment, create_outline}, rasterizer::rasterize}, parse::{constants::ON_CURVE_POINT, structures::{CmapSubtable, FontFile, Glyph}}};
+use spyne::text::fonts::{atlas::{generator::{Atlas, AtlasAlgorithm}, outline::{create_outline}, rasterizer::rasterize}, parse::{constants::ON_CURVE_POINT, structures::{CmapSubtable, FontFile, Glyph}}};
 
 #[test]
 fn test_font_parser() {
@@ -12,44 +12,44 @@ fn test_font_parser() {
         Ok(ht) => ht,
         Err(e) => panic!("HEAD TABLE PARSE FAIL: {}", e)
     };
-    assert_eq!(head.units_per_em, 1950);
-    assert_eq!(head.x_min, -3573);
-    assert_eq!(head.y_min, -1000);
-    assert_eq!(head.x_max, 2384);
-    assert_eq!(head.y_max, 2400);
-    assert_eq!(head.mac_style, 0);
-    assert_eq!(head.lowest_rec_ppem, 6);
-    assert_eq!(head.font_direction_hint, 2);
-    assert_eq!(head.index_to_loc_format, 1);
+    assert_eq!(head.units_per_em(), 1950);
+    assert_eq!(head.x_min(), -3573);
+    assert_eq!(head.y_min(), -1000);
+    assert_eq!(head.x_max(), 2384);
+    assert_eq!(head.y_max(), 2400);
+    assert_eq!(head.mac_style(), 0);
+    assert_eq!(head.lowest_rec_ppem(), 6);
+    assert_eq!(head.font_direction_hint(), 2);
+    assert_eq!(head.index_to_loc_format(), 1);
     
     let maxp = match font_file.parse_maxp() {
         Ok(mt) => mt,
         Err(e) => panic!("MAXP TABLE PARSE FAIL: {}", e)
     };
-    assert_eq!(maxp.version, 0x10000);
-    assert_eq!(maxp.num_glyphs, 2030);
-    assert_eq!(maxp.max_points, Some(518));
-    assert_eq!(maxp.max_contours, Some(96));
-    assert_eq!(maxp.max_composite_points, Some(112));
-    assert_eq!(maxp.max_composite_contours, Some(10));
-    assert_eq!(maxp.max_zones, Some(2));
-    assert_eq!(maxp.max_twilight_points, Some(576));
+    assert_eq!(maxp.version(), 0x10000);
+    assert_eq!(maxp.num_glyphs(), 2030);
+    assert_eq!(maxp.max_points(), Some(518));
+    assert_eq!(maxp.max_contours(), Some(96));
+    assert_eq!(maxp.max_composite_points(), Some(112));
+    assert_eq!(maxp.max_composite_contours(), Some(10));
+    assert_eq!(maxp.max_zones(), Some(2));
+    assert_eq!(maxp.max_twilight_points(), Some(576));
     
     let cmap = match font_file.parse_cmap() {
         Ok(ct) => ct,
         Err(e) => panic!("CMAP TABLE PARSE FAIL: {}", e)
     };
-    let subtable_idx = cmap.encoding_records.iter().position(|er| er.platform_id == 3 && er.encoding_id == 10).unwrap();
-    let subtable = cmap.subtables[subtable_idx].to_owned();
+    let subtable_idx = cmap.encoding_records().iter().position(|er| er.platform_id() == 3 && er.encoding_id() == 10).unwrap();
+    let subtable = cmap.subtables()[subtable_idx].to_owned();
     match subtable {
         CmapSubtable::Format12 { groups, .. } => {
-            let group = groups.iter().find(|g| g.start_char_code <= 73 && g.end_char_code >= 73).unwrap();
-            assert_eq!(group.start_glyph_id + (73 - group.start_char_code), 43);
+            let group = groups.iter().find(|g| g.start_char_code() <= 73 && g.end_char_code() >= 73).unwrap();
+            assert_eq!(group.start_glyph_id() + (73 - group.start_char_code()), 43);
         }
         _ => ()
     }
     
-    let loca = match font_file.parse_loca(maxp.num_glyphs, head.index_to_loc_format) {
+    let loca = match font_file.parse_loca(maxp.num_glyphs(), head.index_to_loc_format()) {
         Ok(lt) => lt,
         Err(e) => panic!("LOCA TABLE PARSE FAIL: {}", e)
     };
@@ -68,10 +68,10 @@ fn test_font_parser() {
                     y_coordinates,
                     ..
                 } => {
-                    assert_eq!(header.x_min, 185);
-                    assert_eq!(header.y_min, 0);
-                    assert_eq!(header.x_max, 1015);
-                    assert_eq!(header.y_max, 1380);
+                    assert_eq!(header.x_min(), 185);
+                    assert_eq!(header.y_min(), 0);
+                    assert_eq!(header.x_max(), 1015);
+                    assert_eq!(header.y_max(), 1380);
                     assert_eq!(end_pts_of_contours.len(), 1);
                     assert_eq!(end_pts_of_contours[0], 11);
                     assert!(flags.iter().all(|f| f & ON_CURVE_POINT != 0));
@@ -105,7 +105,7 @@ fn test_atlas() {
         Err(e) => panic!("MAXP TABLE PARSE FAIL: {}", e)
     };
     
-    let loca = match font_file.parse_loca(maxp.num_glyphs, head.index_to_loc_format) {
+    let loca = match font_file.parse_loca(maxp.num_glyphs(), head.index_to_loc_format()) {
         Ok(lt) => lt,
         Err(e) => panic!("LOCA TABLE PARSE FAIL: {}", e)
     };
