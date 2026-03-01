@@ -1,6 +1,6 @@
 [package]
 name = "spyne"
-version = "0.7.0"
+version = "0.7.1"
 edition = "2024"
 description = "All-in-one toolkit"
 license = "MIT"
@@ -37,6 +37,7 @@ ffi-c-macos = ["ffi-c"]
 ffi-c-macos-general = ["ffi-c-macos"]
 ffi-c-macos-general-constants = ["ffi-c-macos-general"]
 ffi-c-macos-general-syscalls = ["ffi-c-macos-general"]
+ffi-c-macos-graphics = ["ffi-c-macos"]
 ffi-c-macos-kqueue = ["ffi-c-macos"]
 ffi-c-macos-kqueue-constants = ["ffi-c-macos-kqueue"]
 ffi-c-macos-kqueue-syscalls = ["ffi-c-macos-kqueue"]
