@@ -1,13 +1,11 @@
-// #[cfg(feature = "io-poll-epoll")]
-#[cfg(target_os = "linux")]
+#[cfg(any(feature = "io-poll-epoll", target_os = "linux"))]
 mod epoll;
-// #[cfg(feature = "io-poll-epoll")]
-#[cfg(target_os = "linux")]
+#[cfg(any(feature = "io-poll-epoll", target_os = "linux"))]
 pub use epoll::Epoll;
 
-#[cfg(feature = "io-poll-kqueue")]
+#[cfg(any(feature = "io-poll-kqueue", target_os = "macos"))]
 mod kqueue;
-#[cfg(feature = "io-poll-kqueue")]
+#[cfg(any(feature = "io-poll-kqueue", target_os = "macos"))]
 pub use kqueue::Kqueue;
 
 use std::time::Duration;

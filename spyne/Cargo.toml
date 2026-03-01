@@ -1,13 +1,13 @@
 [package]
 name = "spyne"
-version = "0.6.0"
+version = "0.7.0"
 edition = "2024"
 description = "All-in-one toolkit"
 license = "MIT"
 
 [dependencies]
 spyne-encoding = "0.1.0"
-spyne-ffi = "0.3.0"
+spyne-ffi = "0.4.0"
 spyne-macros = "0.2.1"
 spyne-quote = "0.1.6"
 spyne-syntax = "0.1.3"
@@ -45,6 +45,11 @@ ffi-c-macos-pty = ["ffi-c-macos"]
 ffi-c-macos-pty-constants = ["ffi-c-macos-pty"]
 ffi-c-macos-pty-operations = ["ffi-c-macos-pty"]
 ffi-c-macos-pty-syscalls = ["ffi-c-macos-pty"]
+
+graphics = []
+graphics-windowing = ["graphics"]
+graphics-windowing-appkit = ["graphics-windowing"]
+graphics-windowing-wayland = ["graphics-windowing"]
 
 io = []
 io-poll = ["io"]

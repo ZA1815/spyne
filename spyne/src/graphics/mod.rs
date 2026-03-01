@@ -1,2 +1,2 @@
-// #[cfg(feature = "graphics-windowing")]
+#[cfg(feature = "graphics-windowing")]
 pub mod windowing;

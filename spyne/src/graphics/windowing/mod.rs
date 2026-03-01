@@ -1,8 +1,7 @@
-// #[cfg(feature = "graphics-windowing-appkit")]
+#[cfg(any(feature = "graphics-windowing-appkit", target_os = "macos"))]
 mod appkit;
-// #[cfg(feature = "graphics-windowing-appkit")]
+#[cfg(any(feature = "graphics-windowing-appkit", target_os = "macos"))]
 pub use appkit::AppKitWindow;
 
-// #[cfg(feature = "graphics-windowing-wayland")]
+#[cfg(any(feature = "graphics-windowing-wayland", target_os = "linux"))]
 mod wayland;
-

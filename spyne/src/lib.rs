@@ -4,10 +4,10 @@ pub mod encoding;
 #[cfg(feature = "ffi")]
 pub mod ffi;
 
-// #[cfg(feature = "graphics")]
+#[cfg(feature = "graphics")]
 pub mod graphics;
 
-// #[cfg(feature = "io")]
+#[cfg(feature = "io")]
 pub mod io;
 
 #[cfg(feature = "macros")]
