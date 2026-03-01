@@ -1,6 +1,8 @@
 // #[cfg(feature = "io-poll-epoll")]
+#[cfg(target_os = "linux")]
 mod epoll;
 // #[cfg(feature = "io-poll-epoll")]
+#[cfg(target_os = "linux")]
 pub use epoll::Epoll;
 
 // #[cfg(feature = "io-poll-kqueue")]

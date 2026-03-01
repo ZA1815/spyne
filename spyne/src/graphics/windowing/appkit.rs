@@ -1,13 +1,15 @@
-use std::{ffi::CString, mem::transmute, ptr::{null, null_mut}};
+use std::{ffi::CString, mem::transmute, ptr::null_mut};
 
 use spyne_ffi::c::macos::{general::{constants::RTLD_NOW, functions::dlopen}, graphics::{appkit::{NS_BACKING_STORE_BUFFERED, NS_WINDOW_STYLE_MASK_CLOSABLE, NS_WINDOW_STYLE_MASK_MINIATURIZABLE, NS_WINDOW_STYLE_MASK_RESIZABLE, NS_WINDOW_STYLE_MASK_TITLED, NSBackingStoreType, NSPoint, NSRect, NSSize, NSWindowStyleMask}, objc_runtime::{Id, ObjCFunctions, Sel}}};
 
 pub struct AppKitWindow {
-    functions: ObjCFunctions
+    pub functions: ObjCFunctions,
+    pub caml: Id,
+    pub nsapp: Id
 }
 
 impl AppKitWindow {
-    pub fn create_window() {
+    pub fn create_window() -> AppKitWindow {
         let functions = unsafe { ObjCFunctions::load() };
         let appkit_lib_name = CString::new("/System/Library/Frameworks/AppKit.framework/AppKit").unwrap();
         unsafe { dlopen(appkit_lib_name.as_ptr(), RTLD_NOW) };
@@ -86,5 +88,7 @@ impl AppKitWindow {
         let run_sel = unsafe { (functions.sel_register_name)(CString::new("run").unwrap().as_ptr()) };
         let run_msg_send: unsafe extern "C" fn(Id, Sel) = unsafe { transmute(functions.objc_msg_send) };
         unsafe { run_msg_send(nsapp_ptr, run_sel) };
+        
+        AppKitWindow { functions, caml: caml_ptr, nsapp: nsapp_ptr }
     }
 }
