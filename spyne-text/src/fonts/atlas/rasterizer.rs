@@ -1,4 +1,4 @@
-use crate::text::fonts::{atlas::outline::Segment, parse::structures::GlyphHeader};
+use crate::fonts::{atlas::outline::Segment, parse::structures::GlyphHeader};
 
 // UNOPTIMIZED, BENCHMARK LATER AND SEE IF IT NEEDS TO BE OPTIMIZED
 
@@ -63,7 +63,7 @@ pub fn rasterize(outline: Vec<Vec<Segment>>, glyph_header: GlyphHeader) -> Vec<V
 
 #[cfg(test)]
 mod test {
-    use crate::text::fonts::{atlas::{outline::{Point, Segment}, rasterizer::rasterize}, parse::{constants::ON_CURVE_POINT, structures::GlyphHeader}};
+    use crate::fonts::{atlas::{outline::{Point, Segment}, rasterizer::rasterize}, parse::{constants::ON_CURVE_POINT, structures::GlyphHeader}};
 
     // Currently only tests line segments (a square), add test for beziers later
     #[test]

@@ -1,12 +1,5 @@
-// #[cfg(feature = "text-buffers-gapbuffer")]
-mod gap_buffer;
-// #[cfg(feature = "text-buffers-gapbuffer")]
-pub use gap_buffer::GapBuffer;
-
-// #[cfg(feature = "text-buffers-cursor")]
-mod cursor;
-// #[cfg(feature = "text-buffers-cursor")]
-pub use cursor::Cursor;
+pub mod cursor;
+pub mod gap_buffer;
 
 /// A trait for creating and manipulating text buffers.
 /// 

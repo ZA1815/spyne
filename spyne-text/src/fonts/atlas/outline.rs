@@ -1,4 +1,4 @@
-use crate::text::fonts::parse::{constants::{ARGS_ARE_XY_VALUES, ON_CURVE_POINT, WE_HAVE_A_SCALE, WE_HAVE_A_TWO_BY_TWO, WE_HAVE_AN_X_AND_Y_SCALE}, structures::Glyph};
+use crate::fonts::parse::{constants::{ARGS_ARE_XY_VALUES, ON_CURVE_POINT, WE_HAVE_A_SCALE, WE_HAVE_A_TWO_BY_TWO, WE_HAVE_AN_X_AND_Y_SCALE}, structures::Glyph};
 
 #[derive(Debug, PartialEq, Eq)]
 pub enum Segment {
@@ -196,7 +196,7 @@ pub fn create_outline(glyph: &Glyph, lookup: &[Option<Glyph>]) -> Vec<Vec<Segmen
 
 #[cfg(test)]
 mod test {
-    use crate::text::fonts::{atlas::outline::{Point, Segment, create_outline}, parse::{constants::ON_CURVE_POINT, structures::{Glyph, GlyphHeader}}};
+    use crate::fonts::{atlas::outline::{Point, Segment, create_outline}, parse::{constants::ON_CURVE_POINT, structures::{Glyph, GlyphHeader}}};
 
     #[test]
     fn test_outline() {

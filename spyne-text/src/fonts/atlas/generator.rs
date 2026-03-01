@@ -145,7 +145,7 @@ pub enum AtlasAlgorithm {
 
 #[cfg(test)]
 mod test {
-    use crate::text::fonts::atlas::generator::{Atlas, AtlasAlgorithm};
+    use crate::fonts::atlas::generator::{Atlas, AtlasAlgorithm};
 
     #[test]
     fn test_shelf_packer() {
