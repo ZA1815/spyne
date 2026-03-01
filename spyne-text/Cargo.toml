@@ -1,0 +1,8 @@
+[package]
+name = "spyne-text"
+version = "0.1.0"
+edition = "2024"
+description = "Text primitives for the spyne crate"
+license = "MIT"
+
+[dependencies]
