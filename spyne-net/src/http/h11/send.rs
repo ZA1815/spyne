@@ -195,3 +195,43 @@ fn deserialize_top(top_bytes: &[u8]) -> Result<(StatusLine, HashMap<String, Stri
     
     Ok((status_line, headers))
 }
+
+#[cfg(test)]
+mod test {
+    use std::collections::HashMap;
+
+    use crate::http::h11::{send::send, structures::{Method, Request, RequestLine, Version}};
+
+    #[test]
+    fn test_http_send() {
+        let request_line = RequestLine {
+            method: Method::GET,
+            path: "/get".to_string(),
+            version: Version::H11
+        };
+        let header: HashMap<String, String> = [
+            ("Host".to_string(), "httpbin.org".to_string()),
+            ("Connection".to_string(), "close".to_string())
+        ]
+        .into_iter()
+        .collect();
+        let request = Request {
+            request_line,
+            header,
+            body: None
+        };
+        match send("httpbin.org:80", request) {
+            Ok(response) => {
+                assert_eq!(response.status_line.version, Version::H11);
+                assert_eq!(response.status_line.status, 200);
+                assert_eq!(response.header.get("Access-Control-Allow-Origin").unwrap(), "*");
+                assert_eq!(response.header.get("Content-Length").unwrap(), "198");
+                assert_eq!(response.header.get("Content-Type").unwrap(), "application/json");
+                assert_eq!(response.header.get("Connection").unwrap(), "close");
+                assert_eq!(response.header.get("Server").unwrap(), "gunicorn/19.9.0");
+                assert_eq!(response.header.get("Access-Control-Allow-Credentials").unwrap(), "true");
+            },
+            Err(e) => panic!("Failed with error: {:#?}", e)
+        }
+    }
+}

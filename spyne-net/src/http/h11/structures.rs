@@ -1,5 +1,6 @@
 use std::{collections::HashMap, io::Error, num::ParseIntError, str::Utf8Error};
 
+#[derive(Debug)]
 pub enum HttpError {
     TcpFailure(Error),
     WriteFailure(Error),
@@ -68,6 +69,7 @@ pub struct StatusLine {
     pub status: u16
 }
 
+#[derive(Debug, PartialEq, Eq)]
 pub enum Version {
     H11,
     H2,
