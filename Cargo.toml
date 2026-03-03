@@ -1,3 +1,3 @@
 [workspace]
-members = ["spyne", "spyne-encoding", "spyne-ffi", "spyne-macros", "spyne-net", "spyne-quote", "spyne-syntax", "spyne-text"]
+members = ["spyne", "spyne-crypto", "spyne-encoding", "spyne-ffi", "spyne-macros", "spyne-net", "spyne-quote", "spyne-syntax", "spyne-text"]
 resolver = "3"
