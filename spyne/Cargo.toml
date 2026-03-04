@@ -9,6 +9,7 @@ license = "MIT"
 spyne-encoding = "0.1.0"
 spyne-ffi = "0.5.0"
 spyne-macros = "0.2.1"
+spyne-sync = "0.1.0"
 spyne-quote = "0.1.8"
 spyne-syntax = "0.2.0"
 spyne-text = "0.1.0"
@@ -61,6 +62,9 @@ io-poll-kqueue = ["io-poll"]
 macros = []
 macros-quote = ["syntax"]
 macros-serialization = ["serialization", "serialization-binary"]
+
+sync = []
+sync-spsc = ["sync"]
 
 serialization = []
 serialization-binary = ["serialization"]

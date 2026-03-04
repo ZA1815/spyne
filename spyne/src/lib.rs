@@ -13,6 +13,9 @@ pub mod io;
 #[cfg(feature = "macros")]
 pub mod macros;
 
+// #[cfg(feature = "sync")]
+pub mod sync;
+
 #[cfg(feature = "syntax")]
 pub mod syntax;
 
