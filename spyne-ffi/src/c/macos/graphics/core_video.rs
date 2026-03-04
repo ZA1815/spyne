@@ -41,15 +41,15 @@ pub type SMPTETime = [u8; 32];
 
 #[repr(C)]
 pub struct CVTimeStamp {
-    version: u32,
-    video_time_scale: i32,
-    video_time: i64,
-    host_time: u64,
-    rate_scalar: f64,
-    video_refresh_period: i64,
-    smpte_time: SMPTETime,
-    flags: u64,
-    reserved: u64
+    pub version: u32,
+    pub video_time_scale: i32,
+    pub video_time: i64,
+    pub host_time: u64,
+    pub rate_scalar: f64,
+    pub video_refresh_period: i64,
+    pub smpte_time: SMPTETime,
+    pub flags: u64,
+    _reserved: u64
 }
 
 pub struct CoreVideoFunctions {
