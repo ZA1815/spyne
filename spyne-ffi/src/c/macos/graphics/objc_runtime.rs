@@ -28,7 +28,7 @@ pub type ObjCRegisterClassPair = unsafe extern "C" fn(
     cls: Class
 );
 
-pub type Imp = unsafe extern "C" fn();
+pub type Imp = unsafe extern "C" fn(Id, Sel, Id);
 
 pub type ClassAddMethod = unsafe extern "C" fn(
     cls: Class,

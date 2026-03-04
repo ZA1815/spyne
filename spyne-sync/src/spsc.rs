@@ -1,7 +1,7 @@
 use std::{mem::MaybeUninit, sync::atomic::{AtomicUsize, Ordering}};
 
 #[repr(align(64))]
-pub struct RingIndex(AtomicUsize);
+struct RingIndex(AtomicUsize);
 
 pub struct RingBuffer<T> {
     buf: Box<[MaybeUninit<T>]>,
