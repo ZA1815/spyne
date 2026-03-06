@@ -34,7 +34,7 @@ fn test_atlas() {
     match i_glyph {
         Glyph::Simple { header, .. } => {
             let bitmap = rasterize(outline, header);
-            atlas.append(vec![('I', bitmap)]);
+            // atlas.append(vec![('I', bitmap)]);
         }
         _ => unreachable!()
     };

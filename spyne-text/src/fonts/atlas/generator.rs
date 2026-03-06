@@ -71,15 +71,15 @@ impl Atlas {
         }
     }
     
-    pub fn append(&mut self, bitmaps: Vec<(char, Vec<Vec<u8>>)>) -> Vec<(GlyphRegion, Vec<u8>)> {
+    pub fn append(&mut self, bitmaps: Vec<(char, Vec<Vec<u8>>)>, buffer: &mut Vec<(GlyphRegion, Vec<u8>)>) {
         match self.algorithm {
-            AtlasAlgorithm::ShelfPacker => self.shelf_packer(bitmaps)
+            AtlasAlgorithm::ShelfPacker => self.shelf_packer(bitmaps, buffer)
         }
     }
     
     // UNOPTIMIZED, BENCHMARK LATER AND SEE IF IT NEEDS TO BE OPTIMIZED
     
-    fn shelf_packer(&mut self, mut bitmaps: Vec<(char, Vec<Vec<u8>>)>) -> Vec<(GlyphRegion, Vec<u8>)> {
+    fn shelf_packer(&mut self, mut bitmaps: Vec<(char, Vec<Vec<u8>>)>, buffer: &mut Vec<(GlyphRegion, Vec<u8>)>) {
         bitmaps.sort_by(|a, b| b.1.len().cmp(&a.1.len()));
         let mut area = 0;
         bitmaps.iter()
@@ -91,7 +91,7 @@ impl Atlas {
         let width = if (n & (n - 1)) != 0 { 1 << (usize::BITS - n.leading_zeros()) } else { n };
         if self.height == 0 { self.height = bitmaps[0].1.len(); }
         if self.width < width { self.width = width; }
-        bitmaps.into_iter()
+        buffer.extend(bitmaps.into_iter()
             .map(|(char, bitmap)| {
                 if self.current_x + bitmap[0].len() > self.width || bitmap.len() > self.height - self.current_y {
                     self.current_x = 0;
@@ -111,7 +111,7 @@ impl Atlas {
                 self.current_x += bitmap[0].len();
                 
                 (region, bitmap.into_iter().flatten().collect::<Vec<u8>>())
-            }).collect::<Vec<(GlyphRegion, Vec<u8>)>>()
+            }).collect::<Vec<(GlyphRegion, Vec<u8>)>>())
     }
 }
 
@@ -124,7 +124,7 @@ pub enum AtlasAlgorithm {
 
 #[cfg(test)]
 mod test {
-    use crate::fonts::atlas::generator::{Atlas, AtlasAlgorithm};
+    use crate::fonts::atlas::generator::{Atlas, AtlasAlgorithm, GlyphRegion};
 
     #[test]
     fn test_shelf_packer() {
@@ -146,12 +146,14 @@ mod test {
             vec![1, 0, 1],
             vec![1, 1, 0]
         ];
-        let regions = atlas.append(
+        let mut regions: Vec<(GlyphRegion, Vec<u8>)> = Vec::new();
+        atlas.append(
             vec![
                 ('A', a_bitmap),
                 ('D', d_bitmap),
                 ('B', b_bitmap)
-            ]
+            ],
+            &mut regions
         );
         let b_glyph_region = atlas.lookup_table['B' as usize];
         match b_glyph_region {
@@ -237,9 +239,10 @@ mod test {
             vec![1, 0, 1],
             vec![1, 1, 0]
         ];
-        let a_region = atlas.append(vec![('A', a_bitmap)]);
-        let d_region = atlas.append(vec![('D', d_bitmap)]);
-        let b_region = atlas.append(vec![('B', b_bitmap)]);
+        let mut regions: Vec<(GlyphRegion, Vec<u8>)> = Vec::new();
+        atlas.append(vec![('A', a_bitmap)], &mut regions);
+        atlas.append(vec![('D', d_bitmap)], &mut regions);
+        atlas.append(vec![('B', b_bitmap)], &mut regions);
         let a_glyph_region = atlas.lookup_table['A' as usize];
         match a_glyph_region {
             Some(gr) => {
@@ -250,15 +253,15 @@ mod test {
             }
             None => panic!("Glyph 'A' doesn't exist when it clearly should")
         }
-        assert_eq!(a_region[0].1[0 * 3 + 0], 0);
-        assert_eq!(a_region[0].1[0 * 3 + 1], 1);
-        assert_eq!(a_region[0].1[0 * 3 + 2], 0);
-        assert_eq!(a_region[0].1[1 * 3 + 0], 1);
-        assert_eq!(a_region[0].1[1 * 3 + 1], 1);
-        assert_eq!(a_region[0].1[1 * 3 + 2], 1);
-        assert_eq!(a_region[0].1[2 * 3 + 0], 1);
-        assert_eq!(a_region[0].1[2 * 3 + 1], 0);
-        assert_eq!(a_region[0].1[2 * 3 + 2], 1);
+        assert_eq!(regions[0].1[0 * 3 + 0], 0);
+        assert_eq!(regions[0].1[0 * 3 + 1], 1);
+        assert_eq!(regions[0].1[0 * 3 + 2], 0);
+        assert_eq!(regions[0].1[1 * 3 + 0], 1);
+        assert_eq!(regions[0].1[1 * 3 + 1], 1);
+        assert_eq!(regions[0].1[1 * 3 + 2], 1);
+        assert_eq!(regions[0].1[2 * 3 + 0], 1);
+        assert_eq!(regions[0].1[2 * 3 + 1], 0);
+        assert_eq!(regions[0].1[2 * 3 + 2], 1);
         let d_glyph_region = atlas.lookup_table['D' as usize];
         match d_glyph_region {
             Some(gr) => {
@@ -269,15 +272,15 @@ mod test {
             },
             None => panic!("Glyph 'D' doesn't exist when it clearly should")
         }
-        assert_eq!(d_region[0].1[0 * 3 + 0], 1);
-        assert_eq!(d_region[0].1[0 * 3 + 1], 1);
-        assert_eq!(d_region[0].1[0 * 3 + 2], 0);
-        assert_eq!(d_region[0].1[1 * 3 + 0], 1);
-        assert_eq!(d_region[0].1[1 * 3 + 1], 0);
-        assert_eq!(d_region[0].1[1 * 3 + 2], 1);
-        assert_eq!(d_region[0].1[2 * 3 + 0], 1);
-        assert_eq!(d_region[0].1[2 * 3 + 1], 1);
-        assert_eq!(d_region[0].1[2 * 3 + 2], 0);
+        assert_eq!(regions[1].1[0 * 3 + 0], 1);
+        assert_eq!(regions[1].1[0 * 3 + 1], 1);
+        assert_eq!(regions[1].1[0 * 3 + 2], 0);
+        assert_eq!(regions[1].1[1 * 3 + 0], 1);
+        assert_eq!(regions[1].1[1 * 3 + 1], 0);
+        assert_eq!(regions[1].1[1 * 3 + 2], 1);
+        assert_eq!(regions[1].1[2 * 3 + 0], 1);
+        assert_eq!(regions[1].1[2 * 3 + 1], 1);
+        assert_eq!(regions[1].1[2 * 3 + 2], 0);
         let b_glyph_region = atlas.lookup_table['B' as usize];
         match b_glyph_region {
             Some(gr) => {
@@ -288,21 +291,21 @@ mod test {
             }
             None => panic!("Glyph 'B' doesn't exist when it clearly should")
         }
-        assert_eq!(b_region[0].1.len(), 15);
-        assert_eq!(b_region[0].1[0 * 3 + 0], 1);
-        assert_eq!(b_region[0].1[0 * 3 + 1], 1);
-        assert_eq!(b_region[0].1[0 * 3 + 2], 0);
-        assert_eq!(b_region[0].1[1 * 3 + 0], 1);
-        assert_eq!(b_region[0].1[1 * 3 + 1], 0);
-        assert_eq!(b_region[0].1[1 * 3 + 2], 1);
-        assert_eq!(b_region[0].1[2 * 3 + 0], 1);
-        assert_eq!(b_region[0].1[2 * 3 + 1], 1);
-        assert_eq!(b_region[0].1[2 * 3 + 2], 0);
-        assert_eq!(b_region[0].1[3 * 3 + 0], 1);
-        assert_eq!(b_region[0].1[3 * 3 + 1], 0);
-        assert_eq!(b_region[0].1[3 * 3 + 2], 1);
-        assert_eq!(b_region[0].1[4 * 3 + 0], 1);
-        assert_eq!(b_region[0].1[4 * 3 + 1], 1);
-        assert_eq!(b_region[0].1[4 * 3 + 2], 0);
+        assert_eq!(regions[2].1.len(), 15);
+        assert_eq!(regions[2].1[0 * 3 + 0], 1);
+        assert_eq!(regions[2].1[0 * 3 + 1], 1);
+        assert_eq!(regions[2].1[0 * 3 + 2], 0);
+        assert_eq!(regions[2].1[1 * 3 + 0], 1);
+        assert_eq!(regions[2].1[1 * 3 + 1], 0);
+        assert_eq!(regions[2].1[1 * 3 + 2], 1);
+        assert_eq!(regions[2].1[2 * 3 + 0], 1);
+        assert_eq!(regions[2].1[2 * 3 + 1], 1);
+        assert_eq!(regions[2].1[2 * 3 + 2], 0);
+        assert_eq!(regions[2].1[3 * 3 + 0], 1);
+        assert_eq!(regions[2].1[3 * 3 + 1], 0);
+        assert_eq!(regions[2].1[3 * 3 + 2], 1);
+        assert_eq!(regions[2].1[4 * 3 + 0], 1);
+        assert_eq!(regions[2].1[4 * 3 + 1], 1);
+        assert_eq!(regions[2].1[4 * 3 + 2], 0);
     }
 }
