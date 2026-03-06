@@ -1,4 +1,4 @@
-use std::{ffi::CString, mem::transmute};
+use std::{ffi::CString, mem::transmute, ops::BitOr};
 
 use crate::c::macos::{general::{constants::RTLD_NOW, functions::{dlopen, dlsym}}, graphics::{appkit::NSUInteger, objc_runtime::Id}};
 
@@ -152,6 +152,28 @@ pub const MTL_TEXTURE_TYPE_CUBE_ARRAY: MTLTextureType = MTLTextureType(6);
 pub const MTL_TEXTURE_TYPE_3D: MTLTextureType = MTLTextureType(7);
 pub const MTL_TEXTURE_TYPE_2D_MULTISAMPLE_ARRAY: MTLTextureType = MTLTextureType(8);
 pub const MTL_TEXTURE_TYPE_TEXTURE_BUFFER: MTLTextureType = MTLTextureType(9);
+
+#[repr(transparent)]
+pub struct MTLResourceOptions(NSUInteger);
+impl BitOr for MTLResourceOptions {
+    type Output = MTLResourceOptions;
+    
+    fn bitor(self, rhs: Self) -> Self::Output {
+        Self(self.0 | rhs.0)
+    }
+}
+// CPU Cache
+pub const MTL_RESOURCE_CPU_CACHE_MODE_DEFAULT_CACHE: MTLResourceOptions = MTLResourceOptions(0 << 0);
+pub const MTL_RESOURCE_CPU_CACHE_MODE_WRITE_COMBINED: MTLResourceOptions = MTLResourceOptions(1 << 0);
+// Storage
+pub const MTL_RESOURCE_STORAGE_MODE_SHARED: MTLResourceOptions = MTLResourceOptions(0 << 4);
+pub const MTL_RESOURCE_STORAGE_MODE_MANAGED: MTLResourceOptions = MTLResourceOptions(1 << 4);
+pub const MTL_RESOURCE_STORAGE_MODE_PRIVATE: MTLResourceOptions = MTLResourceOptions(2 << 4);
+pub const MTL_RESOURCE_STORAGE_MODE_MEMORYLESS: MTLResourceOptions = MTLResourceOptions(3 << 4);
+// Hazard Tracking
+pub const MTL_RESOURCE_HAZARD_TRACKING_MODE_DEFAULT: MTLResourceOptions = MTLResourceOptions(0 << 8);
+pub const MTL_RESOURCE_HAZARD_TRACKING_MODE_UNTRACKED: MTLResourceOptions = MTLResourceOptions(1 << 8);
+pub const MTL_RESOURCE_HAZARD_TRACKING_MODE_TRACKED: MTLResourceOptions = MTLResourceOptions(2 << 8);
 
 #[cfg(test)]
 mod test {
