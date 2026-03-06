@@ -19,6 +19,26 @@ impl MetalFunctions {
 }
 
 #[repr(C)]
+pub struct MTLRegion {
+    pub origin: MTLOrigin,
+    pub size: MTLSize
+}
+
+#[repr(C)]
+pub struct MTLOrigin {
+    pub x: NSUInteger,
+    pub y: NSUInteger,
+    pub z: NSUInteger
+}
+
+#[repr(C)]
+pub struct MTLSize {
+    pub width: NSUInteger,
+    pub height: NSUInteger,
+    pub depth: NSUInteger
+}
+
+#[repr(C)]
 pub struct MTLClearColor {
     pub alpha: f64,
     pub blue: f64,
