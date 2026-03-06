@@ -120,6 +120,19 @@ pub const MTL_PRIMITIVE_TYPE_LINE_STRIP: MTLPrimitiveType = MTLPrimitiveType(2);
 pub const MTL_PRIMITIVE_TYPE_TRIANGLE: MTLPrimitiveType = MTLPrimitiveType(3);
 pub const MTL_PRIMITIVE_TYPE_TRIANGLE_STRIP: MTLPrimitiveType = MTLPrimitiveType(4);
 
+#[repr(transparent)]
+pub struct MTLTextureType(NSUInteger);
+pub const MTL_TEXTURE_TYPE_1D: MTLTextureType = MTLTextureType(0);
+pub const MTL_TEXTURE_TYPE_1D_ARRAY: MTLTextureType = MTLTextureType(1);
+pub const MTL_TEXTURE_TYPE_2D: MTLTextureType = MTLTextureType(2);
+pub const MTL_TEXTURE_TYPE_2D_ARRAY: MTLTextureType = MTLTextureType(3);
+pub const MTL_TEXTURE_TYPE_2D_MULTISAMPLE: MTLTextureType = MTLTextureType(4);
+pub const MTL_TEXTURE_TYPE_CUBE: MTLTextureType = MTLTextureType(5);
+pub const MTL_TEXTURE_TYPE_CUBE_ARRAY: MTLTextureType = MTLTextureType(6);
+pub const MTL_TEXTURE_TYPE_3D: MTLTextureType = MTLTextureType(7);
+pub const MTL_TEXTURE_TYPE_2D_MULTISAMPLE_ARRAY: MTLTextureType = MTLTextureType(8);
+pub const MTL_TEXTURE_TYPE_TEXTURE_BUFFER: MTLTextureType = MTLTextureType(9);
+
 #[cfg(test)]
 mod test {
     use std::{ffi::CString, mem::transmute};
