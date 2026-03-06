@@ -1,6 +1,6 @@
 [package]
 name = "spyne"
-version = "0.10.4"
+version = "0.11.0"
 edition = "2024"
 description = "All-in-one toolkit"
 license = "MIT"
@@ -12,7 +12,7 @@ spyne-macros = "0.2.1"
 spyne-sync = "0.1.1"
 spyne-quote = "0.1.8"
 spyne-syntax = "0.2.0"
-spyne-text = "0.1.0"
+spyne-text = "0.2.0"
 
 [features]
 encoding = []
