@@ -1,13 +1,13 @@
 [package]
 name = "spyne"
-version = "0.11.2"
+version = "0.11.3"
 edition = "2024"
 description = "All-in-one toolkit"
 license = "MIT"
 
 [dependencies]
 spyne-encoding = "0.1.0"
-spyne-ffi = "0.6.5"
+spyne-ffi = "0.6.6"
 spyne-macros = "0.2.1"
 spyne-sync = "0.1.1"
 spyne-quote = "0.1.8"
