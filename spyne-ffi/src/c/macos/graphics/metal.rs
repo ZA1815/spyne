@@ -175,6 +175,11 @@ pub const MTL_RESOURCE_HAZARD_TRACKING_MODE_DEFAULT: MTLResourceOptions = MTLRes
 pub const MTL_RESOURCE_HAZARD_TRACKING_MODE_UNTRACKED: MTLResourceOptions = MTLResourceOptions(1 << 8);
 pub const MTL_RESOURCE_HAZARD_TRACKING_MODE_TRACKED: MTLResourceOptions = MTLResourceOptions(2 << 8);
 
+#[repr(transparent)]
+pub struct MTLSamplerMinMagFilter(NSUInteger);
+pub const MTL_SAMPLER_MIN_MAG_FILTER_NEAREST: MTLSamplerMinMagFilter = MTLSamplerMinMagFilter(0);
+pub const MTL_SAMPLER_MIN_MAG_FILTER_LINEAR: MTLSamplerMinMagFilter = MTLSamplerMinMagFilter(1);
+
 #[cfg(test)]
 mod test {
     use std::{ffi::CString, mem::transmute};
