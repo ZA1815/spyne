@@ -176,6 +176,7 @@ pub const MTL_RESOURCE_HAZARD_TRACKING_MODE_UNTRACKED: MTLResourceOptions = MTLR
 pub const MTL_RESOURCE_HAZARD_TRACKING_MODE_TRACKED: MTLResourceOptions = MTLResourceOptions(2 << 8);
 
 #[repr(transparent)]
+#[derive(Clone, Copy)]
 pub struct MTLSamplerMinMagFilter(NSUInteger);
 pub const MTL_SAMPLER_MIN_MAG_FILTER_NEAREST: MTLSamplerMinMagFilter = MTLSamplerMinMagFilter(0);
 pub const MTL_SAMPLER_MIN_MAG_FILTER_LINEAR: MTLSamplerMinMagFilter = MTLSamplerMinMagFilter(1);
