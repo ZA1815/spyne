@@ -181,6 +181,30 @@ pub struct MTLSamplerMinMagFilter(NSUInteger);
 pub const MTL_SAMPLER_MIN_MAG_FILTER_NEAREST: MTLSamplerMinMagFilter = MTLSamplerMinMagFilter(0);
 pub const MTL_SAMPLER_MIN_MAG_FILTER_LINEAR: MTLSamplerMinMagFilter = MTLSamplerMinMagFilter(1);
 
+#[repr(transparent)]
+#[derive(Clone, Copy)]
+pub struct MTLBlendFactor(NSUInteger);
+pub const MTL_BLEND_FACTOR_ZERO: MTLBlendFactor = MTLBlendFactor(0);
+pub const MTL_BLEND_FACTOR_ONE: MTLBlendFactor = MTLBlendFactor(1);
+pub const MTL_BLEND_FACTOR_SOURCE_COLOR: MTLBlendFactor = MTLBlendFactor(2);
+pub const MTL_BLEND_FACTOR_ONE_MINUS_SOURCE_COLOR: MTLBlendFactor = MTLBlendFactor(3);
+pub const MTL_BLEND_FACTOR_SOURCE_ALPHA: MTLBlendFactor = MTLBlendFactor(4);
+pub const MTL_BLEND_FACTOR_ONE_MINUS_SOURCE_ALPHA: MTLBlendFactor = MTLBlendFactor(5);
+pub const MTL_BLEND_FACTOR_DESTINATION_COLOR: MTLBlendFactor = MTLBlendFactor(6);
+pub const MTL_BLEND_FACTOR_ONE_MINUS_DESTINATION_COLOR: MTLBlendFactor = MTLBlendFactor(7);
+pub const MTL_BLEND_FACTOR_DESTINATION_ALPHA: MTLBlendFactor = MTLBlendFactor(8);
+pub const MTL_BLEND_FACTOR_ONE_MINUS_DESTINATION_ALPHA: MTLBlendFactor = MTLBlendFactor(9);
+pub const MTL_BLEND_FACTOR_SOURCE_ALPHA_SATURATED: MTLBlendFactor = MTLBlendFactor(10);
+pub const MTL_BLEND_FACTOR_BLEND_COLOR: MTLBlendFactor = MTLBlendFactor(11);
+pub const MTL_BLEND_FACTOR_ONE_MINUS_BLEND_COLOR: MTLBlendFactor = MTLBlendFactor(12);
+pub const MTL_BLEND_FACTOR_BLEND_ALPHA: MTLBlendFactor = MTLBlendFactor(13);
+pub const MTL_BLEND_FACTOR_ONE_MINUS_BLEND_ALPHA: MTLBlendFactor = MTLBlendFactor(14);
+pub const MTL_BLEND_FACTOR_SOURCE_1_COLOR: MTLBlendFactor = MTLBlendFactor(15);
+pub const MTL_BLEND_FACTOR_ONE_MINUS_SOURCE_1_COLOR: MTLBlendFactor = MTLBlendFactor(16);
+pub const MTL_BLEND_FACTOR_SOURCE_1_ALPHA: MTLBlendFactor = MTLBlendFactor(17);
+pub const MTL_BLEND_FACTOR_ONE_MINUS_SOURCE_1_ALPHA: MTLBlendFactor = MTLBlendFactor(18);
+pub const MTL_BLEND_FACTOR_UNSPECIALIZED: MTLBlendFactor = MTLBlendFactor(19);
+
 #[cfg(test)]
 mod test {
     use std::{ffi::CString, mem::transmute};
