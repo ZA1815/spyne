@@ -85,10 +85,6 @@ impl AppKitWindow {
         let aioa_msg_send: unsafe extern "C" fn(Id, Sel, bool) = unsafe { transmute(functions.objc_msg_send) };
         unsafe { aioa_msg_send(nsapp_ptr, aioa_sel, true) };
         
-        let run_sel = unsafe { (functions.sel_register_name)(CString::new("run").unwrap().as_ptr()) };
-        let run_msg_send: unsafe extern "C" fn(Id, Sel) = unsafe { transmute(functions.objc_msg_send) };
-        unsafe { run_msg_send(nsapp_ptr, run_sel) };
-        
         AppKitWindow { functions, caml: caml_ptr, nsapp: nsapp_ptr }
     }
 }
