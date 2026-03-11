@@ -9,7 +9,7 @@ pub struct AppKitWindow {
 }
 
 impl AppKitWindow {
-    pub fn create_window() -> AppKitWindow {
+    pub fn create_window(origin: (f64, f64), dimensions: (f64, f64)) -> AppKitWindow {
         let functions = unsafe { ObjCFunctions::load() };
         let appkit_lib_name = CString::new("/System/Library/Frameworks/AppKit.framework/AppKit").unwrap();
         unsafe { dlopen(appkit_lib_name.as_ptr(), RTLD_NOW) };
@@ -40,12 +40,12 @@ impl AppKitWindow {
         let iwcr_msg_send: unsafe extern "C" fn(Id, Sel, NSRect, NSWindowStyleMask, NSBackingStoreType, bool) -> Id = unsafe { transmute(functions.objc_msg_send) };
         let ns_rect = NSRect {
             origin: NSPoint {
-                x: 100.0,
-                y: 100.0,
+                x: origin.0,
+                y: origin.1,
             },
             size: NSSize {
-                width: 800.0,
-                height: 600.0,
+                width: dimensions.0,
+                height: dimensions.1,
             }
         };
         let style_mask: NSWindowStyleMask = NS_WINDOW_STYLE_MASK_TITLED | NS_WINDOW_STYLE_MASK_CLOSABLE | NS_WINDOW_STYLE_MASK_MINIATURIZABLE | NS_WINDOW_STYLE_MASK_RESIZABLE;
