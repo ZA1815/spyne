@@ -40,10 +40,10 @@ pub struct MTLSize {
 
 #[repr(C)]
 pub struct MTLClearColor {
-    pub alpha: f64,
-    pub blue: f64,
+    pub red: f64,
     pub green: f64,
-    pub red: f64
+    pub blue: f64,
+    pub alpha: f64
 }
 
 #[repr(transparent)]
