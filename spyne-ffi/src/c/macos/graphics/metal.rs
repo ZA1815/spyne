@@ -154,6 +154,23 @@ pub const MTL_TEXTURE_TYPE_2D_MULTISAMPLE_ARRAY: MTLTextureType = MTLTextureType
 pub const MTL_TEXTURE_TYPE_TEXTURE_BUFFER: MTLTextureType = MTLTextureType(9);
 
 #[repr(transparent)]
+#[derive(Clone, Copy)]
+pub struct MTLTextureUsage(NSUInteger);
+pub const MTL_TEXTURE_USAGE_UNKNOWN: MTLTextureUsage = MTLTextureUsage(0 << 0);
+pub const MTL_TEXTURE_USAGE_SHADER_READ: MTLTextureUsage = MTLTextureUsage(1 << 0);
+pub const MTL_TEXTURE_USAGE_SHADER_WRITE: MTLTextureUsage = MTLTextureUsage(1 << 1);
+pub const MTL_TEXTURE_USAGE_RENDER_TARGET: MTLTextureUsage = MTLTextureUsage(1 << 2);
+pub const MTL_TEXTURE_USAGE_PIXEL_FORMAT_VIEW: MTLTextureUsage = MTLTextureUsage(1 << 4);
+pub const MTL_TEXTURE_USAGE_SHADER_ATOMIC: MTLTextureUsage = MTLTextureUsage(1 << 5);
+impl BitOr for MTLTextureUsage {
+    type Output = Self;
+    
+    fn bitor(self, rhs: Self) -> Self::Output {
+        Self(self.0 | rhs.0)
+    }
+}
+
+#[repr(transparent)]
 pub struct MTLResourceOptions(NSUInteger);
 impl BitOr for MTLResourceOptions {
     type Output = MTLResourceOptions;
