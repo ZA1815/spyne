@@ -5,7 +5,8 @@ use spyne_ffi::c::macos::{general::{constants::RTLD_NOW, functions::dlopen}, gra
 pub struct AppKitWindow {
     pub functions: ObjCFunctions,
     pub caml: Id,
-    pub nsapp: Id
+    pub nsapp: Id,
+    pub nswindow: Id
 }
 
 impl AppKitWindow {
@@ -85,6 +86,6 @@ impl AppKitWindow {
         let aioa_msg_send: unsafe extern "C" fn(Id, Sel, bool) = unsafe { transmute(functions.objc_msg_send) };
         unsafe { aioa_msg_send(nsapp_ptr, aioa_sel, true) };
         
-        AppKitWindow { functions, caml: caml_ptr, nsapp: nsapp_ptr }
+        AppKitWindow { functions, caml: caml_ptr, nsapp: nsapp_ptr, nswindow: nswindow_ptr }
     }
 }
