@@ -1,13 +1,13 @@
 [package]
 name = "spyne-macros"
-version = "0.2.1"
+version = "0.2.2"
 edition = "2024"
 description = "Macros for the spyne crate"
 license = "MIT"
 
 [dependencies]
 spyne-encoding = "0.1.0"
-spyne-quote = "0.1.8"
+spyne-quote = "0.1.9"
 spyne-syntax = "0.2.0"
 
 [lib]
