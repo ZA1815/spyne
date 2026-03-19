@@ -13,7 +13,10 @@ pub fn quote_help(template: Vec<TokenTree>) -> Vec<TokenTree> {
     let mut vec: Vec<TokenTree> = Vec::new();
     let vec_id = save_span(proc_macro::Span::mixed_site());
     vec.push(TokenTree::Ident(format!("use"), Span::default()));
-    vec.push(TokenTree::Ident(format!("spyne_syntax"), Span::default()));
+    vec.push(TokenTree::Ident(format!("spyne"), Span::default()));
+    vec.push(TokenTree::Punct(':', Spacing::Joint, Span::default()));
+    vec.push(TokenTree::Punct(':', Spacing::Joint, Span::default()));
+    vec.push(TokenTree::Ident(format!("syntax"), Span::default()));
     vec.push(TokenTree::Punct(':', Spacing::Joint, Span::default()));
     vec.push(TokenTree::Punct(':', Spacing::Joint, Span::default()));
     vec.push(TokenTree::Ident(format!("token"), Span::default()));
@@ -22,7 +25,10 @@ pub fn quote_help(template: Vec<TokenTree>) -> Vec<TokenTree> {
     vec.push(TokenTree::Ident(format!("Spacing"), Span::default()));
     vec.push(TokenTree::Punct(';', Spacing::Alone, Span::default()));
     vec.push(TokenTree::Ident(format!("use"), Span::default()));
-    vec.push(TokenTree::Ident(format!("spyne_syntax"), Span::default()));
+    vec.push(TokenTree::Ident(format!("spyne"), Span::default()));
+    vec.push(TokenTree::Punct(':', Spacing::Joint, Span::default()));
+    vec.push(TokenTree::Punct(':', Spacing::Joint, Span::default()));
+    vec.push(TokenTree::Ident(format!("syntax"), Span::default()));
     vec.push(TokenTree::Punct(':', Spacing::Joint, Span::default()));
     vec.push(TokenTree::Punct(':', Spacing::Joint, Span::default()));
     vec.push(TokenTree::Ident(format!("token"), Span::default()));
@@ -31,7 +37,10 @@ pub fn quote_help(template: Vec<TokenTree>) -> Vec<TokenTree> {
     vec.push(TokenTree::Ident(format!("Delimiter"), Span::default()));
     vec.push(TokenTree::Punct(';', Spacing::Alone, Span::default()));
     vec.push(TokenTree::Ident(format!("use"), Span::default()));
-    vec.push(TokenTree::Ident(format!("spyne_syntax"), Span::default()));
+    vec.push(TokenTree::Ident(format!("spyne"), Span::default()));
+    vec.push(TokenTree::Punct(':', Spacing::Joint, Span::default()));
+    vec.push(TokenTree::Punct(':', Spacing::Joint, Span::default()));
+    vec.push(TokenTree::Ident(format!("syntax"), Span::default()));
     vec.push(TokenTree::Punct(':', Spacing::Joint, Span::default()));
     vec.push(TokenTree::Punct(':', Spacing::Joint, Span::default()));
     vec.push(TokenTree::Ident(format!("tok_gen"), Span::default()));
@@ -252,7 +261,10 @@ fn quote_token(token: &TokenTree, stream: &mut Vec<TokenTree>) {
 
 fn quote_span(span: &Span) -> Vec<TokenTree> {
     let vec: Vec<TokenTree> = vec![
-        TokenTree::Ident(format!("spyne_syntax"), Span::default()),
+        TokenTree::Ident(format!("spyne"), Span::default()),
+        TokenTree::Punct(':', Spacing::Joint, Span::default()),
+        TokenTree::Punct(':', Spacing::Joint, Span::default()),
+        TokenTree::Ident(format!("syntax"), Span::default()),
         TokenTree::Punct(':', Spacing::Joint, Span::default()),
         TokenTree::Punct(':', Spacing::Joint, Span::default()),
         TokenTree::Ident(format!("token"), Span::default()),
