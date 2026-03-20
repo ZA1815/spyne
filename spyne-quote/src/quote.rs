@@ -30,6 +30,7 @@ pub fn quote_help(template: Vec<TokenTree>, import_root: Vec<TokenTree>) -> Vec<
     vec.push(TokenTree::Punct(':', Spacing::Joint, Span::default()));
     vec.push(TokenTree::Ident(format!("Delimiter"), Span::default()));
     vec.push(TokenTree::Punct(';', Spacing::Alone, Span::default()));
+    vec.push(TokenTree::Ident(format!("use"), Span::default()));
     vec.extend(import_root.clone());
     vec.push(TokenTree::Punct(':', Spacing::Joint, Span::default()));
     vec.push(TokenTree::Punct(':', Spacing::Joint, Span::default()));
