@@ -1,9 +1,9 @@
 [package]
 name = "spyne-ffi"
-version = "0.6.11"
+version = "0.6.12"
 edition = "2024"
 description = "FFI tools for the spyne crate"
 license = "MIT"
 
 [dependencies]
-spyne-macros = "0.2.1"
+spyne-macros = "0.2.2"
