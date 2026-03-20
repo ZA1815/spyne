@@ -1,4 +1,4 @@
-use spyne_quote::quote;
+use spyne_quote::quote_internal;
 use spyne_syntax::{ast::{ParsedEnum, ParsedStruct, VariantData}, token::{Span, TokenIter, TokenTree}};
 
 pub fn serialize_help(data: Vec<TokenTree>) -> Vec<TokenTree> {
@@ -33,7 +33,7 @@ fn serialize_struct(iter: &mut TokenIter) -> Vec<TokenTree> {
         }
     }
     
-    quote! {
+    quote_internal! {
         impl<'a> ::spyne_encoding::serialization::serialize::Serialize<'a> for [$ struct_name_ident ] {
             fn serialize(&self, serializer: &mut impl ::spyne_encoding::serialization::serialize::Serializer<'a>) {
                 serializer.write_struct([$ struct_name_lit ], &[($ [$ struct_fields_lit ] ),*], |ser| {
@@ -57,7 +57,7 @@ fn serialize_enum(iter: &mut TokenIter) -> Vec<TokenTree> {
             VariantData::Unit(s) => {
                 let var_name_ident = TokenTree::Ident(variant.name.clone(), s);
                 let var_name_lit = TokenTree::Literal(format!("{:?}", variant.name.clone()), s);
-                enum_arms.extend(quote! {
+                enum_arms.extend(quote_internal! {
                     Self::[$ var_name_ident ] => serializer.write_enum([$ enum_name_lit ], [$ var_idx ], &[ [$ var_name_lit ] ], |_| {}),
                 }); 
             }
@@ -69,7 +69,7 @@ fn serialize_enum(iter: &mut TokenIter) -> Vec<TokenTree> {
                 for i in 0..data.len() {
                     field_names.push(TokenTree::Ident(format!("f{}", i), s));
                 }
-                enum_arms.extend(quote! {
+                enum_arms.extend(quote_internal! {
                     Self::[$ var_name_ident ](($ [$ field_names.clone() ] ),*) => serializer.write_enum([$ enum_name_lit ], [$ var_idx ], &[ [$ var_name_lit ] ], |ser| {
                         ser.write_tuple([$ field_num ], |ser| {
                             ($ [$ field_names ].serialize(ser) );*
@@ -91,7 +91,7 @@ fn serialize_enum(iter: &mut TokenIter) -> Vec<TokenTree> {
                         None => ()
                     }
                 }
-                enum_arms.extend(quote! {
+                enum_arms.extend(quote_internal! {
                     Self::[$ var_name_ident ] { ($ [$ field_names_ident.clone() ] ),* } => serializer.write_enum([$ enum_name_lit ], [$ var_idx ], &[ [$ var_name_lit ] ], |ser| {
                         ser.write_struct([$ var_name_lit ], &[($ [$ field_names_lit ] ),*], |ser| {
                             ($ [$ field_names_ident ].serialize(ser) );*
@@ -102,7 +102,7 @@ fn serialize_enum(iter: &mut TokenIter) -> Vec<TokenTree> {
         }
     }
     
-    quote! {
+    quote_internal! {
         impl<'a> ::spyne_encoding::serialization::serialize::Serialize<'a> for [ $enum_name_ident ] {
             fn serialize(&self, serializer: &mut impl ::spyne_encoding::serialization::serialize::Serializer<'a>) {
                 match self {

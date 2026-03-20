@@ -1,7 +1,7 @@
-use spyne_quote::quote;
+use spyne_quote::quote_internal;
 use spyne_syntax::{
     ast::{ParsedAttribute, ParsedStruct},
-    token::{Delimiter, TokenIter, TokenTree},
+    token::{Delimiter, TokenIter, TokenTree}
 };
 
 pub fn vulkan_functions_help(data: Vec<TokenTree>) -> Vec<TokenTree> {
@@ -73,7 +73,7 @@ fn vulkan_struct_help(
         None => panic!("VulkanFunctions: Struct attributes weren't found."),
     };
     
-    quote! {
+    quote_internal! {
         impl [$ struct_name ] {
             pub unsafe fn load(loader: [$ loader ], handle: [$ handle ]) -> Self {
                 ($ let [$ field_names.clone() ]: [$ field_types ] = unsafe { transmute(loader(handle, CString::new([$ field_attrs.to_owned() ]).unwrap().as_ptr())) }; )*

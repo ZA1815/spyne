@@ -7,7 +7,7 @@ license = "MIT"
 
 [dependencies]
 spyne-encoding = "0.1.0"
-spyne-quote = "0.1.9"
+spyne-quote = "0.1.11"
 spyne-syntax = "0.2.0"
 
 [lib]

@@ -1,4 +1,4 @@
-use spyne_quote::quote;
+use spyne_quote::quote_internal;
 use spyne_syntax::{ast::{ParsedEnum, ParsedStruct, VariantData}, token::{Delimiter, TokenIter, TokenTree}};
 
 pub fn deserialize_help(data: Vec<TokenTree>) -> Vec<TokenTree> {
@@ -34,7 +34,7 @@ fn deserialize_struct(iter: &mut TokenIter) -> Vec<TokenTree> {
         struct_types.push(TokenTree::Group(Delimiter::None, field.ty, field.span));
     }
     
-    quote! {
+    quote_internal! {
         impl ::spyne_encoding::serialization::deserialize::Deserialize for [$ struct_name_ident ] {
             fn deserialize(deserializer: &mut impl ::spyne_encoding::serialization::deserialize::Deserializer) -> Result<Self, String> {
                 deserializer.read_struct([$ struct_name_lit ], &[($ [$ struct_fields_lit ] ),*], |de| {
@@ -61,7 +61,7 @@ fn deserialize_enum(iter: &mut TokenIter) -> Vec<TokenTree> {
                 let var_name_ident = TokenTree::Ident(variant.name.clone(), s);
                 let var_name_lit = TokenTree::Literal(format!("{:?}", variant.name.clone()), s);
                 variants.push(var_name_lit);
-                enum_arms.extend(quote! {
+                enum_arms.extend(quote_internal! {
                     [$ var_idx ] => Ok([$ enum_name_ident ]::[$ var_name_ident ]),
                 });
             }
@@ -75,7 +75,7 @@ fn deserialize_enum(iter: &mut TokenIter) -> Vec<TokenTree> {
                     field_types.push(TokenTree::Group(Delimiter::None, field.ty, field.span));
                 }
                 
-                enum_arms.extend(quote! {
+                enum_arms.extend(quote_internal! {
                     [$ var_idx ] => de.read_tuple([$ field_num ], |de| {
                        Ok([$ enum_name_ident ]::[$ var_name_ident ](($ <[$ field_types ]>::deserialize(de)? ),*)) 
                     }),
@@ -100,7 +100,7 @@ fn deserialize_enum(iter: &mut TokenIter) -> Vec<TokenTree> {
                     field_types.push(TokenTree::Group(Delimiter::None, field.ty, field.span));
                 }
                 
-                enum_arms.extend(quote! {
+                enum_arms.extend(quote_internal! {
                     [$ var_idx ] => de.read_struct([$ var_name_lit ], &[($ [$ field_names_lit ]),*], |de| {
                         Ok([$ enum_name_ident ]::[$ var_name_ident ] { ($ [$ field_names_ident ]: <[$ field_types ]>::deserialize(de)? ),* } )
                     }),
@@ -109,9 +109,9 @@ fn deserialize_enum(iter: &mut TokenIter) -> Vec<TokenTree> {
         }
     }
     
-    enum_arms.extend(quote! { _ => Err("DeriveDeserialize: Variant index out of bounds.".to_string()) });
+    enum_arms.extend(quote_internal! { _ => Err("DeriveDeserialize: Variant index out of bounds.".to_string()) });
     
-    quote! {
+    quote_internal! {
         impl ::spyne_encoding::serialization::deserialize::Deserialize for [$ enum_name_ident ] {
             fn deserialize(deserializer: &mut impl ::spyne_encoding::serialization::deserialize::Deserializer) -> Result<Self, String> {
                 deserializer.read_enum([$ enum_name_lit ], &[($ [$ variants ] ),*], |de, idx| {
